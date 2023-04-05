@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Application Template</string>
+    <string name="title_activity_list_menu">ListMenuActivity</string>
+    <string name="amount">Amount</string>
+    <string name="waiting">Waiting for a Response</string>
+    <string name="approved">Approved</string>
+
+    <string name="transactions">İşlemler</string>
+    <string name="reports">Reports</string>
+    <string name="void_transaction">Void</string>
+    <string name="insert_card">Please Insert Card</string>
+    <string name="button">Button</string>
+
+    <string name="title_activity_start">StartActivity</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <string name="pos_operations">POS İşlemleri</string>
+    <string name="matched_refund">Eşlenikli İade</string>
+    <string name="cash_refund">Peşin İade</string>
+    <string name="installment_refund">Taksitli İade</string>
+    <string name="loyalty_refund">Puan İade</string>
+
+    <string name="original_amount">Orijinal Tutar</string>
+    <string name="refund_amount">İade Tutarı</string>
+    <string name="invalid_amount">Tutar Hatalı</string>
+    <string name="ref_no">Ref No</string>
+    <string name="ref_no_invalid_ten_digits">Ref No Hatalı (10 Hane)</string>
+    <string name="confirmation_code">Onay Kodu</string>
+    <string name="confirmation_code_invalid_six_digits">Onay Kodu Hatalı (6 Hane)</string>
+    <string name="tran_date">İşlem Tarihi</string>
+    <string name="tran_date_invalid">İşlem Tarihi Hatalı</string>
+    <string name="refund">İade</string>
+    <string name="installment">Taksit</string>
+
+    <string name="connecting">Bağlantı Kuruluyor</string>
+    <string name="trans_successful">İşlem Başarılı</string>
+    <string name="printing_the_receipt">Slip Yazdırılıyor</string>
+
+    <string name="no_trans_found">İşlem Bulunamadı</string>
+    <string name="trans_cancelling">İşlem İptal Ediliyor</string>
+    <string name="trans_refunding">İşlem İade Ediliyor</string>
+
+    <string name="examples">Örnekler</string>
+    <string name="batch_close">Grup Kapama</string>
+    <string name="success">Başarılı</string>
+
+    <string name="sale">Satış</string>
+    <string name="installment_sale">Taksitli Satış</string>
+    <string name="loyalty_sale">Puan Satış</string>
+    <string name="campaign_sale">Kampanya Satış</string>
+    <string name="sale_type">Satış Tipi</string>
+
+    <string name="setup">Kurulum</string>
+    <string name="host_settings">Host Ayarları</string>
+    <string name="settings">Ayarlar</string>
+    <string name="invalid_ip">Geçersiz IP!</string>
+    <string name="invalid_port">Geçersiz Port!</string>
+    <string name="save">Kaydet</string>
+    <string name="activation_completed">Aktivasyon Tamamlandı</string>
+
+    <string name="merchant_no">İşyeri No</string>
+    <string name="invalid_merchant_no">İşyeri No Geçersiz!</string>
+    <string name="terminal_no">Terminal No</string>
+    <string name="invalid_terminal_no">Terminal No Geçersiz!</string>
+
+    <string name="starting_activation">Aktivasyon Başlatılıyor…</string>
+    <string name="parameter_loading">Parametre Yükleniyor</string>
+    <string name="member_act_completed">Üye İşyeri Aktivasyonu: Başarılı</string>
+    <string name="rkl_loading">RKL Yükleniyor</string>
+    <string name="rkl_loaded">RKL Yüklendi</string>
+    <string name="key_block_loading">Key Blok Yükleniyor</string>
+
+</resources>
