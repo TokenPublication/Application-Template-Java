@@ -1,4 +1,11 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="Sale_Action">Sale_Action</string>
+    <string name="Settings_Action">Settings_Action</string>
+    <string name="Refund_Action">Refund_Action</string>
+    <string name="BatchClose_Action">BatchClose_Action</string>
+    <string name="Parameter_Action">Parameter_Action</string>
+    <string name="PosTxn_Action">PosTxn_Action</string>
+
     <string name="app_name">Application Template</string>
     <string name="title_activity_list_menu">ListMenuActivity</string>
     <string name="amount">Amount</string>
