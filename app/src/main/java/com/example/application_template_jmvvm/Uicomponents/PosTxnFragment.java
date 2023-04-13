@@ -69,8 +69,10 @@ public class PosTxnFragment extends Fragment {
         //mViewModel.getMenuItems().observe(getViewLifecycleOwner(), mListMenuFragment::setListItems);
         // Add ListMenuFragment to the view hierarchy of PosTxnFragment
 
-        getChildFragmentManager().beginTransaction()
-                .add(R.id.container, mListMenuFragment)
-                .commit();
+        /*getChildFragmentManager().beginTransaction()
+                .replace(R.id.container, mListMenuFragment)
+                .commit();*/
+        mViewModel.replaceFragment(main,mListMenuFragment);
     }
+
 }
