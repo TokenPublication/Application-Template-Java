@@ -18,6 +18,8 @@ import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 import com.token.uicomponents.infodialog.InfoDialog;
+import com.token.uicomponents.infodialog.InfoDialogListener;
+import com.tokeninc.cardservicebinding.CardServiceBinding;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,7 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
+    protected CardServiceBinding cardServiceBinding;
     private FragmentManager fragmentManager;
     DatabaseHelper databaseHelper;
     private List<IListMenuItem> menuItems = new ArrayList<>();
@@ -46,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();
         }).start();
     }*/
+
+    protected InfoDialog showConfirmationDialog(InfoDialog.InfoType type, String title, String info, InfoDialog.InfoDialogButtons buttons, int arg, InfoDialogListener listener) {
+        InfoDialog dialog = InfoDialog.newInstance(type, title, info, buttons, arg, listener);
+        dialog.show(getSupportFragmentManager(), "");
+        return dialog;
+    }
 
     protected InfoDialog showInfoDialog(InfoDialog.InfoType type, String text, boolean isCancelable) {
         InfoDialog fragment = InfoDialog.newInstance(type, text, isCancelable);
@@ -92,4 +101,5 @@ public class MainActivity extends AppCompatActivity {
             replaceFragment(R.id.container, posTxnFragment, false);
         }
     }
+
 }

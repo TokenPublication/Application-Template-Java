@@ -29,11 +29,7 @@ import java.util.List;
 
 public class PosTxnFragment extends Fragment {
 
-    private FragmentManager fragmentManager;
     private PosTxnViewModel mViewModel;
-    private Button dummyButton;
-
-    private ListMenuFragment mListMenuFragment;
     private MainActivity main;
 
     public PosTxnFragment(MainActivity mainActivity) {
@@ -63,6 +59,8 @@ public class PosTxnFragment extends Fragment {
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {
         }));
         menuItems.add(new MenuItem(getString(R.string.examples), iListMenuItem -> {
+            ExampleFragment ExampleFragment = new ExampleFragment(this.main);
+            main.replaceFragment(R.id.container,ExampleFragment,true);
         }));
 
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.pos_operations), true, R.drawable.token_logo_png);

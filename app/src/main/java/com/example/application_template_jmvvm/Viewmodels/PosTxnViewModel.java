@@ -15,21 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PosTxnViewModel extends ViewModel {
-    private MutableLiveData<List<IListMenuItem>> mMenuItems;
-
-    public PosTxnViewModel() {
-        mMenuItems = new MutableLiveData<>();
-    }
-
-    public LiveData<List<IListMenuItem>> getMenuItems() {
-        return mMenuItems;
-    }
 
     public void replaceFragment(MainActivity mainActivity, ListMenuFragment mListMenuFragment) {
         new Thread(() -> mainActivity.replaceFragment(R.id.container, mListMenuFragment, false)).start();
     }
 
-    public void setMenuItems(List<IListMenuItem> menuItems) {
-        mMenuItems.setValue(menuItems);
-    }
 }
