@@ -1,7 +1,5 @@
 package com.example.application_template_jmvvm.Uicomponents;
 
-import static com.example.application_template_jmvvm.Helpers.KeyInjectHelper.exampleKey;
-
 import androidx.lifecycle.ViewModelProvider;
 
 import android.content.Intent;
@@ -131,14 +129,6 @@ public class ExampleFragment extends Fragment {
             );
         }));
 
-        menuItems.add(new MenuItem("Inject Key", (menuItem) -> {
-            exampleKey();
-        }));
-
-        menuItems.add(new MenuItem("Barcode Scanner", iListMenuItem -> {
-            new TokenBarcodeScanner(new WeakReference<>(this.main), data -> Toast.makeText(this.main, "Barcode Data: " + data, Toast.LENGTH_SHORT).show());
-        }));
-
         menuItems.add(new MenuItem("Num Pad", (menuItem) -> {
             NumPadDialog dialog = NumPadDialog.newInstance(new NumPadListener(){
                 @Override
@@ -153,6 +143,7 @@ public class ExampleFragment extends Fragment {
             dialog.show(main.getSupportFragmentManager(), "Num Pad");
         }));
 
+        //TODO: Card Service binding
         menuItems.add(new MenuItem("Show QR", (menuItem) -> {
             InfoDialog dialog = main.showInfoDialog(InfoDialog.InfoType.Progress, "QR Loading", true);
             // For detailed usage; SaleActivity

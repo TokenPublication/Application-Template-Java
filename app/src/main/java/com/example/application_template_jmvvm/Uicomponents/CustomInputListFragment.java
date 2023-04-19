@@ -42,19 +42,9 @@ public class CustomInputListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        InputValidator validator = new InputValidator() {
-            @Override
-            public boolean validate(CustomInputFormat input) {
-                return input.getText().length() == 19;
-            }
-        };
+        InputValidator validator = input -> input.getText().length() == 19;
 
-        InputValidator validator2 = new InputValidator() {
-            @Override
-            public boolean validate(CustomInputFormat input) {
-                return input.getText().length() == 10;
-            }
-        };
+        InputValidator validator2 = input -> input.getText().length() == 10;
 
         List<CustomInputFormat> inputList = new ArrayList<>();
         CustomInputFormat customInputFormat = new CustomInputFormat("Text",
