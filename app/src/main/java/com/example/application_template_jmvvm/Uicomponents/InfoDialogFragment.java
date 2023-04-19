@@ -84,12 +84,7 @@ public class InfoDialogFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        MenuItemClickListener listener = new MenuItemClickListener<InfoDialogItem>() {
-            @Override
-            public void onClick(InfoDialogItem item) {
-                showPopup(item);
-            }
-        };
+        MenuItemClickListener listener = (MenuItemClickListener<InfoDialogItem>) item -> showPopup(item);
 
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Confirmed, "Confirmed", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Warning, "Warning", listener, null));
