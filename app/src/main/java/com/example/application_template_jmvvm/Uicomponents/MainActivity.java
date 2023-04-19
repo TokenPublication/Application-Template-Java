@@ -55,22 +55,20 @@ public class MainActivity extends AppCompatActivity {
 
     protected void addFragment(@IdRes Integer resourceId, Fragment fragment, Boolean addToBackStack) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.add(resourceId, fragment);
+        ft.replace(resourceId, fragment);
         if (addToBackStack) {
-            ft.addToBackStack("");
+            ft.addToBackStack(null);
         }
         ft.commit();
     }
 
-    protected void replaceFragment(@IdRes Integer resourceId, Fragment fragment, Boolean addToBackStack) {
-        new Thread(() -> {
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.replace(resourceId, fragment);
-            if (addToBackStack) {
-                ft.addToBackStack("");
-            }
-            ft.commit();
-        }).start();
+    public void replaceFragment(@IdRes Integer resourceId, Fragment fragment, Boolean addToBackStack) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(resourceId, fragment);
+        if (addToBackStack) {
+            ft.addToBackStack(null);
+        }
+        ft.commit();
     }
 
     private void actionControl(@Nullable String action){
@@ -81,16 +79,17 @@ public class MainActivity extends AppCompatActivity {
 
         else if (Objects.equals(action, getString(R.string.PosTxn_Action))){
             PosTxnFragment posTxnFragment = new PosTxnFragment(this);
-            replaceFragment(R.id.container, posTxnFragment, true);
+            replaceFragment(R.id.container, posTxnFragment, false);
         }
 
         else if (Objects.equals(action, getString(R.string.Settings_Action))){
-            PosTxnFragment posTxnFragment = new PosTxnFragment(this);
-            replaceFragment(R.id.container, posTxnFragment, true);
+            SettingsFragment settingsFragment = new SettingsFragment(this,getApplicationContext());
+            replaceFragment(R.id.container, settingsFragment, false);
         }
+
         else {
             PosTxnFragment posTxnFragment = new PosTxnFragment(this);
-            replaceFragment(R.id.container, posTxnFragment, true);
+            replaceFragment(R.id.container, posTxnFragment, false);
         }
     }
 }

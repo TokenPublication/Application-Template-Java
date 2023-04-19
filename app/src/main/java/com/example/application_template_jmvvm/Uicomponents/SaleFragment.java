@@ -52,4 +52,5 @@ public class SaleFragment extends Fragment {
         TextView actionNameTextView = view.findViewById(R.id.action_name_text_view);
         mViewModel.getActionName().observe(getViewLifecycleOwner(), actionNameTextView::setText);
     }
+
 }
