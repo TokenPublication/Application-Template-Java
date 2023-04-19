@@ -1,0 +1,13 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="activity_horizontal_margin">4dp</dimen>
+    <dimen name="activity_vertical_margin">4dp</dimen>
+    <dimen name="nav_header_vertical_spacing">4dp</dimen>
+    <dimen name="nav_header_height">80dp</dimen>
+
+    <dimen name="small_text">16dp</dimen>
+    <dimen name="medium_text">24dp</dimen>
+    <dimen name="large_text">32dp</dimen>
+    <dimen name="list_item_spacing">24dp</dimen>
+    <dimen name="list_item_spacing_half">8dp</dimen>
+</resources>
