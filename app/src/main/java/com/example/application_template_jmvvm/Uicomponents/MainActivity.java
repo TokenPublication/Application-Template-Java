@@ -19,7 +19,6 @@ import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.Viewmodels.PosTxnViewModel;
 import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
-import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
@@ -38,7 +37,6 @@ public class MainActivity extends AppCompatActivity implements CardServiceListen
 
     protected CardServiceBinding cardServiceBinding;
     private FragmentManager fragmentManager;
-    DatabaseHelper databaseHelper;
     private List<IListMenuItem> menuItems = new ArrayList<>();
     private PosTxnViewModel posTxnViewModel;
     private SaleViewModel saleViewModel;
