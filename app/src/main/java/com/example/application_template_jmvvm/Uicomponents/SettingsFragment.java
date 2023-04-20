@@ -115,7 +115,7 @@ public class SettingsFragment extends Fragment {
             return isValid;
         }));
         inputList.add(new CustomInputFormat("Port", EditTextInputType.Number, 4, context.getString(R.string.invalid_port), customInputFormat -> customInputFormat.getText().length() >= 2 && Integer.parseInt(customInputFormat.getText()) > 0));
-        inputList.get(0).setText("9898878777");
+        inputList.get(0).setText("192.416.10.25");
         inputList.get(1).setText("1001");
 
         InputListFragment IpFragment = InputListFragment.newInstance(inputList, context.getString(R.string.save), list -> {
