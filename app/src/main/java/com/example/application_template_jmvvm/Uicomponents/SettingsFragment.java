@@ -13,14 +13,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.application_template_jmvvm.Helpers.DataBase.DatabaseHelper;
+import com.example.application_template_jmvvm.Helpers.DataBase.activation.ActivationDB;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.Viewmodels.PosTxnViewModel;
 import com.example.application_template_jmvvm.Viewmodels.SettingsViewModel;
 import com.token.uicomponents.CustomInput.CustomInputFormat;
 import com.token.uicomponents.CustomInput.EditTextInputType;
 import com.token.uicomponents.CustomInput.InputListFragment;
-import com.token.uicomponents.CustomInput.InputValidator;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 
@@ -38,7 +36,6 @@ public class SettingsFragment extends Fragment {
     private Context context;
 
     private String merchantId, ip_no, port_no;
-    DatabaseHelper databaseHelper;
 
     public SettingsFragment(MainActivity mainActivity, Context context) {
         this.main = mainActivity;
@@ -48,7 +45,6 @@ public class SettingsFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(requireActivity()).get(SettingsViewModel.class);
-        databaseHelper = new DatabaseHelper(getContext());
     }
 
     @Override
@@ -97,6 +93,8 @@ public class SettingsFragment extends Fragment {
 
             System.out.println(merchantId);
             System.out.println(terminalId);
+            ActivationDB.getInstance(context).insertActivation(context, terminalId, merchantId);
+            // TODO Barış Kılıç, Review.
         });
         main.replaceFragment(R.id.container,TidMidFragment,true);
     }
