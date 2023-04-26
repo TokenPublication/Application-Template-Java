@@ -1,24 +1,27 @@
 package com.example.application_template_jmvvm.Entity;
 
 public class ICCCard implements ICard {
-    int resultCode;
-    int mCardReadType;
-    String mCardNumber;
-    String mTrack2Data;
-    String mExpireDate;
-    int mTranAmount1;
+    public int resultCode;
+    public int mCardReadType;
+    public String mCardNumber;
+    public String mTrack2Data;
+    public String mExpireDate;
+    public int mTranAmount1;
     String mTrack1CustomerName;
-    String CardSeqNum;
-    String AC;
-    String CID;
-    String ATC;
-    String TVR;
-    String TSI;
-    String AIP;
-    String CVM;
-    String AID2;
-    String UN;
-    String IAD;
+    public String CardSeqNum;
+    public String AC;
+    public String CID;
+    public String ATC;
+    public String TVR;
+    public String TSI;
+    public String AIP;
+    public String CVM;
+    public String AID2;
+    public String AIDLabel;
+    public String SID;
+    public String DateTime;
+    public String UN;
+    public String IAD;
 
     @Override
     public String getCardNumber() {

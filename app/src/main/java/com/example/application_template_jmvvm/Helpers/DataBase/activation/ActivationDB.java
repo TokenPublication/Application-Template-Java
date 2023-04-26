@@ -57,16 +57,23 @@ public class ActivationDB extends DatabaseHelper {
         ContentValues values = new ContentValues();
         values.put(ActivationCol.col_IP.name(), IP);
         values.put(ActivationCol.col_Port.name(), port);
-        DatabaseOperations.deleteAllRecords(ACT_TABLE, writableSQLite);
-        return DatabaseOperations.insert(ACT_TABLE, writableSQLite, values);
+        DatabaseOperations.update(writableSQLite, ACT_TABLE, "1=1", values);
+        return true;
     }
 
     public void initHostSettings() {
         int count = Integer.parseInt(DatabaseOperations.
                 query(readableSQLite,"SELECT COUNT(*) FROM " + ACT_TABLE));
         if (count <= 0) {
-            insertConnection(IP, Port);
+            insertInit();
         }
+    }
+
+    public void insertInit(){
+        ContentValues values = new ContentValues();
+        values.put(ActivationCol.col_IP.name(), IP);
+        values.put(ActivationCol.col_Port.name(), Port);
+        DatabaseOperations.insert(ACT_TABLE,writableSQLite,values);
     }
 
     public void insertActivation(Context context, String terminalId, String merchantId) {

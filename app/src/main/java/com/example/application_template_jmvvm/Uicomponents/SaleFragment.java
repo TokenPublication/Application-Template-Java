@@ -3,6 +3,7 @@ package com.example.application_template_jmvvm.Uicomponents;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -30,6 +31,9 @@ import com.example.application_template_jmvvm.Entity.MSRCard;
 import com.example.application_template_jmvvm.Entity.PaymentTypes;
 import com.example.application_template_jmvvm.Entity.ResponseCode;
 import com.example.application_template_jmvvm.Entity.SlipType;
+import com.example.application_template_jmvvm.Helpers.DataBase.activation.ActivationCol;
+import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionCol;
+import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionDB;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
 import com.google.gson.Gson;
@@ -47,6 +51,7 @@ public class SaleFragment extends Fragment implements CardServiceListener{
     int cardReadType = 0;
     int amount;
     private ICCCard card;
+    private MSRCard msrCard;
     private SaleViewModel mViewModel;
     private MainActivity main;
     Spinner spinner;
@@ -128,7 +133,6 @@ public class SaleFragment extends Fragment implements CardServiceListener{
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        // TODO: Use the ViewModel
         mViewModel.setActionName(getString(R.string.Sale_Action));
     }
 
@@ -191,10 +195,10 @@ public class SaleFragment extends Fragment implements CardServiceListener{
             }
             else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
                 MSRCard card = new Gson().fromJson(cardData, MSRCard.class);
-                //TODO: MSR card
-                //this.card = card;
+                this.msrCard = card;
                 cardServiceBinding.getOnlinePIN(amount, card.getCardNumber(), 0x0A01, 0, 4, 8, 30);
             }
+            doSale(card);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -225,5 +229,20 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void doSale(ICCCard card){
+        ContentValues values = new ContentValues();
+        values.put(TransactionCol.col_bCardReadType.name(),card.mCardReadType);
+        values.put(TransactionCol.col_baTrack2.name(),card.mTrack2Data);
+        values.put(TransactionCol.col_baExpDate.name(),card.mExpireDate);
+        values.put(TransactionCol.col_ulAmount.name(),card.mTranAmount1);
+        values.put(TransactionCol.col_baCVM.name(),card.CVM);
+        values.put(TransactionCol.col_aid.name(),card.AID2);
+        values.put(TransactionCol.col_aidLabel.name(),card.AIDLabel);
+        values.put(TransactionCol.col_bTransCode.name(),card.resultCode);
+        values.put(TransactionCol.col_SID.name(),card.SID);
+        values.put(TransactionCol.col_baDate.name(),card.DateTime);
+        TransactionDB.getInstance(getContext()).insertTransaction(values);
     }
 }
