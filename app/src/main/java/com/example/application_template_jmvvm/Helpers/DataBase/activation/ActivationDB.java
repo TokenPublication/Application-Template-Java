@@ -57,8 +57,7 @@ public class ActivationDB extends DatabaseHelper {
         ContentValues values = new ContentValues();
         values.put(ActivationCol.col_IP.name(), IP);
         values.put(ActivationCol.col_Port.name(), port);
-        DatabaseOperations.update(writableSQLite, ACT_TABLE, "1=1", values);
-        return true;
+        return DatabaseOperations.update(writableSQLite, ACT_TABLE, "1=1", values) == 0;
     }
 
     public void initHostSettings() {

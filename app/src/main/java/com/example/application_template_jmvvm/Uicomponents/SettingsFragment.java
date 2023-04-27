@@ -114,7 +114,7 @@ public class SettingsFragment extends Fragment {
             ip_no = inputList.get(0).getText();
             port_no = inputList.get(1).getText();
 
-            ActivationDB.getInstance(context).insertConnection(ip_no, port_no);
+            ActivationDB.getInstance(context).insertConnection(ip_no, port_no); //TODO return değeri sonra kullanılacak.
             main.getSupportFragmentManager().popBackStack();
         });
         main.replaceFragment(R.id.container,IpFragment,true);

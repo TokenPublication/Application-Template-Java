@@ -50,6 +50,7 @@ public class SaleFragment extends Fragment implements CardServiceListener{
     private CardServiceBinding cardServiceBinding;
     int cardReadType = 0;
     int amount;
+    String uuid;
     private ICCCard card;
     private MSRCard msrCard;
     private SaleViewModel mViewModel;
@@ -67,6 +68,7 @@ public class SaleFragment extends Fragment implements CardServiceListener{
 
         Bundle bundle = main.getIntent().getExtras();
         amount = bundle.getInt("Amount");
+        uuid = main.getIntent().getExtras().getString("UUID");
     }
 
     @Override
@@ -231,18 +233,30 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         }
     }
 
-    public void doSale(ICCCard card){
+    public void doSale(ICCCard card) {
         ContentValues values = new ContentValues();
-        values.put(TransactionCol.col_bCardReadType.name(),card.mCardReadType);
-        values.put(TransactionCol.col_baTrack2.name(),card.mTrack2Data);
-        values.put(TransactionCol.col_baExpDate.name(),card.mExpireDate);
-        values.put(TransactionCol.col_ulAmount.name(),card.mTranAmount1);
-        values.put(TransactionCol.col_baCVM.name(),card.CVM);
-        values.put(TransactionCol.col_aid.name(),card.AID2);
-        values.put(TransactionCol.col_aidLabel.name(),card.AIDLabel);
-        values.put(TransactionCol.col_bTransCode.name(),card.resultCode);
-        values.put(TransactionCol.col_SID.name(),card.SID);
-        values.put(TransactionCol.col_baDate.name(),card.DateTime);
+        values.put(TransactionCol.col_uuid.name(), uuid);
+        values.put(TransactionCol.col_bCardReadType.name(), card.getmCardReadType());
+        values.put(TransactionCol.col_bTransCode.name(), 55);
+        values.put(TransactionCol.col_ulAmount.name(), card.getmTranAmount1());
+        values.put(TransactionCol.col_ulAmount2.name(), card.getmTranAmount1());
+        values.put(TransactionCol.col_baPAN.name(), card.getmCardNumber());
+        values.put(TransactionCol.col_baExpDate.name(), card.getmExpireDate());
+        values.put(TransactionCol.col_baDate.name(), card.getDateTime().substring(0,8));
+        values.put(TransactionCol.col_baTime.name(), card.getDateTime().substring(8));
+        values.put(TransactionCol.col_baTrack2.name(), card.getmTrack2Data());
+        values.put(TransactionCol.col_baCustomName.name(), card.getmTrack1CustomerName());
+        values.put(TransactionCol.col_baRspCode.name(), 3);
+        values.put(TransactionCol.col_bInstCnt.name(), 10);
+        values.put(TransactionCol.col_ulInstAmount.name(), card.getmTranAmount1());
+        values.put(TransactionCol.col_baTranDate.name(), card.getDateTime());
+        values.put(TransactionCol.col_baTranDate2.name(), card.getDateTime());
+        values.put(TransactionCol.col_baHostLogKey.name(), "1020304050");
+        values.put(TransactionCol.col_authCode.name(), "10203040");
+        values.put(TransactionCol.col_aid.name(), card.getAID2());
+        values.put(TransactionCol.col_aidLabel.name(), card.getAIDLabel());
+        values.put(TransactionCol.col_baCVM.name(), card.getCVM());
+        values.put(TransactionCol.col_SID.name(), card.getSID());
         TransactionDB.getInstance(getContext()).insertTransaction(values);
     }
 }

@@ -1,27 +1,111 @@
 package com.example.application_template_jmvvm.Entity;
 
 public class ICCCard implements ICard {
-    public int resultCode;
-    public int mCardReadType;
-    public String mCardNumber;
-    public String mTrack2Data;
-    public String mExpireDate;
-    public int mTranAmount1;
-    String mTrack1CustomerName;
-    public String CardSeqNum;
-    public String AC;
-    public String CID;
-    public String ATC;
-    public String TVR;
-    public String TSI;
-    public String AIP;
-    public String CVM;
-    public String AID2;
-    public String AIDLabel;
-    public String SID;
-    public String DateTime;
-    public String UN;
-    public String IAD;
+     int resultCode;
+     int mCardReadType;
+     String mCardNumber;
+     String mTrack2Data;
+     String mExpireDate;
+     int mTranAmount1;
+     String mTrack1CustomerName;
+     String CardSeqNum;
+     String AC;
+     String CID;
+     String ATC;
+     String TVR;
+     String TSI;
+     String AIP;
+     String CVM;
+     String AID2;
+     String AIDLabel;
+     String SID;
+     String DateTime;
+     String UN;
+     String IAD;
+
+    public int getResultCode() {
+        return resultCode;
+    }
+
+    public int getmCardReadType() {
+        return mCardReadType;
+    }
+
+    public String getmCardNumber() {
+        return mCardNumber;
+    }
+
+    public String getmTrack2Data() {
+        return mTrack2Data;
+    }
+
+    public String getmExpireDate() {
+        return mExpireDate;
+    }
+
+    public int getmTranAmount1() {
+        return mTranAmount1;
+    }
+
+    public String getmTrack1CustomerName() {
+        return mTrack1CustomerName;
+    }
+
+    public String getCardSeqNum() {
+        return CardSeqNum;
+    }
+
+    public String getAC() {
+        return AC;
+    }
+
+    public String getCID() {
+        return CID;
+    }
+
+    public String getATC() {
+        return ATC;
+    }
+
+    public String getTVR() {
+        return TVR;
+    }
+
+    public String getTSI() {
+        return TSI;
+    }
+
+    public String getAIP() {
+        return AIP;
+    }
+
+    public String getCVM() {
+        return CVM;
+    }
+
+    public String getAID2() {
+        return AID2;
+    }
+
+    public String getAIDLabel() {
+        return AIDLabel;
+    }
+
+    public String getSID() {
+        return SID;
+    }
+
+    public String getDateTime() {
+        return DateTime;
+    }
+
+    public String getUN() {
+        return UN;
+    }
+
+    public String getIAD() {
+        return IAD;
+    }
 
     @Override
     public String getCardNumber() {

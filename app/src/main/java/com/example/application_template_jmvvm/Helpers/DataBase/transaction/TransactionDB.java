@@ -15,21 +15,19 @@ import java.util.Map;
 public class TransactionDB extends DatabaseHelper {
 
     private static TransactionDB sDatabaseHelper;
-    private static Map<String,String> tbl_transaction;
 
     public TransactionDB(Context context){
         super(context.getApplicationContext());
     }
 
     private static void initTransactionTable(SQLiteDatabase db) {
-        tbl_transaction = new LinkedHashMap<>();
+        Map<String, String> tbl_transaction = new LinkedHashMap<>();
         tbl_transaction.put(TransactionCol.col_uuid.name(), "TEXT");
         tbl_transaction.put(TransactionCol.col_ulSTN.name(), "TEXT");
         tbl_transaction.put(TransactionCol.col_ulGUP_SN.name(), "TEXT");
         tbl_transaction.put(TransactionCol.col_batchNo.name(), "INTEGER");
         tbl_transaction.put(TransactionCol.col_settleNo.name(), "INTEGER");
         tbl_transaction.put(TransactionCol.col_bCardReadType.name(), "INTEGER");
-        tbl_transaction.put(TransactionCol.col_bCardTypeID.name(), "INTEGER");
         tbl_transaction.put(TransactionCol.col_bTransCode.name(), "INTEGER");
         tbl_transaction.put(TransactionCol.col_ulAmount.name(), "INTEGER");
         tbl_transaction.put(TransactionCol.col_ulAmount2.name(), "INTEGER");
@@ -40,7 +38,6 @@ public class TransactionDB extends DatabaseHelper {
         tbl_transaction.put(TransactionCol.col_baTrack2.name(), "TEXT");
         tbl_transaction.put(TransactionCol.col_baCustomName.name(), "TEXT");
         tbl_transaction.put(TransactionCol.col_baRspCode.name(), "INTEGER");
-        tbl_transaction.put(TransactionCol.col_baLabel.name(), "TEXT");
         tbl_transaction.put(TransactionCol.col_isVoid.name(), "INTEGER DEFAULT 0");
         tbl_transaction.put(TransactionCol.col_bInstCnt.name(), "INTEGER");
         tbl_transaction.put(TransactionCol.col_ulInstAmount.name(), "INTEGER");
@@ -55,10 +52,9 @@ public class TransactionDB extends DatabaseHelper {
         tbl_transaction.put(TransactionCol.col_authCode.name(), "TEXT");
         tbl_transaction.put(TransactionCol.col_aid.name(), "TEXT");
         tbl_transaction.put(TransactionCol.col_aidLabel.name(), "TEXT");
-        tbl_transaction.put(TransactionCol.col_pinByPass.name(), "INTEGER");
+        tbl_transaction.put(TransactionCol.col_pinByPass.name(), "INTEGER DEFAULT 0");
         tbl_transaction.put(TransactionCol.col_displayData.name(), "TEXT");
         tbl_transaction.put(TransactionCol.col_baCVM.name(), "TEXT");
-        tbl_transaction.put(TransactionCol.col_qrRefNo.name(), "TEXT");
         tbl_transaction.put(TransactionCol.col_isOffline.name(), "INTEGER DEFAULT 0");
         tbl_transaction.put(TransactionCol.col_SID.name(), "TEXT");
         tbl_transaction.put(TransactionCol.col_is_onlinePIN.name(), "INTEGER DEFAULT 0");
