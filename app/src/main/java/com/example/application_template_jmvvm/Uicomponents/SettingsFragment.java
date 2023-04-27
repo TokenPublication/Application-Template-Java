@@ -59,12 +59,6 @@ public class SettingsFragment extends Fragment {
         showMenu();
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        // TODO: Use the ViewModel
-    }
-
     private void showMenu(){
         List<IListMenuItem> menuItems = new ArrayList<>();
         menuItems.add(new MenuItem(getString(R.string.setup), iListMenuItem -> {
@@ -83,18 +77,16 @@ public class SettingsFragment extends Fragment {
 
         inputList.add(new CustomInputFormat(context.getString(R.string.terminal_no), EditTextInputType.Text, 8, context.getString(R.string.invalid_terminal_no), input -> input.getText().length() == 8));
 
-        inputList.get(0).setText("9898878777");
-        inputList.get(1).setText("90909090");
+        inputList.get(0).setText(ActivationDB.getInstance(context).getMerchantId());
+        inputList.get(1).setText(ActivationDB.getInstance(context).getTerminalId());
 
         InputListFragment TidMidFragment = InputListFragment.newInstance(inputList, context.getString(R.string.save), list -> {
 
             merchantId = inputList.get(0).getText();
             terminalId = inputList.get(1).getText();
 
-            System.out.println(merchantId);
-            System.out.println(terminalId);
             ActivationDB.getInstance(context).insertActivation(context, terminalId, merchantId);
-            // TODO Barış Kılıç, Review.
+            main.getSupportFragmentManager().popBackStack();
         });
         main.replaceFragment(R.id.container,TidMidFragment,true);
     }
@@ -115,15 +107,15 @@ public class SettingsFragment extends Fragment {
             return isValid;
         }));
         inputList.add(new CustomInputFormat("Port", EditTextInputType.Number, 4, context.getString(R.string.invalid_port), customInputFormat -> customInputFormat.getText().length() >= 2 && Integer.parseInt(customInputFormat.getText()) > 0));
-        inputList.get(0).setText("192.416.10.25");
-        inputList.get(1).setText("1001");
+        inputList.get(0).setText(ActivationDB.getInstance(context).getHostIP());
+        inputList.get(1).setText(ActivationDB.getInstance(context).getHostPort());
 
         InputListFragment IpFragment = InputListFragment.newInstance(inputList, context.getString(R.string.save), list -> {
             ip_no = inputList.get(0).getText();
             port_no = inputList.get(1).getText();
 
-            System.out.println(ip_no);
-            System.out.println(port_no);
+            ActivationDB.getInstance(context).insertConnection(ip_no, port_no); //TODO return değeri sonra kullanılacak.
+            main.getSupportFragmentManager().popBackStack();
         });
         main.replaceFragment(R.id.container,IpFragment,true);
     }
