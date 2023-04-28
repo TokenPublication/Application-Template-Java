@@ -58,13 +58,13 @@ public class MainActivity extends AppCompatActivity implements CardServiceListen
         }).start();
     }*/
 
-    protected InfoDialog showConfirmationDialog(InfoDialog.InfoType type, String title, String info, InfoDialog.InfoDialogButtons buttons, int arg, InfoDialogListener listener) {
+    public InfoDialog showConfirmationDialog(InfoDialog.InfoType type, String title, String info, InfoDialog.InfoDialogButtons buttons, int arg, InfoDialogListener listener) {
         InfoDialog dialog = InfoDialog.newInstance(type, title, info, buttons, arg, listener);
         dialog.show(getSupportFragmentManager(), "");
         return dialog;
     }
 
-    protected InfoDialog showInfoDialog(InfoDialog.InfoType type, String text, boolean isCancelable) {
+    public InfoDialog showInfoDialog(InfoDialog.InfoType type, String text, boolean isCancelable) {
         InfoDialog fragment = InfoDialog.newInstance(type, text, isCancelable);
         fragment.show(getSupportFragmentManager(), "");
         return fragment;

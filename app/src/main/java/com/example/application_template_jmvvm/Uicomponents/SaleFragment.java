@@ -35,6 +35,7 @@ import com.example.application_template_jmvvm.Helpers.DataBase.activation.Activa
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionCol;
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionDB;
 import com.example.application_template_jmvvm.R;
+import com.example.application_template_jmvvm.Services.TransactionService;
 import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
 import com.google.gson.Gson;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
@@ -43,11 +44,17 @@ import com.tokeninc.cardservicebinding.CardServiceListener;
 
 import org.json.JSONObject;
 
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
 public class SaleFragment extends Fragment implements CardServiceListener{
 
     private boolean isCardServiceConnected;
     private CardServiceListener cardServiceListener;
     private CardServiceBinding cardServiceBinding;
+    private TransactionService transactionService = new TransactionService();
     int cardReadType = 0;
     int amount;
     String uuid;
@@ -234,7 +241,7 @@ public class SaleFragment extends Fragment implements CardServiceListener{
     }
 
     public void doSale(ICCCard card) {
-        ContentValues values = new ContentValues();
+        ContentValues values = new ContentValues();  //TODO RxJava content value
         values.put(TransactionCol.col_uuid.name(), uuid);
         values.put(TransactionCol.col_bCardReadType.name(), card.getmCardReadType());
         values.put(TransactionCol.col_bTransCode.name(), 55);
@@ -257,6 +264,7 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         values.put(TransactionCol.col_aidLabel.name(), card.getAIDLabel());
         values.put(TransactionCol.col_baCVM.name(), card.getCVM());
         values.put(TransactionCol.col_SID.name(), card.getSID());
+        transactionService.doInBackground(main,getContext(),values);
         TransactionDB.getInstance(getContext()).insertTransaction(values);
     }
 }
