@@ -265,6 +265,5 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         values.put(TransactionCol.col_baCVM.name(), card.getCVM());
         values.put(TransactionCol.col_SID.name(), card.getSID());
         transactionService.doInBackground(main,getContext(),values);
-        TransactionDB.getInstance(getContext()).insertTransaction(values);
     }
 }
