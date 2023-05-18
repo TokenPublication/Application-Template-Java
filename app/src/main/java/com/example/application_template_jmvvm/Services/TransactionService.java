@@ -1,86 +1,53 @@
 package com.example.application_template_jmvvm.Services;
 
-import static android.content.ContentValues.TAG;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.util.Log;
 
-import com.example.application_template_jmvvm.Entity.ICCCard;
 import com.example.application_template_jmvvm.Entity.ResponseCode;
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionCol;
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionDB;
 import com.example.application_template_jmvvm.Responses.OnlineTransactionResponse;
+import com.example.application_template_jmvvm.Responses.TransactionResponse;
 import com.example.application_template_jmvvm.Uicomponents.MainActivity;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.Single;
-import io.reactivex.SingleObserver;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.internal.schedulers.TrampolineScheduler;
 import io.reactivex.schedulers.Schedulers;
 
 
 public class TransactionService implements InfoDialogListener {
 
-    private String testString = "one";
-    private Observable<ContentValues> observable;
-    private Observer<ContentValues> observer;
     private InfoDialog dialog;
-    public void doInBackground(MainActivity main, Context context, ContentValues values) {
+    public TransactionResponse doInBackground(MainActivity main, Context context, ContentValues values) {
+        TransactionResponse[] transactionResponse = new TransactionResponse[1];
+        TransactionResponse response = performTransaction(values,transactionResponse, context, main).blockingGet();
+        //TODO Info Dialog incelenecek.
+        return response;
+    }
 
-        dialog = main.showInfoDialog(InfoDialog.InfoType.Progress, "Progress",false);
-        observable = Observable.just(values)
+    public Single<TransactionResponse> performTransaction(ContentValues values,TransactionResponse[] transactionResponse, Context context, MainActivity main) {
+        return Single.create(new SingleOnSubscribe<TransactionResponse>() {
+                    @Override
+                    public void subscribe(SingleEmitter<TransactionResponse> emitter) throws Exception {
+                        OnlineTransactionResponse onlineTransactionResponse = parseResponse(1);
+                        transactionResponse[0] = finishTransaction(context,values,onlineTransactionResponse);
+                        emitter.onSuccess(transactionResponse[0]);
+                    }
+                })
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io());
-        observer = new Observer<ContentValues>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-                Log.i("Disposed","Dispose");
-            }
-
-            @Override
-            public void onNext(ContentValues contentValues) {
-                for (int i = 0; i <= 10; i++){
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    dialog.update(InfoDialog.InfoType.Progress,"Progress: "+(i*10));
-                }
-                Log.i("Values",contentValues.toString());
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.i("Error","Error");
-            }
-
-            @Override
-            public void onComplete() {
-                OnlineTransactionResponse onlineTransactionResponse = parseResponse(1);
-                finishTransaction(context,values,onlineTransactionResponse);
-                Log.i("Complete","Complete");
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                main.finish();
-            }
-        };
-        observable.subscribe(observer);
     }
     private OnlineTransactionResponse parseResponse(int transactionCode) {
         OnlineTransactionResponse onlineTransactionResponse = new OnlineTransactionResponse();
@@ -97,7 +64,7 @@ public class TransactionService implements InfoDialogListener {
         return onlineTransactionResponse;
     }
 
-    private void finishTransaction(Context context, ContentValues values, OnlineTransactionResponse onlineTransactionResponse){
+    private TransactionResponse finishTransaction(Context context, ContentValues values, OnlineTransactionResponse onlineTransactionResponse){
         values.put(TransactionCol.col_baRspCode.name(), onlineTransactionResponse.getmResponseCode().toString());
         values.put(TransactionCol.col_stPrintData1.name(), onlineTransactionResponse.getmTextPrintCode1());
         values.put(TransactionCol.col_stPrintData2.name(), onlineTransactionResponse.getmTextPrintCode2());
@@ -108,7 +75,7 @@ public class TransactionService implements InfoDialogListener {
         values.put(TransactionCol.col_ulInstAmount.name(), onlineTransactionResponse.getInstAmount());
         values.put(TransactionCol.col_baVoidDateTime.name(), onlineTransactionResponse.getDateTime());
         TransactionDB.getInstance(context).insertTransaction(values);
-        dialog.update(InfoDialog.InfoType.Confirmed, "Confirmed");
+        return new TransactionResponse(onlineTransactionResponse,1,values);
     }
 
     @Override
