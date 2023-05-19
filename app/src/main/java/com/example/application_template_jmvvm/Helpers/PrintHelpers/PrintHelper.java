@@ -6,7 +6,7 @@ import com.token.printerlib.StyledString;
 
 public class PrintHelper extends BasePrintHelper {
 
-    public static String PrintSuccess()
+    public static void PrintSuccess()
     {   // Print the success message
         StyledString styledText = new StyledString();
 
@@ -32,8 +32,7 @@ public class PrintHelper extends BasePrintHelper {
         styledText.newLine();
         styledText.addSpace(100);
 
-        //styledText.print(PrinterService.getService());       //TODO Eski haline getirilecek.
-        return styledText.toString();
+        styledText.print(PrinterService.getService());
     }
 
     public static void PrintError()
