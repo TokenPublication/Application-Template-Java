@@ -156,4 +156,19 @@ public class DatabaseOperations {
         }
         return deletedRows;
     }
+
+    public static boolean isTableEmpty(String tableName, SQLiteDatabase sqLiteDatabase) {
+        boolean isEmpty = true;
+
+        try (Cursor cursor = sqLiteDatabase.rawQuery("SELECT COUNT(*) FROM " + tableName, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int count = cursor.getInt(0);
+                isEmpty = (count == 0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return isEmpty;
+    }
 }

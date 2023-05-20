@@ -58,6 +58,10 @@ public class PosTxnFragment extends Fragment {
             RefundFragment RefundFragment = new RefundFragment(this.main);
             main.replaceFragment(R.id.container,RefundFragment,true);
         }));
+        menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {
+            VoidFragment VoidFragment = new VoidFragment(this.main);
+            main.replaceFragment(R.id.container,VoidFragment,true);
+        }));
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {
         }));
         menuItems.add(new MenuItem(getString(R.string.examples), iListMenuItem -> {
