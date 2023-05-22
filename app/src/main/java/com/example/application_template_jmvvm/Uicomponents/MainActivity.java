@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements CardServiceListen
     private void actionControl(@Nullable String action){
         if (Objects.equals(action, getString(R.string.Sale_Action))){
             SaleFragment saleTxnFragment = new SaleFragment(this);
-            replaceFragment(R.id.container, saleTxnFragment, true);
+            replaceFragment(R.id.container, saleTxnFragment, false);
         }
 
         else if (Objects.equals(action, getString(R.string.PosTxn_Action))){

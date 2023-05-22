@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -15,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelStoreOwner;
 
+import android.preference.PreferenceManager;
 import android.printservice.PrintJob;
 import android.printservice.PrintService;
 import android.printservice.PrinterDiscoverySession;
@@ -35,8 +37,11 @@ import com.example.application_template_jmvvm.Entity.ICard;
 import com.example.application_template_jmvvm.Entity.MSRCard;
 import com.example.application_template_jmvvm.Entity.PaymentTypes;
 import com.example.application_template_jmvvm.Entity.ResponseCode;
+import com.example.application_template_jmvvm.Entity.SampleReceipt;
 import com.example.application_template_jmvvm.Entity.SlipType;
+import com.example.application_template_jmvvm.Helpers.DataBase.DatabaseHelper;
 import com.example.application_template_jmvvm.Helpers.DataBase.activation.ActivationCol;
+import com.example.application_template_jmvvm.Helpers.DataBase.activation.ActivationDB;
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionCol;
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionDB;
 import com.example.application_template_jmvvm.Helpers.PrintHelpers.PrintHelper;
@@ -53,12 +58,14 @@ import com.tokeninc.cardservicebinding.CardServiceListener;
 
 import org.json.JSONObject;
 
+import java.util.Locale;
+
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class SaleFragment extends Fragment implements CardServiceListener{
+public class SaleFragment extends Fragment implements CardServiceListener {
 
     private boolean isCardServiceConnected;
     private CardServiceListener cardServiceListener;
@@ -96,10 +103,9 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         view.findViewById(R.id.btnSale).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isCardServiceConnected){
+                if (isCardServiceConnected) {
                     readCard();
-                }
-                else {
+                } else {
                     cardServiceBinding = new CardServiceBinding(main, cardServiceListener);
                 }
             }
@@ -146,7 +152,7 @@ public class SaleFragment extends Fragment implements CardServiceListener{
                 Log.d("Response Code", ResponseCode.ONLINE_DECLINE.name());
             }
         });
-        prepareSpinner(view);
+        prepareSpinner(view);           //TODO Response Code ayarlanacak.
         return view;
     }
 
@@ -160,7 +166,7 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         super.onViewCreated(view, savedInstanceState);
     }
 
-    private void prepareSpinner(View view){
+    private void prepareSpinner(View view) {
         spinner = view.findViewById(R.id.spinner);
         String[] items = new String[]{
                 String.valueOf(PaymentTypes.CREDITCARD),
@@ -171,7 +177,7 @@ public class SaleFragment extends Fragment implements CardServiceListener{
                 String.valueOf(PaymentTypes.OTHER)};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this.main, android.R.layout.simple_spinner_dropdown_item, items);
         spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(listener);
+        spinner.setOnItemSelectedListener(listener);            //TODO PaymentType finishe eklenecek.
     }
 
     private final AdapterView.OnItemSelectedListener listener = new AdapterView.OnItemSelectedListener() {
@@ -179,6 +185,7 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
             ((TextView) parent.getChildAt(0)).setTextColor(Color.WHITE);
         }
+
         @Override
         public void onNothingSelected(AdapterView<?> parent) {
 
@@ -187,7 +194,7 @@ public class SaleFragment extends Fragment implements CardServiceListener{
 
     @Override
     public void onCardServiceConnected() {
-        Log.d("Connected to Card Service","");
+        Log.d("Connected to Card Service", "");
         //TODO: Config files
         //main.setConfig();
         //main.setCLConfig();
@@ -201,26 +208,19 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         try {
             JSONObject json = new JSONObject(cardData);
             int type = json.getInt("mCardReadType");
-
             if (type == CardReadType.CLCard.value) {
-                cardReadType = CardReadType.CLCard.value;
                 ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
                 this.card = card;
-                Log.d(card.getCardNumber(),"Card Number: ");
-                Log.d(String.valueOf(amount),"Amount: ");
-            }
-            else if (type == CardReadType.ICC.value) {
+            } else if (type == CardReadType.ICC.value) {
                 ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
                 this.card = card;
-            }
-            else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
+            } else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
                 MSRCard card = new Gson().fromJson(cardData, MSRCard.class);
                 this.msrCard = card;
                 cardServiceBinding.getOnlinePIN(amount, card.getCardNumber(), 0x0A01, 0, 4, 8, 30);
             }
             doSale(card);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -241,12 +241,11 @@ public class SaleFragment extends Fragment implements CardServiceListener{
             obj.put("forceOnline", 1);
             obj.put("zeroAmount", 0);
             obj.put("fallback", 1);
-            obj.put("cardReadTypes",6);
+            obj.put("cardReadTypes", 6);
             obj.put("qrPay", 1);
 
             cardServiceBinding.getCard(amount, 40, obj.toString());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -260,7 +259,7 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         values.put(TransactionCol.col_ulAmount2.name(), card.getmTranAmount1());
         values.put(TransactionCol.col_baPAN.name(), card.getmCardNumber());
         values.put(TransactionCol.col_baExpDate.name(), card.getmExpireDate());
-        values.put(TransactionCol.col_baDate.name(), card.getDateTime().substring(0,8));
+        values.put(TransactionCol.col_baDate.name(), card.getDateTime().substring(0, 8));
         values.put(TransactionCol.col_baTime.name(), card.getDateTime().substring(8));
         values.put(TransactionCol.col_baTrack2.name(), card.getmTrack2Data());
         values.put(TransactionCol.col_baCustomName.name(), card.getmTrack1CustomerName());
@@ -275,43 +274,66 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         values.put(TransactionCol.col_aidLabel.name(), card.getAIDLabel());
         values.put(TransactionCol.col_baCVM.name(), card.getCVM());
         values.put(TransactionCol.col_SID.name(), card.getSID());
-        TransactionResponse transactionResponse = transactionService.doInBackground(main,getContext(),values);
+        TransactionResponse transactionResponse = transactionService.doInBackground(main, getContext(), values);
         finishSale(transactionResponse);
     }
 
-    private void finishSale(TransactionResponse transactionResponse){
-        //TODO Response code ve transaction code ayarlanacak. Activation ve Transaction viewmodel açılacak.
-        ResponseCode responseCode = ResponseCode.SUCCESS; //transactionResponse.getOnlineTransactionResponse().getmResponseCode();
-        if (responseCode == ResponseCode.SUCCESS) {
-            bundle.putInt("ResponseCode", responseCode.ordinal());
-            bundle.putInt("PaymentStatus", 0); // #2 Payment Status
-            bundle.putInt("Amount", amount); // #3 Amount
-            bundle.putInt("Amount2", 0);
-            bundle.putBoolean("IsSlip", true);
-            //bundle.putInt("BatchNo", batchDB.getBatchNo());
-            bundle.putString("CardNo", card.getCardNumber());
-            /*bundle.putString("MID", activationViewModel.getMerchantId());
-            bundle.putString("TID", activationViewModel.getTerminalId());
-            bundle.putInt("TxnNo", batchDB.getGUPSN());*/
+    private void finishSale(TransactionResponse transactionResponse) {
+        //TODO Response code ve transaction code ayarlanacak. Transaction code enum olmayacak.Activation ve Transaction viewmodel açılacak.,
+        Intent resultIntent = new Intent();
+        Bundle bundle = new Bundle();
+        SlipType slipType = SlipType.BOTH_SLIPS;
+        String cardNo = (String) transactionResponse.getContentValues().get(TransactionCol.col_baPAN.name());
+        bundle.putInt("ResponseCode", transactionResponse.getOnlineTransactionResponse().getmResponseCode().ordinal()); // #1 Response Code
+        bundle.putString("CardOwner", "OWNER NAME"); // Optional
+        bundle.putString("CardNumber", cardNo); // Optional, Card No can be masked
+        bundle.putInt("PaymentStatus", 0); // #2 Payment Status
+        bundle.putInt("Amount", (Integer) transactionResponse.getContentValues().get(TransactionCol.col_ulAmount.name())); // #3 Amount
+        bundle.putInt("Amount2", (Integer) transactionResponse.getContentValues().get(TransactionCol.col_ulAmount2.name()));
+        //bundle.putInt("BatchNo", databaseHelper.getBatchNo());
+        bundle.putString("CardNo", StringHelper.MaskTheCardNo((String) transactionResponse.getContentValues().get(TransactionCol.col_baPAN.name()))); //#5 Card No "MASKED"
 
-            SlipType slipType = SlipType.NO_SLIP;
-            if (responseCode == ResponseCode.CANCELLED || responseCode == ResponseCode.UNABLE_DECLINE || responseCode == ResponseCode.OFFLINE_DECLINE) {
-                slipType = SlipType.NO_SLIP;
-            }
-            else {
-                if (responseCode == ResponseCode.SUCCESS) {
-                    PrintHelper printHelper = null;
-                    bundle.putString("customerSlipData", printHelper.PrintSuccess());
-                    //bundle.putString("merchantSlipData", printHelper.getFormattedText());
-                    if (transactionResponse.getContentValues()!= null) {
-                        bundle.putString("RefNo", transactionResponse.getContentValues().getAsString(TransactionCol.col_baHostLogKey.name()));
-                        bundle.putString("AuthNo", transactionResponse.getContentValues().getAsString(TransactionCol.col_authCode.name()));
-                    }
-                }
-            }
-            intent.putExtras(bundle);
-            main.setResult(Activity.RESULT_OK, intent);
-            main.finish();
+        bundle.putString("MID", ActivationDB.getInstance(getContext()).getMerchantId()); //#6 Merchant ID
+        bundle.putString("TID", ActivationDB.getInstance(getContext()).getTerminalId()); //#7 Terminal ID
+        //bundle.putInt("TxnNo", databaseHelper.getTxNo());
+        bundle.putInt("SlipType", slipType.value);
+        //bundle.putString("RefNo", String.valueOf(databaseHelper.getSaleID()));
+        //bundle.putInt("PaymentType", paymentType);
+
+        if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {      //TODO AppTemp cannot cast hatası incelenecek.
+            //bundle.putString("customerSlipData", SalePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), SlipType.CARDHOLDER_SLIP, main, 1, 2));
+            PrintHelper.PrintSuccess();
         }
+        if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
+            //bundle.putString("merchantSlipData", SalePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), SlipType.MERCHANT_SLIP, main, 1, 2));
+            PrintHelper.PrintError();
+        }
+        bundle.putString("ApprovalCode", getApprovalCode());
+        resultIntent.putExtras(bundle);
+        main.setResult(Activity.RESULT_OK, resultIntent);
+        main.finish();
     }
+
+    private SampleReceipt getSampleReceipt(String cardNo, String ownerName) {
+        SampleReceipt receipt = new SampleReceipt();
+        receipt.setMerchantName("TOKEN FINTECH");
+        receipt.setMerchantID(ActivationDB.getInstance(getContext()).getMerchantId());
+        receipt.setPosID(ActivationDB.getInstance(getContext()).getTerminalId());
+        receipt.setCardNo(StringHelper.maskCardNumber(cardNo));
+        receipt.setFullName(ownerName);
+        receipt.setAmount(StringHelper.getAmount(amount));
+        //receipt.setGroupNo(String.valueOf(databaseHelper.getBatchNo()));
+        receipt.setAid("A0000000000031010");
+        //receipt.setSerialNo(String.valueOf(databaseHelper.getSaleID()));
+        //receipt.setApprovalCode(StringHelper.GenerateApprovalCode(String.valueOf(databaseHelper.getBatchNo()), String.valueOf(databaseHelper.getTxNo()), String.valueOf(databaseHelper.getSaleID())));
+        return receipt;
+    }
+
+    private String getApprovalCode() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this.getContext());
+        int approvalCode = sharedPref.getInt("ApprovalCode", 0);
+        sharedPref.edit().putInt("ApprovalCode", ++approvalCode).apply();
+        return String.format(Locale.ENGLISH, "%06d", approvalCode);
+    }
+
 }

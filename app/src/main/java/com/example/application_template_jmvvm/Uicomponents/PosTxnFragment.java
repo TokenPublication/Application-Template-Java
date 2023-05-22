@@ -55,6 +55,12 @@ public class PosTxnFragment extends Fragment {
         menuItems.add(new MenuItem(getString(R.string.transactions), iListMenuItem -> {
         }));
         menuItems.add(new MenuItem(getString(R.string.refund), iListMenuItem -> {
+            RefundFragment RefundFragment = new RefundFragment(this.main);
+            main.replaceFragment(R.id.container,RefundFragment,true);
+        }));
+        menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {
+            VoidFragment VoidFragment = new VoidFragment(this.main);
+            main.replaceFragment(R.id.container,VoidFragment,true);
         }));
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {
         }));
@@ -64,12 +70,6 @@ public class PosTxnFragment extends Fragment {
         }));
 
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.pos_operations), true, R.drawable.token_logo_png);
-        //mViewModel.getMenuItems().observe(getViewLifecycleOwner(), mListMenuFragment::setListItems);
-        // Add ListMenuFragment to the view hierarchy of PosTxnFragment
-
-        /*getChildFragmentManager().beginTransaction()
-                .replace(R.id.container, mListMenuFragment)
-                .commit();*/
         mViewModel.replaceFragment(main,mListMenuFragment);
     }
 
