@@ -3,8 +3,10 @@ package com.example.application_template_jmvvm.Uicomponents;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -13,6 +15,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelStoreOwner;
 
+import android.printservice.PrintJob;
+import android.printservice.PrintService;
+import android.printservice.PrinterDiscoverySession;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +39,11 @@ import com.example.application_template_jmvvm.Entity.SlipType;
 import com.example.application_template_jmvvm.Helpers.DataBase.activation.ActivationCol;
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionCol;
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionDB;
+import com.example.application_template_jmvvm.Helpers.PrintHelpers.PrintHelper;
+import com.example.application_template_jmvvm.Helpers.PrintHelpers.SalePrintHelper;
+import com.example.application_template_jmvvm.Helpers.StringHelper;
 import com.example.application_template_jmvvm.R;
+import com.example.application_template_jmvvm.Responses.TransactionResponse;
 import com.example.application_template_jmvvm.Services.TransactionService;
 import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
 import com.google.gson.Gson;
@@ -58,6 +67,8 @@ public class SaleFragment extends Fragment implements CardServiceListener{
     int cardReadType = 0;
     int amount;
     String uuid;
+    private Bundle bundle;
+    private Intent intent;
     private ICCCard card;
     private MSRCard msrCard;
     private SaleViewModel mViewModel;
@@ -72,10 +83,10 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(requireActivity()).get(SaleViewModel.class);
         cardServiceListener = this;
-
-        Bundle bundle = main.getIntent().getExtras();
+        intent = main.getIntent();
+        bundle = intent.getExtras();
         amount = bundle.getInt("Amount");
-        uuid = main.getIntent().getExtras().getString("UUID");
+        uuid = intent.getExtras().getString("UUID");
     }
 
     @Override
@@ -264,6 +275,43 @@ public class SaleFragment extends Fragment implements CardServiceListener{
         values.put(TransactionCol.col_aidLabel.name(), card.getAIDLabel());
         values.put(TransactionCol.col_baCVM.name(), card.getCVM());
         values.put(TransactionCol.col_SID.name(), card.getSID());
-        transactionService.doInBackground(main,getContext(),values);
+        TransactionResponse transactionResponse = transactionService.doInBackground(main,getContext(),values);
+        finishSale(transactionResponse);
+    }
+
+    private void finishSale(TransactionResponse transactionResponse){
+        //TODO Response code ve transaction code ayarlanacak. Activation ve Transaction viewmodel açılacak.
+        ResponseCode responseCode = ResponseCode.SUCCESS; //transactionResponse.getOnlineTransactionResponse().getmResponseCode();
+        if (responseCode == ResponseCode.SUCCESS) {
+            bundle.putInt("ResponseCode", responseCode.ordinal());
+            bundle.putInt("PaymentStatus", 0); // #2 Payment Status
+            bundle.putInt("Amount", amount); // #3 Amount
+            bundle.putInt("Amount2", 0);
+            bundle.putBoolean("IsSlip", true);
+            //bundle.putInt("BatchNo", batchDB.getBatchNo());
+            bundle.putString("CardNo", card.getCardNumber());
+            /*bundle.putString("MID", activationViewModel.getMerchantId());
+            bundle.putString("TID", activationViewModel.getTerminalId());
+            bundle.putInt("TxnNo", batchDB.getGUPSN());*/
+
+            SlipType slipType = SlipType.NO_SLIP;
+            if (responseCode == ResponseCode.CANCELLED || responseCode == ResponseCode.UNABLE_DECLINE || responseCode == ResponseCode.OFFLINE_DECLINE) {
+                slipType = SlipType.NO_SLIP;
+            }
+            else {
+                if (responseCode == ResponseCode.SUCCESS) {
+                    PrintHelper printHelper = null;
+                    bundle.putString("customerSlipData", printHelper.PrintSuccess());
+                    //bundle.putString("merchantSlipData", printHelper.getFormattedText());
+                    if (transactionResponse.getContentValues()!= null) {
+                        bundle.putString("RefNo", transactionResponse.getContentValues().getAsString(TransactionCol.col_baHostLogKey.name()));
+                        bundle.putString("AuthNo", transactionResponse.getContentValues().getAsString(TransactionCol.col_authCode.name()));
+                    }
+                }
+            }
+            intent.putExtras(bundle);
+            main.setResult(Activity.RESULT_OK, intent);
+            main.finish();
+        }
     }
 }
