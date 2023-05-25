@@ -1,5 +1,6 @@
 package com.example.application_template_jmvvm.Uicomponents;
 
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.annotation.SuppressLint;
@@ -49,10 +50,12 @@ import com.example.application_template_jmvvm.Helpers.PrintHelpers.SalePrintHelp
 import com.example.application_template_jmvvm.Helpers.StringHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.Responses.TransactionResponse;
+import com.example.application_template_jmvvm.Services.TransactionResponseListener;
 import com.example.application_template_jmvvm.Services.TransactionService;
 import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
 import com.google.gson.Gson;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
+import com.token.uicomponents.infodialog.InfoDialog;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
 
@@ -60,6 +63,7 @@ import org.json.JSONObject;
 
 import java.util.Locale;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -89,6 +93,7 @@ public class SaleFragment extends Fragment implements CardServiceListener {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(requireActivity()).get(SaleViewModel.class);
+        mViewModel.setMainActivity(main);
         cardServiceListener = this;
         intent = main.getIntent();
         bundle = intent.getExtras();
@@ -202,6 +207,21 @@ public class SaleFragment extends Fragment implements CardServiceListener {
         readCard();
     }
 
+    public void readCard() {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("forceOnline", 1);
+            obj.put("zeroAmount", 0);
+            obj.put("fallback", 1);
+            obj.put("cardReadTypes", 6);
+            obj.put("qrPay", 1);
+
+            cardServiceBinding.getCard(amount, 40, obj.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onCardDataReceived(String cardData) {
         Log.d("Card Data", cardData);
@@ -225,57 +245,14 @@ public class SaleFragment extends Fragment implements CardServiceListener {
         }
     }
 
-    @Override
-    public void onPinReceived(String s) {
-
-    }
-
-    @Override
-    public void onICCTakeOut() {
-
-    }
-
-    public void readCard() {
-        try {
-            JSONObject obj = new JSONObject();
-            obj.put("forceOnline", 1);
-            obj.put("zeroAmount", 0);
-            obj.put("fallback", 1);
-            obj.put("cardReadTypes", 6);
-            obj.put("qrPay", 1);
-
-            cardServiceBinding.getCard(amount, 40, obj.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void doSale(ICCCard card) {
-        ContentValues values = new ContentValues();  //TODO RxJava content value
-        values.put(TransactionCol.col_uuid.name(), uuid);
-        values.put(TransactionCol.col_bCardReadType.name(), card.getmCardReadType());
-        values.put(TransactionCol.col_bTransCode.name(), 55);
-        values.put(TransactionCol.col_ulAmount.name(), card.getmTranAmount1());
-        values.put(TransactionCol.col_ulAmount2.name(), card.getmTranAmount1());
-        values.put(TransactionCol.col_baPAN.name(), card.getmCardNumber());
-        values.put(TransactionCol.col_baExpDate.name(), card.getmExpireDate());
-        values.put(TransactionCol.col_baDate.name(), card.getDateTime().substring(0, 8));
-        values.put(TransactionCol.col_baTime.name(), card.getDateTime().substring(8));
-        values.put(TransactionCol.col_baTrack2.name(), card.getmTrack2Data());
-        values.put(TransactionCol.col_baCustomName.name(), card.getmTrack1CustomerName());
-        values.put(TransactionCol.col_baRspCode.name(), 3);
-        values.put(TransactionCol.col_bInstCnt.name(), 10);
-        values.put(TransactionCol.col_ulInstAmount.name(), card.getmTranAmount1());
-        values.put(TransactionCol.col_baTranDate.name(), card.getDateTime());
-        values.put(TransactionCol.col_baTranDate2.name(), card.getDateTime());
-        values.put(TransactionCol.col_baHostLogKey.name(), "1020304050");
-        values.put(TransactionCol.col_authCode.name(), "10203040");
-        values.put(TransactionCol.col_aid.name(), card.getAID2());
-        values.put(TransactionCol.col_aidLabel.name(), card.getAIDLabel());
-        values.put(TransactionCol.col_baCVM.name(), card.getCVM());
-        values.put(TransactionCol.col_SID.name(), card.getSID());
-        TransactionResponse transactionResponse = transactionService.doInBackground(main, getContext(), values);
-        finishSale(transactionResponse);
+    private void doSale(ICCCard card) {
+        mViewModel.performSaleTransaction(card,transactionService, getContext(), uuid);
+        mViewModel.getTransactionResponseLiveData().observe(getViewLifecycleOwner(), new Observer<TransactionResponse>() {
+            @Override
+            public void onChanged(TransactionResponse transactionResponse) {
+                finishSale(transactionResponse);
+            }
+        });
     }
 
     private void finishSale(TransactionResponse transactionResponse) {
@@ -302,16 +279,24 @@ public class SaleFragment extends Fragment implements CardServiceListener {
 
         if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {      //TODO AppTemp cannot cast hatası incelenecek.
             //bundle.putString("customerSlipData", SalePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), SlipType.CARDHOLDER_SLIP, main, 1, 2));
-            PrintHelper.PrintSuccess();
         }
         if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
             //bundle.putString("merchantSlipData", SalePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), SlipType.MERCHANT_SLIP, main, 1, 2));
-            PrintHelper.PrintError();
         }
         bundle.putString("ApprovalCode", getApprovalCode());
         resultIntent.putExtras(bundle);
         main.setResult(Activity.RESULT_OK, resultIntent);
         main.finish();
+        for (int i = 0; i <= 10; i++) {
+            final int progress = i;
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        PrintHelper.PrintSuccess();
+        PrintHelper.PrintError();
     }
 
     private SampleReceipt getSampleReceipt(String cardNo, String ownerName) {
@@ -334,6 +319,16 @@ public class SaleFragment extends Fragment implements CardServiceListener {
         int approvalCode = sharedPref.getInt("ApprovalCode", 0);
         sharedPref.edit().putInt("ApprovalCode", ++approvalCode).apply();
         return String.format(Locale.ENGLISH, "%06d", approvalCode);
+    }
+
+    @Override
+    public void onPinReceived(String s) {
+
+    }
+
+    @Override
+    public void onICCTakeOut() {
+
     }
 
 }

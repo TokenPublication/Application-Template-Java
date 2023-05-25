@@ -33,6 +33,7 @@ import com.example.application_template_jmvvm.Helpers.DataBase.transaction.Trans
 import com.example.application_template_jmvvm.Helpers.PrintHelpers.PrintHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.Responses.TransactionResponse;
+import com.example.application_template_jmvvm.Services.TransactionResponseListener;
 import com.example.application_template_jmvvm.Services.TransactionService;
 import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
 import com.google.gson.Gson;
@@ -263,8 +264,14 @@ public class RefundFragment extends Fragment implements CardServiceListener{
         values.put(TransactionCol.col_aidLabel.name(), card.getAIDLabel());
         values.put(TransactionCol.col_baCVM.name(), card.getCVM());
         values.put(TransactionCol.col_SID.name(), card.getSID());
-        TransactionResponse transactionResponse = transactionService.doInBackground(main,getContext(),values);
-        finishRefund(transactionResponse);
+        final TransactionResponse[] transactionResponse = {new TransactionResponse()};
+        transactionService.doInBackground(main, getContext(), values, new TransactionResponseListener() {
+            @Override
+            public void onComplete(TransactionResponse response) {
+                transactionResponse[0] = response;
+                finishRefund(transactionResponse[0]);
+            }
+        });
     }
 
     private void finishRefund(TransactionResponse transactionResponse) {

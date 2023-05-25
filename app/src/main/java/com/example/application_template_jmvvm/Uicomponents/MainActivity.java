@@ -45,18 +45,10 @@ public class MainActivity extends AppCompatActivity implements CardServiceListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         fragmentManager = getSupportFragmentManager();
-
         posTxnViewModel = new ViewModelProvider(this).get(PosTxnViewModel.class);
 
         actionControl(getIntent().getAction());
     }
-
-
-    /*public void replaceFragment(Fragment fragment) {
-        new Thread(() -> {
-            getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();
-        }).start();
-    }*/
 
     public InfoDialog showConfirmationDialog(InfoDialog.InfoType type, String title, String info, InfoDialog.InfoDialogButtons buttons, int arg, InfoDialogListener listener) {
         InfoDialog dialog = InfoDialog.newInstance(type, title, info, buttons, arg, listener);
@@ -128,6 +120,10 @@ public class MainActivity extends AppCompatActivity implements CardServiceListen
     @Override
     public void onICCTakeOut() {
 
+    }
+
+    public void showDialog(InfoDialog infoDialog) {
+        infoDialog.show(fragmentManager, "");
     }
 
     public void setConfig() {
