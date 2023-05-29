@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".Uicomponents.SaleFragment">
+    tools:context=".ui.transaction.SaleFragment">
 
     <FrameLayout
         android:id="@+id/container"
