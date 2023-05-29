@@ -9,22 +9,17 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.application_template_jmvvm.Entity.CardReadType;
-import com.example.application_template_jmvvm.Helpers.DataBase.DatabaseHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.Viewmodels.PosTxnViewModel;
-import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
+import com.example.application_template_jmvvm.Viewmodels.TransactionViewModel;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
-
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -39,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements CardServiceListen
     private FragmentManager fragmentManager;
     private List<IListMenuItem> menuItems = new ArrayList<>();
     private PosTxnViewModel posTxnViewModel;
-    private SaleViewModel saleViewModel;
+    private TransactionViewModel transactionViewModel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

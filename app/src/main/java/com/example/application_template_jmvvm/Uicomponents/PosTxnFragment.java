@@ -1,9 +1,5 @@
 package com.example.application_template_jmvvm.Uicomponents;
 
-import androidx.annotation.IdRes;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
@@ -15,12 +11,9 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
 
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.Viewmodels.PosTxnViewModel;
-import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 

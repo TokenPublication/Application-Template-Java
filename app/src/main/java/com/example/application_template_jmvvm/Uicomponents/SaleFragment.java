@@ -3,78 +3,48 @@ package com.example.application_template_jmvvm.Uicomponents;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Application;
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import dagger.hilt.android.AndroidEntryPoint;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelStoreOwner;
 
 import android.preference.PreferenceManager;
-import android.printservice.PrintJob;
-import android.printservice.PrintService;
-import android.printservice.PrinterDiscoverySession;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.example.application_template_jmvvm.Entity.CardReadType;
 import com.example.application_template_jmvvm.Entity.ICCCard;
-import com.example.application_template_jmvvm.Entity.ICard;
 import com.example.application_template_jmvvm.Entity.MSRCard;
 import com.example.application_template_jmvvm.Entity.PaymentTypes;
 import com.example.application_template_jmvvm.Entity.ResponseCode;
-import com.example.application_template_jmvvm.Entity.SampleReceipt;
 import com.example.application_template_jmvvm.Entity.SlipType;
-import com.example.application_template_jmvvm.Helpers.DataBase.DatabaseHelper;
 import com.example.application_template_jmvvm.Helpers.DataBase.TransactionDatabase;
-import com.example.application_template_jmvvm.Helpers.DataBase.activation.ActivationCol;
 import com.example.application_template_jmvvm.Helpers.DataBase.activation.ActivationDB;
+import com.example.application_template_jmvvm.Helpers.DataBase.entities.TransactionEntity;
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionCol;
-import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionDB;
 import com.example.application_template_jmvvm.Helpers.PrintHelpers.PrintHelper;
-import com.example.application_template_jmvvm.Helpers.PrintHelpers.SalePrintHelper;
 import com.example.application_template_jmvvm.Helpers.StringHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.Responses.TransactionResponse;
-import com.example.application_template_jmvvm.Services.TransactionResponseListener;
 import com.example.application_template_jmvvm.Services.TransactionService;
-import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
-import com.example.application_template_jmvvm.Viewmodels.SettingsViewModel;
-import com.google.gson.Gson;
-import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
-import com.token.uicomponents.infodialog.InfoDialog;
+import com.example.application_template_jmvvm.Viewmodels.TransactionViewModel;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
 
-import org.json.JSONObject;
-
 import java.util.Locale;
 
-import io.reactivex.Completable;
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
-
 @AndroidEntryPoint
-public class SaleFragment extends Fragment implements CardServiceListener {
+public class SaleFragment extends Fragment{
 
     private boolean isCardServiceConnected;
     private CardServiceListener cardServiceListener;
@@ -87,7 +57,7 @@ public class SaleFragment extends Fragment implements CardServiceListener {
     private Intent intent;
     private ICCCard card;
     private MSRCard msrCard;
-    private SaleViewModel mViewModel;
+    private TransactionViewModel mViewModel;
     private MainActivity main;
     Spinner spinner;
 
@@ -97,10 +67,9 @@ public class SaleFragment extends Fragment implements CardServiceListener {
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(requireActivity()).get(SaleViewModel.class);
-        mViewModel.setMainActivity(main);
+        mViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
+        mViewModel.setter(main);
         TransactionDatabase.getDatabase(getContext());
-        cardServiceListener = this;
         intent = main.getIntent();
         bundle = intent.getExtras();
         amount = bundle.getInt("Amount");
@@ -114,11 +83,19 @@ public class SaleFragment extends Fragment implements CardServiceListener {
         view.findViewById(R.id.btnSale).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isCardServiceConnected) {
-                    readCard();
-                } else {
-                    cardServiceBinding = new CardServiceBinding(main, cardServiceListener);
-                }
+                mViewModel.getIsCardServiceConnected().observe(getViewLifecycleOwner(), isConnected -> {
+                    if (isConnected) {
+                        mViewModel.readCard(amount);
+                    } else {
+                        mViewModel.initializeCardServiceBinding();
+                    }
+                });
+                mViewModel.setIsCardServiceConnected(true);
+                mViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
+                    if (card != null) {
+                        doSale(card);
+                    }
+                });
             }
         });
 
@@ -163,18 +140,9 @@ public class SaleFragment extends Fragment implements CardServiceListener {
                 Log.d("Response Code", ResponseCode.ONLINE_DECLINE.name());
             }
         });
+
         prepareSpinner(view);           //TODO Response Code ayarlanacak.
         return view;
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        mViewModel.setActionName(getString(R.string.Sale_Action));
-    }
-
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
     }
 
     private void prepareSpinner(View view) {
@@ -203,55 +171,7 @@ public class SaleFragment extends Fragment implements CardServiceListener {
         }
     };
 
-    @Override
-    public void onCardServiceConnected() {
-        Log.d("Connected to Card Service", "");
-        //TODO: Config files
-        //main.setConfig();
-        //main.setCLConfig();
-        isCardServiceConnected = true;
-        readCard();
-    }
-
-    public void readCard() {
-        try {
-            JSONObject obj = new JSONObject();
-            obj.put("forceOnline", 1);
-            obj.put("zeroAmount", 0);
-            obj.put("fallback", 1);
-            obj.put("cardReadTypes", 6);
-            obj.put("qrPay", 1);
-
-            cardServiceBinding.getCard(amount, 40, obj.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onCardDataReceived(String cardData) {
-        Log.d("Card Data", cardData);
-        try {
-            JSONObject json = new JSONObject(cardData);
-            int type = json.getInt("mCardReadType");
-            if (type == CardReadType.CLCard.value) {
-                ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
-                this.card = card;
-            } else if (type == CardReadType.ICC.value) {
-                ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
-                this.card = card;
-            } else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
-                MSRCard card = new Gson().fromJson(cardData, MSRCard.class);
-                this.msrCard = card;
-                cardServiceBinding.getOnlinePIN(amount, card.getCardNumber(), 0x0A01, 0, 4, 8, 30);
-            }
-            doSale(card);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void doSale(ICCCard card) {
+    public void doSale(ICCCard card) {
         mViewModel.performSaleTransaction(card,transactionService, getContext(), uuid);
         mViewModel.getTransactionResponseLiveData().observe(getViewLifecycleOwner(), new Observer<TransactionResponse>() {
             @Override
@@ -263,6 +183,14 @@ public class SaleFragment extends Fragment implements CardServiceListener {
 
     private void finishSale(TransactionResponse transactionResponse) {
         //TODO Response code ve transaction code ayarlanacak. Transaction code enum olmayacak.Activation ve Transaction viewmodel açılacak.,
+        mViewModel.getInsertedTransaction().observe(getViewLifecycleOwner(), new Observer<TransactionEntity>() {  //TODO klasörleri ayarla
+            @Override
+            public void onChanged(TransactionEntity insertedTransaction) {
+                if (insertedTransaction != null) {
+                    Log.d("Transaction Info:",insertedTransaction.getBaPAN());
+                }
+            }
+        });
         Intent resultIntent = new Intent();
         Bundle bundle = new Bundle();
         SlipType slipType = SlipType.BOTH_SLIPS;
@@ -275,7 +203,6 @@ public class SaleFragment extends Fragment implements CardServiceListener {
         bundle.putInt("Amount2", (Integer) transactionResponse.getContentValues().get(TransactionCol.col_ulAmount2.name()));
         //bundle.putInt("BatchNo", databaseHelper.getBatchNo());
         bundle.putString("CardNo", StringHelper.MaskTheCardNo((String) transactionResponse.getContentValues().get(TransactionCol.col_baPAN.name()))); //#5 Card No "MASKED"
-
         bundle.putString("MID", ActivationDB.getInstance(getContext()).getMerchantId()); //#6 Merchant ID
         bundle.putString("TID", ActivationDB.getInstance(getContext()).getTerminalId()); //#7 Terminal ID
         //bundle.putInt("TxnNo", databaseHelper.getTxNo());
@@ -305,36 +232,10 @@ public class SaleFragment extends Fragment implements CardServiceListener {
         PrintHelper.PrintError();
     }
 
-    private SampleReceipt getSampleReceipt(String cardNo, String ownerName) {
-        SampleReceipt receipt = new SampleReceipt();
-        receipt.setMerchantName("TOKEN FINTECH");
-        receipt.setMerchantID(ActivationDB.getInstance(getContext()).getMerchantId());
-        receipt.setPosID(ActivationDB.getInstance(getContext()).getTerminalId());
-        receipt.setCardNo(StringHelper.maskCardNumber(cardNo));
-        receipt.setFullName(ownerName);
-        receipt.setAmount(StringHelper.getAmount(amount));
-        //receipt.setGroupNo(String.valueOf(databaseHelper.getBatchNo()));
-        receipt.setAid("A0000000000031010");
-        //receipt.setSerialNo(String.valueOf(databaseHelper.getSaleID()));
-        //receipt.setApprovalCode(StringHelper.GenerateApprovalCode(String.valueOf(databaseHelper.getBatchNo()), String.valueOf(databaseHelper.getTxNo()), String.valueOf(databaseHelper.getSaleID())));
-        return receipt;
-    }
-
     private String getApprovalCode() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this.getContext());
         int approvalCode = sharedPref.getInt("ApprovalCode", 0);
         sharedPref.edit().putInt("ApprovalCode", ++approvalCode).apply();
         return String.format(Locale.ENGLISH, "%06d", approvalCode);
     }
-
-    @Override
-    public void onPinReceived(String s) {
-
-    }
-
-    @Override
-    public void onICCTakeOut() {
-
-    }
-
 }
