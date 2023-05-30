@@ -3,40 +3,30 @@ package com.example.application_template_jmvvm.Uicomponents;
 import static com.token.uicomponents.CustomInput.EditTextInputType.Amount;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.printservice.PrintService;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.example.application_template_jmvvm.Entity.CardReadType;
 import com.example.application_template_jmvvm.Entity.ICCCard;
 import com.example.application_template_jmvvm.Entity.MSRCard;
-import com.example.application_template_jmvvm.Entity.PaymentTypes;
 import com.example.application_template_jmvvm.Entity.ResponseCode;
-import com.example.application_template_jmvvm.Entity.SlipType;
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionCol;
 import com.example.application_template_jmvvm.Helpers.PrintHelpers.PrintHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.Responses.TransactionResponse;
 import com.example.application_template_jmvvm.Services.TransactionResponseListener;
 import com.example.application_template_jmvvm.Services.TransactionService;
-import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
+import com.example.application_template_jmvvm.Viewmodels.TransactionViewModel;
 import com.google.gson.Gson;
 import com.token.uicomponents.CustomInput.CustomInputFormat;
 import com.token.uicomponents.CustomInput.EditTextInputType;
@@ -267,7 +257,7 @@ public class RefundFragment extends Fragment implements CardServiceListener{
         values.put(TransactionCol.col_baCVM.name(), card.getCVM());
         values.put(TransactionCol.col_SID.name(), card.getSID());
         final TransactionResponse[] transactionResponse = {new TransactionResponse()};
-        transactionService.doInBackground(main, getContext(), values,new SaleViewModel(), new TransactionResponseListener() {
+        transactionService.doInBackground(main, getContext(), values,new TransactionViewModel(), new TransactionResponseListener() {
             @Override
             public void onComplete(TransactionResponse response) {
                 transactionResponse[0] = response;

@@ -11,21 +11,15 @@ import com.example.application_template_jmvvm.Helpers.DataBase.transaction.Trans
 import com.example.application_template_jmvvm.Responses.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.Responses.TransactionResponse;
 import com.example.application_template_jmvvm.Uicomponents.MainActivity;
-import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
+import com.example.application_template_jmvvm.Viewmodels.TransactionViewModel;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicReference;
 
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
-import io.reactivex.SingleOnSubscribe;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
@@ -37,7 +31,7 @@ public class TransactionService implements InfoDialogListener {
     private Observable<ContentValues> observable;
     private Observer<ContentValues> observer;
     private TransactionResponse transactionResponse;
-    public void doInBackground(MainActivity main, Context context, ContentValues values, SaleViewModel saleViewModel, TransactionResponseListener responseTransactionResponseListener) {
+    public void doInBackground(MainActivity main, Context context, ContentValues values, TransactionViewModel transactionViewModel, TransactionResponseListener responseTransactionResponseListener) {
 
         dialog = main.showInfoDialog(InfoDialog.InfoType.Progress, "Progress",false);
         observable = Observable.just(values)
@@ -72,7 +66,7 @@ public class TransactionService implements InfoDialogListener {
             public void onComplete() {
                 Log.i("Complete","Complete");
                 OnlineTransactionResponse onlineTransactionResponse = parseResponse(1);
-                TransactionResponse transactionResponse = finishTransaction(context,values,onlineTransactionResponse,saleViewModel);
+                TransactionResponse transactionResponse = finishTransaction(context,values,onlineTransactionResponse, transactionViewModel);
                 responseTransactionResponseListener.onComplete(transactionResponse);
                 try {
                     Thread.sleep(2000);
@@ -99,7 +93,7 @@ public class TransactionService implements InfoDialogListener {
         return onlineTransactionResponse;
     }
 
-    private TransactionResponse finishTransaction(Context context, ContentValues values, OnlineTransactionResponse onlineTransactionResponse, SaleViewModel saleViewModel){
+    private TransactionResponse finishTransaction(Context context, ContentValues values, OnlineTransactionResponse onlineTransactionResponse, TransactionViewModel transactionViewModel){
         ContentValues values1 = values;
         values1.put(TransactionCol.col_baRspCode.name(), onlineTransactionResponse.getmResponseCode().toString());
         values1.put(TransactionCol.col_stPrintData1.name(), onlineTransactionResponse.getmTextPrintCode1());
@@ -111,7 +105,7 @@ public class TransactionService implements InfoDialogListener {
         values1.put(TransactionCol.col_ulInstAmount.name(), onlineTransactionResponse.getInstAmount());
         values1.put(TransactionCol.col_baVoidDateTime.name(), onlineTransactionResponse.getDateTime());
         TransactionEntity transactionEntity = entityCreator(values1);
-        saleViewModel.insertTransaction(transactionEntity); //TODO düzenlenecek
+        transactionViewModel.insertTransaction(transactionEntity); //TODO düzenlenecek
         TransactionDB.getInstance(context).insertTransaction(values1);
         return new TransactionResponse(onlineTransactionResponse,1,values1);
     }
