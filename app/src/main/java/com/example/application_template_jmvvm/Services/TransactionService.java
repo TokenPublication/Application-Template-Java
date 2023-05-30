@@ -15,7 +15,9 @@ import com.token.uicomponents.infodialog.InfoDialogListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicReference;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.Single;
@@ -23,32 +25,63 @@ import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.internal.schedulers.TrampolineScheduler;
 import io.reactivex.schedulers.Schedulers;
+
 
 
 public class TransactionService implements InfoDialogListener {
 
     private InfoDialog dialog;
-    public TransactionResponse doInBackground(MainActivity main, Context context, ContentValues values) {
-        TransactionResponse[] transactionResponse = new TransactionResponse[1];
-        TransactionResponse response = performTransaction(values,transactionResponse, context, main).blockingGet();
-        //TODO Info Dialog incelenecek.
-        return response;
-    }
+    private Observable<ContentValues> observable;
+    private Observer<ContentValues> observer;
+    private TransactionResponse transactionResponse;
+    public void doInBackground(MainActivity main, Context context, ContentValues values, TransactionResponseListener responseTransactionResponseListener) {
 
-    public Single<TransactionResponse> performTransaction(ContentValues values,TransactionResponse[] transactionResponse, Context context, MainActivity main) {
-        return Single.create(new SingleOnSubscribe<TransactionResponse>() {
-                    @Override
-                    public void subscribe(SingleEmitter<TransactionResponse> emitter) throws Exception {
-                        OnlineTransactionResponse onlineTransactionResponse = parseResponse(1);
-                        transactionResponse[0] = finishTransaction(context,values,onlineTransactionResponse);
-                        emitter.onSuccess(transactionResponse[0]);
-                    }
-                })
+        dialog = main.showInfoDialog(InfoDialog.InfoType.Progress, "Progress",false);
+        observable = Observable.just(values)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io());
+        observer = new Observer<ContentValues>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.i("Disposed","Dispose");
+            }
+
+            @Override
+            public void onNext(ContentValues contentValues) {
+                for (int i = 0; i <= 11; i++){
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    dialog.update(InfoDialog.InfoType.Progress,"Progress: "+(i*10));
+                }
+                Log.i("Values",contentValues.toString());
+                dialog.update(InfoDialog.InfoType.Confirmed, "Confirmed");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.i("Error","Error");
+            }
+
+            @Override
+            public void onComplete() {
+                Log.i("Complete","Complete");
+                OnlineTransactionResponse onlineTransactionResponse = parseResponse(1);
+                TransactionResponse transactionResponse = finishTransaction(context,values,onlineTransactionResponse);
+                responseTransactionResponseListener.onComplete(transactionResponse);
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        observable.subscribe(observer);
     }
+
     private OnlineTransactionResponse parseResponse(int transactionCode) {
         OnlineTransactionResponse onlineTransactionResponse = new OnlineTransactionResponse();
         onlineTransactionResponse.setmResponseCode(ResponseCode.SUCCESS);
@@ -88,3 +121,4 @@ public class TransactionService implements InfoDialogListener {
 
     }
 }
+
