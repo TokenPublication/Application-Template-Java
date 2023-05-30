@@ -30,7 +30,6 @@ public class TransactionService implements InfoDialogListener {
     private InfoDialog dialog;
     private Observable<ContentValues> observable;
     private Observer<ContentValues> observer;
-    private TransactionResponse transactionResponse;
     public void doInBackground(MainActivity main, Context context, ContentValues values, TransactionViewModel transactionViewModel, TransactionResponseListener responseTransactionResponseListener) {
 
         dialog = main.showInfoDialog(InfoDialog.InfoType.Progress, "Progress",false);
@@ -106,7 +105,7 @@ public class TransactionService implements InfoDialogListener {
         values1.put(TransactionCol.col_baVoidDateTime.name(), onlineTransactionResponse.getDateTime());
         TransactionEntity transactionEntity = entityCreator(values1);
         transactionViewModel.insertTransaction(transactionEntity); //TODO düzenlenecek
-        TransactionDB.getInstance(context).insertTransaction(values1);
+        //TransactionDB.getInstance(context).insertTransaction(values1);
         return new TransactionResponse(onlineTransactionResponse,1,values1);
     }
 
