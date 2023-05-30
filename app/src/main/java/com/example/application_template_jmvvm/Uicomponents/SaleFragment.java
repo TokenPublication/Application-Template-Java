@@ -5,12 +5,14 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Application;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import dagger.hilt.android.AndroidEntryPoint;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -41,6 +43,7 @@ import com.example.application_template_jmvvm.Entity.ResponseCode;
 import com.example.application_template_jmvvm.Entity.SampleReceipt;
 import com.example.application_template_jmvvm.Entity.SlipType;
 import com.example.application_template_jmvvm.Helpers.DataBase.DatabaseHelper;
+import com.example.application_template_jmvvm.Helpers.DataBase.TransactionDatabase;
 import com.example.application_template_jmvvm.Helpers.DataBase.activation.ActivationCol;
 import com.example.application_template_jmvvm.Helpers.DataBase.activation.ActivationDB;
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionCol;
@@ -53,6 +56,7 @@ import com.example.application_template_jmvvm.Responses.TransactionResponse;
 import com.example.application_template_jmvvm.Services.TransactionResponseListener;
 import com.example.application_template_jmvvm.Services.TransactionService;
 import com.example.application_template_jmvvm.Viewmodels.SaleViewModel;
+import com.example.application_template_jmvvm.Viewmodels.SettingsViewModel;
 import com.google.gson.Gson;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 import com.token.uicomponents.infodialog.InfoDialog;
@@ -69,6 +73,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
+@AndroidEntryPoint
 public class SaleFragment extends Fragment implements CardServiceListener {
 
     private boolean isCardServiceConnected;
@@ -94,6 +99,7 @@ public class SaleFragment extends Fragment implements CardServiceListener {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(requireActivity()).get(SaleViewModel.class);
         mViewModel.setMainActivity(main);
+        TransactionDatabase.getDatabase(getContext());
         cardServiceListener = this;
         intent = main.getIntent();
         bundle = intent.getExtras();

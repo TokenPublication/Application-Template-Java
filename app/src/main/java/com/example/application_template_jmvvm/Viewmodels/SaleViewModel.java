@@ -1,5 +1,6 @@
 package com.example.application_template_jmvvm.Viewmodels;
 
+import android.app.Application;
 import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Color;
@@ -8,25 +9,39 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
+import javax.inject.Inject;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.Entity.ICCCard;
 import com.example.application_template_jmvvm.Entity.PaymentTypes;
+import com.example.application_template_jmvvm.Helpers.DataBase.TransactionDatabase;
+import com.example.application_template_jmvvm.Helpers.DataBase.daos.TransactionDao;
+import com.example.application_template_jmvvm.Helpers.DataBase.entities.TransactionEntity;
+import com.example.application_template_jmvvm.Helpers.DataBase.repositories.TransactionRepository;
 import com.example.application_template_jmvvm.Helpers.DataBase.transaction.TransactionCol;
 import com.example.application_template_jmvvm.Responses.TransactionResponse;
 import com.example.application_template_jmvvm.Services.TransactionResponseListener;
 import com.example.application_template_jmvvm.Services.TransactionService;
 import com.example.application_template_jmvvm.Uicomponents.MainActivity;
 
+import java.util.List;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
+
+@HiltViewModel
 public class SaleViewModel extends ViewModel {
     private MutableLiveData<String> mActionName = new MutableLiveData<>();
     private MainActivity main;
 
     public void setMainActivity(MainActivity main){
         this.main = main;
+        transactionDao = TransactionDatabase.getDatabase(main.getApplication()).transactionDao();
+        transactionRepository = new TransactionRepository(transactionDao);
     }
 
     public LiveData<String> getActionName() {
@@ -38,6 +53,37 @@ public class SaleViewModel extends ViewModel {
     }
 
     //TODO View state
+    private TransactionRepository transactionRepository;
+    private TransactionDao transactionDao;
+
+    @Inject
+    public SaleViewModel() {
+
+    }
+
+    public List<TransactionEntity> getTransactionsByRefNo(String refNo) {
+        return transactionRepository.getTransactionsByRefNo(refNo);
+    }
+
+    public List<TransactionEntity> getTransactionsByCardNo(String cardNo) {
+        return transactionRepository.getTransactionsByCardNo(cardNo);
+    }
+
+    public void insertTransaction(TransactionEntity transaction) {
+        transactionRepository.insertTransaction(transaction);
+    }
+
+    public void setVoid(int gupSN, String date, String card_SID) {
+        transactionRepository.setVoid(gupSN, date, card_SID);
+    }
+
+    public boolean isTransactionListEmpty() {
+        return transactionRepository.isEmpty();
+    }
+
+    public void deleteAllTransactions() {
+        transactionRepository.deleteAll();
+    }
 
     private MutableLiveData<TransactionResponse> transactionResponseLiveData = new MutableLiveData<>();
 
@@ -48,7 +94,7 @@ public class SaleViewModel extends ViewModel {
     public void performSaleTransaction(ICCCard card, TransactionService transactionService, Context context, String uuid) {
         ContentValues values = prepareContentValues(card, uuid);
         final TransactionResponse[] transactionResponse = {new TransactionResponse()};
-        transactionService.doInBackground(main, context, values, new TransactionResponseListener() {
+        transactionService.doInBackground(main, context, values,this, new TransactionResponseListener() {
             @Override
             public void onComplete(TransactionResponse response) {
                 transactionResponse[0] = response;
@@ -61,6 +107,7 @@ public class SaleViewModel extends ViewModel {
     private ContentValues prepareContentValues(ICCCard card, String uuid) {
         ContentValues values = new ContentValues();  //TODO RxJava content value
         values.put(TransactionCol.col_uuid.name(), uuid);
+        values.put(TransactionCol.col_ulSTN.name(), "STN");
         values.put(TransactionCol.col_bCardReadType.name(), card.getmCardReadType());
         values.put(TransactionCol.col_bTransCode.name(), 55);
         values.put(TransactionCol.col_ulAmount.name(), card.getmTranAmount1());

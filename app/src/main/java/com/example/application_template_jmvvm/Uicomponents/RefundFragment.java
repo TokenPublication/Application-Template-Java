@@ -3,6 +3,7 @@ package com.example.application_template_jmvvm.Uicomponents;
 import static com.token.uicomponents.CustomInput.EditTextInputType.Amount;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Color;
@@ -243,6 +244,7 @@ public class RefundFragment extends Fragment implements CardServiceListener{
     private void insertRefund(){
         ContentValues values = new ContentValues();
         values.put(TransactionCol.col_uuid.name(), uuid);
+        values.put(TransactionCol.col_ulSTN.name(), "STN");
         values.put(TransactionCol.col_bCardReadType.name(), card.getmCardReadType());
         values.put(TransactionCol.col_bTransCode.name(), 55);
         values.put(TransactionCol.col_ulAmount.name(),Integer.parseInt(inputList.get(0).getText()));
@@ -265,13 +267,15 @@ public class RefundFragment extends Fragment implements CardServiceListener{
         values.put(TransactionCol.col_baCVM.name(), card.getCVM());
         values.put(TransactionCol.col_SID.name(), card.getSID());
         final TransactionResponse[] transactionResponse = {new TransactionResponse()};
-        transactionService.doInBackground(main, getContext(), values, new TransactionResponseListener() {
+        transactionService.doInBackground(main, getContext(), values,new SaleViewModel(), new TransactionResponseListener() {
             @Override
             public void onComplete(TransactionResponse response) {
                 transactionResponse[0] = response;
                 finishRefund(transactionResponse[0]);
             }
         });
+        //TransactionResponse transactionResponse = transactionService.doInBackground(main,getContext(),values);
+        //finishRefund(transactionResponse);
     }
 
     private void finishRefund(TransactionResponse transactionResponse) {
