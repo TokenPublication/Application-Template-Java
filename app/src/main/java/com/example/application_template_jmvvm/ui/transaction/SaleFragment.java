@@ -69,7 +69,6 @@ public class SaleFragment extends Fragment{
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
         mViewModel.setter(main);
-        TransactionDatabase.getDatabase(getContext());
         intent = main.getIntent();
         bundle = intent.getExtras();
         amount = bundle.getInt("Amount");
@@ -183,7 +182,7 @@ public class SaleFragment extends Fragment{
 
     private void finishSale(TransactionResponse transactionResponse) {
         //TODO Response code ve transaction code ayarlanacak. Transaction code enum olmayacak.Activation ve Transaction viewmodel açılacak.,
-        mViewModel.getInsertedTransaction().observe(getViewLifecycleOwner(), new Observer<TransactionEntity>() {  //TODO klasörleri ayarla
+        mViewModel.getInsertedTransaction().observe(getViewLifecycleOwner(), new Observer<TransactionEntity>() {
             @Override
             public void onChanged(TransactionEntity insertedTransaction) {
                 if (insertedTransaction != null) {
@@ -221,7 +220,6 @@ public class SaleFragment extends Fragment{
         main.setResult(Activity.RESULT_OK, resultIntent);
         main.finish();
         for (int i = 0; i <= 10; i++) {
-            final int progress = i;
             try {
                 Thread.sleep(200);
             } catch (InterruptedException e) {

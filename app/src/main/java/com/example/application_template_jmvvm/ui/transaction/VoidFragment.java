@@ -12,9 +12,11 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.domain.entity.CardReadType;
 import com.example.application_template_jmvvm.domain.entity.ICCCard;
 import com.example.application_template_jmvvm.domain.entity.MSRCard;
@@ -25,27 +27,25 @@ import com.example.application_template_jmvvm.data.database.transaction.Transact
 import com.example.application_template_jmvvm.domain.helper.printHelpers.PrintHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.google.gson.Gson;
 import com.token.uicomponents.infodialog.InfoDialog;
+import com.token.uicomponents.infodialog.InfoDialogListener;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class VoidFragment extends Fragment implements CardServiceListener{
+public class VoidFragment extends Fragment implements InfoDialogListener {
 
-    private boolean isCardServiceConnected;
-    private CardServiceListener cardServiceListener;
-    private CardServiceBinding cardServiceBinding;
-    private ICCCard card;
-    private MSRCard msrCard;
-
+    private TransactionViewModel mViewModel;
+    private InfoDialog dialog;
     int amount;
     private RecyclerView rvTransactions;
-    private ArrayList<ContentValues> transactionList;
-
+    private List<TransactionEntity> transactionList;
     private MainActivity main;
 
     public VoidFragment(MainActivity mainActivity) {
@@ -54,7 +54,8 @@ public class VoidFragment extends Fragment implements CardServiceListener{
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        cardServiceListener = this;
+        mViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
+        mViewModel.setter(main);
         transactionList = new ArrayList<>();
         CheckTable();
     }
@@ -63,119 +64,54 @@ public class VoidFragment extends Fragment implements CardServiceListener{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_void, container, false);
+        if (mViewModel.getIsCardServiceConnected().getValue() == false){
+            mViewModel.initializeCardServiceBinding();
+        }
+        mViewModel.setIsCardServiceConnected(true);
+        mViewModel.readCard(amount);
+        mViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
+            if (card != null) {
+                setView(card);
+            }
+        });
         rvTransactions = view.findViewById(R.id.rvTransactions);
         return view;
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-    }
-
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-    }
-
     public void CheckTable(){
-        TransactionDB databaseHelper = new TransactionDB(main);
-        boolean empty = databaseHelper.isEmpty();
+        boolean empty = mViewModel.isTransactionListEmpty();
         if(empty){
-            InfoDialog dialog = main.showInfoDialog(InfoDialog.InfoType.Info, getString(R.string.no_trans_found), false);
+            dialog = main.showInfoDialog(InfoDialog.InfoType.Info, getString(R.string.no_trans_found), false);
             new Handler().postDelayed(() -> {
                 dialog.dismiss();
                 main.setResult(Activity.RESULT_CANCELED);
             }, 2000);
         }
-        else{
-            readDataSQLite();
-        }
     }
 
-    public void readDataSQLite(){
-        if (isCardServiceConnected) {
-            readCard();
-        } else {
-            cardServiceBinding = new CardServiceBinding(main, cardServiceListener);
-        }
+    public void setView(ICCCard card) {
+        Log.d("Card Data", card.getCardNumber());
+        transactionList = mViewModel.getTransactionsByCardNo(card.getCardNumber());
+        TransactionsRecycleAdapter adapter = new TransactionsRecycleAdapter(transactionList,mViewModel,this);
+        rvTransactions.setAdapter(adapter);
+        rvTransactions.setLayoutManager(new LinearLayoutManager(main));
+        ViewGroup parent = (ViewGroup) rvTransactions.getParent();
+        parent.addView(rvTransactions);
     }
 
-    @Override
-    public void onCardServiceConnected() {
-        Log.d("Connected to Card Service","");
-        //TODO: Config files
-        //main.setConfig();
-        //main.setCLConfig();
-        isCardServiceConnected = true;
-        readCard();
-    }
-
-    @Override
-    public void onCardDataReceived(String cardData) {
-        Log.d("Card Data", cardData);
-        try {
-            JSONObject json = new JSONObject(cardData);
-            int type = json.getInt("mCardReadType");
-            String cardNo = json.getString("mCardNumber");
-            if (type == CardReadType.CLCard.value) {
-                ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
-                this.card = card;
-            } else if (type == CardReadType.ICC.value) {
-                ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
-                this.card = card;
-            } else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
-                MSRCard card = new Gson().fromJson(cardData, MSRCard.class);
-                this.msrCard = card;
-                cardServiceBinding.getOnlinePIN(amount, card.getCardNumber(), 0x0A01, 0, 4, 8, 30);
-            }
-            TransactionDB databaseHelper = new TransactionDB(main);
-            transactionList = databaseHelper.getTransactionsByCardNo(cardNo);
-            TransactionsRecycleAdapter adapter = new TransactionsRecycleAdapter(transactionList,this);
-            rvTransactions.setAdapter(adapter);
-            rvTransactions.setLayoutManager(new LinearLayoutManager(main));
-            ViewGroup parent = (ViewGroup) rvTransactions.getParent();
-            parent.addView(rvTransactions);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void doVoid(ContentValues contentValues, String authCode){
-        TransactionDB databaseHelper = new TransactionDB(main);
-        DatabaseOperations.update(databaseHelper.getWritableDatabase(),"TRANSACTIONS",TransactionCol.col_authCode.name() + " = " + authCode,contentValues);
-        finishVoid(contentValues);
-    }
-
-    @Override
-    public void onPinReceived(String s) {
-
-    }
-
-    @Override
-    public void onICCTakeOut() {
-
-    }
-
-    private void finishVoid(ContentValues contentValues) {      //TODO TransactionResponse eklenecek. Service kısmı düzenlenecek. Slip ayarlanacak.
-        Log.d("Void Operation", " ContentVals: " + contentValues);
+    public void finishVoid() {      //TODO TransactionResponse eklenecek.Slip ayarlanacak.
         PrintHelper.PrintError();
         main.setResult(Activity.RESULT_OK);
         main.finish();
     }
 
-    public void readCard() {
-        try {
-            JSONObject obj = new JSONObject();
-            obj.put("forceOnline", 1);
-            obj.put("zeroAmount", 0);
-            obj.put("fallback", 1);
-            obj.put("cardReadTypes", 6);
-            obj.put("showAmount", 0);
-            obj.put("qrPay", 1);
+    @Override
+    public void confirmed(int i) {
 
-            cardServiceBinding.getCard(amount, 40, obj.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
+    @Override
+    public void canceled(int i) {
+
+    }
 }

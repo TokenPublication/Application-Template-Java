@@ -13,6 +13,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.application_template_jmvvm.R;
+import com.example.application_template_jmvvm.data.database.TransactionDatabase;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnViewModel;
 import com.example.application_template_jmvvm.ui.settings.SettingsFragment;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements CardServiceListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        TransactionDatabase.getDatabase(this);
         fragmentManager = getSupportFragmentManager();
         posTxnViewModel = new ViewModelProvider(this).get(PosTxnViewModel.class);
 
