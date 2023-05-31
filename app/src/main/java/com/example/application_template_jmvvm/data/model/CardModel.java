@@ -8,12 +8,16 @@ import com.example.application_template_jmvvm.domain.entity.CardReadType;
 import com.example.application_template_jmvvm.domain.entity.ICCCard;
 import com.example.application_template_jmvvm.domain.entity.MSRCard;
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.domain.entity.TransactionCode;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.google.gson.Gson;
+import com.token.uicomponents.CustomInput.CustomInputFormat;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
 
 import org.json.JSONObject;
+
+import java.util.List;
 
 public class CardModel implements CardServiceListener{
 
@@ -74,7 +78,6 @@ public class CardModel implements CardServiceListener{
         values.put(TransactionCol.col_bCardReadType.name(), card.getmCardReadType());
         values.put(TransactionCol.col_bTransCode.name(), 55);
         values.put(TransactionCol.col_ulAmount.name(), card.getmTranAmount1());
-        values.put(TransactionCol.col_ulAmount2.name(), card.getmTranAmount1());
         values.put(TransactionCol.col_baPAN.name(), card.getmCardNumber());
         values.put(TransactionCol.col_baExpDate.name(), card.getmExpireDate());
         values.put(TransactionCol.col_baDate.name(), card.getDateTime().substring(0, 8));
@@ -82,16 +85,35 @@ public class CardModel implements CardServiceListener{
         values.put(TransactionCol.col_baTrack2.name(), card.getmTrack2Data());
         values.put(TransactionCol.col_baCustomName.name(), card.getmTrack1CustomerName());
         values.put(TransactionCol.col_baRspCode.name(), 3);
-        values.put(TransactionCol.col_bInstCnt.name(), 10);
-        values.put(TransactionCol.col_ulInstAmount.name(), card.getmTranAmount1());
         values.put(TransactionCol.col_baTranDate.name(), card.getDateTime());
-        values.put(TransactionCol.col_baTranDate2.name(), card.getDateTime());
         values.put(TransactionCol.col_baHostLogKey.name(), "1020304050");
         values.put(TransactionCol.col_authCode.name(), "10203040");
         values.put(TransactionCol.col_aid.name(), card.getAID2());
         values.put(TransactionCol.col_aidLabel.name(), card.getAIDLabel());
         values.put(TransactionCol.col_baCVM.name(), card.getCVM());
         values.put(TransactionCol.col_SID.name(), card.getSID());
+        return values;
+    }
+
+    public ContentValues putExtraContents(ContentValues values, TransactionCode transactionCode,
+                                          List<CustomInputFormat> inputList) {
+        switch (transactionCode) {
+            case MATCHED_REFUND:
+                values.put(TransactionCol.col_ulAmount.name(),Integer.parseInt(inputList.get(0).getText()));
+                values.put(TransactionCol.col_ulAmount2.name(), Integer.parseInt(inputList.get(1).getText()));
+                values.put(TransactionCol.col_authCode.name(), inputList.get(3).getText());
+                values.put(TransactionCol.col_baTranDate2.name(), inputList.get(4).getText());
+                break;
+            case CASH_REFUND:
+                values.put(TransactionCol.col_ulAmount2.name(), Integer.parseInt(inputList.get(0).getText()));
+                break;
+            case INSTALLMENT_REFUND:
+                // Handle installment refund type
+                break;
+            default:
+                // Default
+                break;
+        }
         return values;
     }
 

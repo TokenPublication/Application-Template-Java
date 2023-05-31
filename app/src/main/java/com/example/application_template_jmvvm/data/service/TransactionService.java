@@ -11,6 +11,7 @@ import com.example.application_template_jmvvm.data.database.transaction.Transact
 import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionDB;
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.domain.entity.TransactionCode;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
@@ -30,8 +31,10 @@ public class TransactionService implements InfoDialogListener {
     private InfoDialog dialog;
     private Observable<ContentValues> observable;
     private Observer<ContentValues> observer;
-    public void doInBackground(MainActivity main, Context context, ContentValues values, TransactionViewModel transactionViewModel, TransactionResponseListener responseTransactionResponseListener) {
+    private TransactionCode transactionCode;
+    public void doInBackground(MainActivity main, Context context, ContentValues values, TransactionCode transactionCode, TransactionViewModel transactionViewModel, TransactionResponseListener responseTransactionResponseListener) {
 
+        this.transactionCode = transactionCode;
         dialog = main.showInfoDialog(InfoDialog.InfoType.Progress, "Progress",false);
         observable = Observable.just(values)
                 .subscribeOn(Schedulers.io())
@@ -86,8 +89,6 @@ public class TransactionService implements InfoDialogListener {
         onlineTransactionResponse.setmHostLogKey(String.valueOf((int) (Math.random() * 100000000)));
         onlineTransactionResponse.setmDisplayData("Display Data");
         onlineTransactionResponse.setmKeySequenceNumber("3");
-        onlineTransactionResponse.setInsCount(0);
-        onlineTransactionResponse.setInstAmount(0);
         onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         return onlineTransactionResponse;
     }
@@ -100,12 +101,8 @@ public class TransactionService implements InfoDialogListener {
         values1.put(TransactionCol.col_authCode.name(), onlineTransactionResponse.getmAuthCode());
         values1.put(TransactionCol.col_baHostLogKey.name(), onlineTransactionResponse.getmHostLogKey());
         values1.put(TransactionCol.col_displayData.name(), onlineTransactionResponse.getmDisplayData());
-        values1.put(TransactionCol.col_bInstCnt.name(), onlineTransactionResponse.getInsCount());
-        values1.put(TransactionCol.col_ulInstAmount.name(), onlineTransactionResponse.getInstAmount());
-        values1.put(TransactionCol.col_baVoidDateTime.name(), onlineTransactionResponse.getDateTime());
         TransactionEntity transactionEntity = entityCreator(values1);
         transactionViewModel.insertTransaction(transactionEntity); //TODO düzenlenecek
-        //TransactionDB.getInstance(context).insertTransaction(values1);
         return new TransactionResponse(onlineTransactionResponse,1,values1);
     }
 
@@ -113,30 +110,38 @@ public class TransactionService implements InfoDialogListener {
         TransactionEntity transactionEntity = new TransactionEntity();
         transactionEntity.setUuid(values.get(TransactionCol.col_uuid.name()).toString());
         transactionEntity.setUlSTN(values.get(TransactionCol.col_ulSTN.name()).toString());
-        //transactionEntity.setBatchNo(Integer.parseInt(values.get(TransactionCol.col_batchNo.name()).toString()));
-        //transactionEntity.setSettleNo(Integer.parseInt(values.get(TransactionCol.col_settleNo.name()).toString()));
+        transactionEntity.setUlAmount(Integer.parseInt(values.get(TransactionCol.col_ulAmount.name()).toString()));
+        switch (transactionCode) {
+            case MATCHED_REFUND:
+                transactionEntity.setUlAmount2(Integer.parseInt(values.get(TransactionCol.col_ulAmount2.name()).toString()));
+                transactionEntity.setAuthCode(values.get(TransactionCol.col_authCode.name()).toString());
+                transactionEntity.setBaTranDate2(values.get(TransactionCol.col_baTranDate2.name()).toString());
+                break;
+            case CASH_REFUND:
+                transactionEntity.setUlAmount2(Integer.parseInt(values.get(TransactionCol.col_ulAmount2.name()).toString()));
+                break;
+            case INSTALLMENT_REFUND:
+                transactionEntity.setbInstCnt(Integer.parseInt(values.get(TransactionCol.col_bInstCnt.name()).toString()));
+                transactionEntity.setUlInstAmount(Integer.parseInt(values.get(TransactionCol.col_ulInstAmount.name()).toString()));
+                break;
+            default:
+                // Handle other refund types or provide a default behavior
+                break;
+        }
         transactionEntity.setbCardReadType(Integer.parseInt(values.get(TransactionCol.col_bCardReadType.name()).toString()));
         transactionEntity.setbTransCode(Integer.parseInt(values.get(TransactionCol.col_bTransCode.name()).toString()));
-        transactionEntity.setUlAmount(Integer.parseInt(values.get(TransactionCol.col_ulAmount.name()).toString()));
-        transactionEntity.setUlAmount2(Integer.parseInt(values.get(TransactionCol.col_ulAmount2.name()).toString()));
         transactionEntity.setBaPAN(values.get(TransactionCol.col_baPAN.name()).toString());
         transactionEntity.setBaExpDate(values.get(TransactionCol.col_baExpDate.name()).toString());
         transactionEntity.setBaDate(values.get(TransactionCol.col_baDate.name()).toString());
         transactionEntity.setBaTime(values.get(TransactionCol.col_baTime.name()).toString());
         transactionEntity.setBaTrack2(values.get(TransactionCol.col_baTrack2.name()).toString());
-        //transactionEntity.setBaCustomName(values.get(TransactionCol.col_baCustomName.name()).toString());
         transactionEntity.setBaRspCode(values.get(TransactionCol.col_baRspCode.name()).toString());
         transactionEntity.setIsVoid(0);     //TODO: rspcode incelenecek
-        transactionEntity.setbInstCnt(Integer.parseInt(values.get(TransactionCol.col_bInstCnt.name()).toString()));
-        transactionEntity.setUlInstAmount(Integer.parseInt(values.get(TransactionCol.col_ulInstAmount.name()).toString()));
         transactionEntity.setBaTranDate(values.get(TransactionCol.col_baTranDate.name()).toString());
-        transactionEntity.setBaTranDate2(values.get(TransactionCol.col_baTranDate2.name()).toString());
         transactionEntity.setBaHostLogKey(values.get(TransactionCol.col_baHostLogKey.name()).toString());
-        //transactionEntity.setStChipData(values.get(TransactionCol.col_stChipData.name()).toString());
         transactionEntity.setIsSignature(0);
         transactionEntity.setStPrintData1(values.get(TransactionCol.col_stPrintData1.name()).toString());
         transactionEntity.setStPrintData2(values.get(TransactionCol.col_stPrintData2.name()).toString());
-        //transactionEntity.setBaVoidDateTime(values.get(TransactionCol.col_baVoidDateTime.name()).toString());
         transactionEntity.setAuthCode(values.get(TransactionCol.col_authCode.name()).toString());
         transactionEntity.setAid(values.get(TransactionCol.col_aid.name()).toString());
         transactionEntity.setAidLabel(values.get(TransactionCol.col_aidLabel.name()).toString());
