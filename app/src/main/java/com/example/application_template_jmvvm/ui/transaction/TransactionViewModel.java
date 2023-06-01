@@ -4,6 +4,10 @@ import android.content.ContentValues;
 import android.content.Context;
 
 import javax.inject.Inject;
+
+import com.example.application_template_jmvvm.data.database.AppTempDB;
+import com.example.application_template_jmvvm.data.database.batch.BatchDao;
+import com.example.application_template_jmvvm.data.database.repository.BatchRepository;
 import com.example.application_template_jmvvm.data.model.CardModel;
 
 import androidx.lifecycle.LiveData;
@@ -20,6 +24,7 @@ import com.example.application_template_jmvvm.data.service.TransactionResponseLi
 import com.example.application_template_jmvvm.data.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.domain.entity.TransactionCode;
+import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.token.uicomponents.CustomInput.CustomInputFormat;
 
 import java.util.List;
@@ -41,7 +46,7 @@ public class TransactionViewModel extends ViewModel{
 
     public void setter(MainActivity main) {
         this.main = main;
-        transactionDao = TransactionDatabase.getDatabase(main.getApplication()).transactionDao();
+        transactionDao = AppTempDB.getDatabase(main.getApplication()).transactionDao();
         transactionRepository = new TransactionRepository(transactionDao);
     }
 
@@ -90,6 +95,10 @@ public class TransactionViewModel extends ViewModel{
 
     //TODO View state
 
+    public List<TransactionEntity> getAllTransactions() {
+        return transactionRepository.getAllTransactions();
+    }
+
     public List<TransactionEntity> getTransactionsByRefNo(String refNo) {
         return transactionRepository.getTransactionsByRefNo(refNo);
     }
@@ -110,11 +119,12 @@ public class TransactionViewModel extends ViewModel{
         transactionRepository.deleteAll();
     }
 
-    public void performSaleTransaction(ICCCard card, TransactionService transactionService, Context context, String uuid) {
+    public void performSaleTransaction(ICCCard card, TransactionService transactionService,
+                                       BatchViewModel batchViewModel, Context context, String uuid) {
         ContentValues values = cardModel.prepareContentValues(card, uuid);
         final TransactionResponse[] transactionResponse = {new TransactionResponse()};
         transactionService.doInBackground(main, context, values,TransactionCode.SALE, this,
-                new TransactionResponseListener() {
+                                        batchViewModel, new TransactionResponseListener() {
             @Override
             public void onComplete(TransactionResponse response) {
                 transactionResponse[0] = response;
@@ -125,11 +135,12 @@ public class TransactionViewModel extends ViewModel{
 
     public void performRefundTransaction(ICCCard card, TransactionCode transactionCode,
                                          TransactionService transactionService, Context context, String uuid,
-                                            List<CustomInputFormat> inputList) {
+                                            BatchViewModel batchViewModel, List<CustomInputFormat> inputList) {
         ContentValues values = cardModel.prepareContentValues(card, uuid);
         values = cardModel.putExtraContents(values,transactionCode,inputList);
         final TransactionResponse[] transactionResponse = {new TransactionResponse()};
         transactionService.doInBackground(main, context, values, transactionCode,this,
+                batchViewModel,
                 new TransactionResponseListener() {
             @Override
             public void onComplete(TransactionResponse response) {

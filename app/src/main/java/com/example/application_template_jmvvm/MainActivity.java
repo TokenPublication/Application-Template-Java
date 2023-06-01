@@ -12,40 +12,36 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.application_template_jmvvm.R;
+import com.example.application_template_jmvvm.data.database.AppTempDB;
 import com.example.application_template_jmvvm.data.database.TransactionDatabase;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
-import com.example.application_template_jmvvm.ui.posTxn.PosTxnViewModel;
+import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.settings.SettingsFragment;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.transaction.SaleFragment;
-import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
-import com.tokeninc.cardservicebinding.CardServiceListener;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements CardServiceListener {
+public class MainActivity extends AppCompatActivity{
 
     public CardServiceBinding cardServiceBinding;
     private FragmentManager fragmentManager;
-    private List<IListMenuItem> menuItems = new ArrayList<>();
-    private PosTxnViewModel posTxnViewModel;
+    private BatchViewModel batchViewModel;
     private TransactionViewModel transactionViewModel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         TransactionDatabase.getDatabase(this);
+        AppTempDB.getDatabase(this);
         fragmentManager = getSupportFragmentManager();
-        posTxnViewModel = new ViewModelProvider(this).get(PosTxnViewModel.class);
+        batchViewModel = new ViewModelProvider(this).get(BatchViewModel.class);
 
         actionControl(getIntent().getAction());
     }
@@ -100,26 +96,6 @@ public class MainActivity extends AppCompatActivity implements CardServiceListen
             PosTxnFragment posTxnFragment = new PosTxnFragment(this);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
-    }
-
-    @Override
-    public void onCardServiceConnected() {
-
-    }
-
-    @Override
-    public void onCardDataReceived(String s) {
-
-    }
-
-    @Override
-    public void onPinReceived(String s) {
-
-    }
-
-    @Override
-    public void onICCTakeOut() {
-
     }
 
     public void showDialog(InfoDialog infoDialog) {

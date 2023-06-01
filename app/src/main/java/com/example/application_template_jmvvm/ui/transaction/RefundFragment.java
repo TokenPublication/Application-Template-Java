@@ -31,6 +31,7 @@ import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.response.TransactionResponse;
 import com.example.application_template_jmvvm.data.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.utils.MenuItem;
 
 import com.token.uicomponents.CustomInput.CustomInputFormat;
@@ -49,6 +50,7 @@ public class RefundFragment extends Fragment{
 
     private TransactionService transactionService = new TransactionService();
     private TransactionViewModel mViewModel;
+    private BatchViewModel batchViewModel;
     private TransactionCode transactionCode;
     int amount;
     String uuid;
@@ -69,6 +71,8 @@ public class RefundFragment extends Fragment{
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
         mViewModel.setter(main);
+        batchViewModel = new ViewModelProvider(requireActivity()).get(BatchViewModel.class);
+        batchViewModel.setter(main);
         uuid = "4234324234";
     }
 
@@ -90,7 +94,7 @@ public class RefundFragment extends Fragment{
             showMatchedReturnFragment();
         }));
         menuItems.add(new MenuItem(getString(R.string.installment_refund), iListMenuItem -> {
-            //TODO will be implemented.
+            //TODO will be implemented.Bastıktan sonra cash ve matched gelmeme hatası
         }));
         menuItems.add(new MenuItem(getString(R.string.cash_refund), iListMenuItem -> {
             showReturnFragment();
@@ -195,7 +199,7 @@ public class RefundFragment extends Fragment{
     }
 
     public void afterCardRead(ICCCard card, TransactionCode transactionCode, InputListFragment fragment,List<CustomInputFormat> inputList){
-        mViewModel.performRefundTransaction(card,transactionCode,transactionService,getContext(),uuid,inputList);
+        mViewModel.performRefundTransaction(card, transactionCode, transactionService, getContext(), uuid, batchViewModel, inputList);
         mViewModel.getTransactionResponseLiveData().observe(fragment.getViewLifecycleOwner(), new Observer<TransactionResponse>() {
             @Override
             public void onChanged(TransactionResponse transactionResponse) {

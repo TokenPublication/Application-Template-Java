@@ -28,7 +28,6 @@ import com.example.application_template_jmvvm.domain.entity.MSRCard;
 import com.example.application_template_jmvvm.domain.entity.PaymentTypes;
 import com.example.application_template_jmvvm.domain.entity.ResponseCode;
 import com.example.application_template_jmvvm.domain.entity.SlipType;
-import com.example.application_template_jmvvm.data.database.TransactionDatabase;
 import com.example.application_template_jmvvm.data.database.activation.ActivationDB;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
@@ -38,6 +37,7 @@ import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.response.TransactionResponse;
 import com.example.application_template_jmvvm.data.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
 
@@ -58,6 +58,7 @@ public class SaleFragment extends Fragment{
     private ICCCard card;
     private MSRCard msrCard;
     private TransactionViewModel mViewModel;
+    private BatchViewModel batchViewModel;
     private MainActivity main;
     Spinner spinner;
 
@@ -68,7 +69,9 @@ public class SaleFragment extends Fragment{
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
+        batchViewModel = new ViewModelProvider(requireActivity()).get(BatchViewModel.class);
         mViewModel.setter(main);
+        batchViewModel.setter(main);
         intent = main.getIntent();
         bundle = intent.getExtras();
         amount = bundle.getInt("Amount");
@@ -171,7 +174,7 @@ public class SaleFragment extends Fragment{
     };
 
     public void doSale(ICCCard card) {
-        mViewModel.performSaleTransaction(card,transactionService, getContext(), uuid);
+        mViewModel.performSaleTransaction(card, transactionService, batchViewModel, getContext(), uuid);
         mViewModel.getTransactionResponseLiveData().observe(getViewLifecycleOwner(), new Observer<TransactionResponse>() {
             @Override
             public void onChanged(TransactionResponse transactionResponse) {

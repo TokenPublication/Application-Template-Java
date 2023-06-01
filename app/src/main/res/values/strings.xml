@@ -76,5 +76,6 @@
     <string name="rkl_loading">RKL Loading</string>
     <string name="rkl_loaded">RKL Loaded</string>
     <string name="key_block_loading">Key Block Loading</string>
-
+    <string name="batch_empty" translatable="false">No Transaction</string>
+    <string name="batch_close_implementing" translatable="false">Batch Close Implementing</string>
 </resources>

@@ -17,6 +17,10 @@ public class TransactionRepository {
             this.allTransactions = transactionDao.getAllTransactions();
         }
 
+        public List<TransactionEntity> getAllTransactions(){
+            return transactionDao.getAllTransactions();
+        }
+
         public List<TransactionEntity> getTransactionsByRefNo(String refNo) {
             return transactionDao.getTransactionsByRefNo(refNo);
         }
