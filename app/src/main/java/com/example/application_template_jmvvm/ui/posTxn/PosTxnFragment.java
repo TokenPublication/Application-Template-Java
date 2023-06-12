@@ -49,16 +49,14 @@ public class PosTxnFragment extends Fragment {
     ListMenuFragment mListMenuFragment;
     private MainActivity main;
 
-    public PosTxnFragment(MainActivity mainActivity) {
+    public PosTxnFragment(MainActivity mainActivity, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
         this.main = mainActivity;
+        this.transactionViewModel = transactionViewModel;
+        this.batchViewModel = batchViewModel;
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        transactionViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
-        transactionViewModel.setter(main);
-        batchViewModel = new ViewModelProvider(requireActivity()).get(BatchViewModel.class);
-        batchViewModel.setter(main);
     }
 
     @Override
@@ -75,11 +73,11 @@ public class PosTxnFragment extends Fragment {
         menuItems.add(new MenuItem(getString(R.string.transactions), iListMenuItem -> {
         }));
         menuItems.add(new MenuItem(getString(R.string.refund), iListMenuItem -> {
-            RefundFragment RefundFragment = new RefundFragment(this.main);
+            RefundFragment RefundFragment = new RefundFragment(this.main, transactionViewModel, batchViewModel);
             main.replaceFragment(R.id.container,RefundFragment,true);
         }));
         menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {
-            VoidFragment VoidFragment = new VoidFragment(this.main);    //TODO backstack ayarlanacak.
+            VoidFragment VoidFragment = new VoidFragment(this.main, transactionViewModel);    //TODO backstack ayarlanacak.
             main.replaceFragment(R.id.container,VoidFragment,false);
         }));
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {
@@ -98,7 +96,7 @@ public class PosTxnFragment extends Fragment {
                         new InfoDialogListener() {
                             @Override
                             public void confirmed(int i) {
-                                batchClose(mListMenuFragment);
+                                batchClose();
                             }
 
                             @Override
@@ -115,14 +113,14 @@ public class PosTxnFragment extends Fragment {
         main.replaceFragment(R.id.container,mListMenuFragment,false);
     }
 
-    private void batchClose(ListMenuFragment mListMenuFragment) {
-        batchViewModel.performBatchClose(getContext(),transactionViewModel, batchViewModel, batchCloseService);
-        batchViewModel.getBatchCloseResponseLiveData().observe(mListMenuFragment.getViewLifecycleOwner(), new Observer<BatchCloseResponse>() {
-            @Override
-            public void onChanged(BatchCloseResponse batchCloseResponse) {
-                finishBatchClose(batchCloseResponse);
-            }
-        });
+    private void batchClose() {
+        batchCloseService.doInBackground(main, getContext(), transactionViewModel, batchViewModel,
+                new BatchCloseResponseListener() {
+                    @Override
+                    public void onComplete(BatchCloseResponse response) {
+                        finishBatchClose(response);
+                    }
+                });
     }
 
     private void finishBatchClose(BatchCloseResponse batchCloseResponse) {

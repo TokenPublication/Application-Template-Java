@@ -21,18 +21,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
 public class BatchViewModel extends ViewModel {
-    private MainActivity main;
     private BatchRepository batchRepository;
-    private BatchDao batchDao;
-    private MutableLiveData<BatchCloseResponse> batchCloseResponseLiveData = new MutableLiveData<>();
 
     @Inject
-    public BatchViewModel() {}
-
-    public void setter(MainActivity main) {
-        this.main = main;
-        batchDao = AppTempDB.getDatabase(main.getApplication()).batchDao();
-        batchRepository = new BatchRepository(batchDao);
+    public BatchViewModel(BatchRepository batchRepository) {
+        this.batchRepository = batchRepository;
     }
 
     public int getBatchNo() {
@@ -61,23 +54,6 @@ public class BatchViewModel extends ViewModel {
 
     public void deleteAll() {
         batchRepository.deleteAll();
-    }
-
-    public LiveData<BatchCloseResponse> getBatchCloseResponseLiveData() {
-        return batchCloseResponseLiveData;
-    }
-
-    public void performBatchClose(Context context, TransactionViewModel transactionViewModel,
-                                   BatchViewModel batchViewModel, BatchCloseService batchCloseService) {
-        final BatchCloseResponse[] batchCloseResponse = {new BatchCloseResponse()};
-        batchCloseService.doInBackground(main, context, transactionViewModel, batchViewModel,
-                new BatchCloseResponseListener() {
-                    @Override
-                    public void onComplete(BatchCloseResponse response) {
-                        batchCloseResponse[0] = response;
-                        batchCloseResponseLiveData.postValue(batchCloseResponse[0]);
-                    }
-        });
     }
 
 }

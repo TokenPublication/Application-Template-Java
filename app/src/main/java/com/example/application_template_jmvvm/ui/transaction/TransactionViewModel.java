@@ -38,16 +38,11 @@ public class TransactionViewModel extends ViewModel{
     private CardModel cardModel;
     private MutableLiveData<Boolean> isCardServiceConnected = new MutableLiveData<>(false);
     private MutableLiveData<ICCCard> cardLiveData = new MutableLiveData<>();
-    private MutableLiveData<TransactionEntity> insertedTransaction = new MutableLiveData<>();
-    private MutableLiveData<TransactionResponse> transactionResponseLiveData = new MutableLiveData<>();
 
     @Inject
-    public TransactionViewModel() {}
-
-    public void setter(MainActivity main) {
+    public TransactionViewModel(MainActivity main, TransactionRepository transactionRepository) {
         this.main = main;
-        transactionDao = AppTempDB.getDatabase(main.getApplication()).transactionDao();
-        transactionRepository = new TransactionRepository(transactionDao);
+        this.transactionRepository = transactionRepository;
     }
 
     public void initializeCardServiceBinding() {
@@ -80,20 +75,13 @@ public class TransactionViewModel extends ViewModel{
         setCard(card);
     }
 
-    public LiveData<TransactionResponse> getTransactionResponseLiveData() {
-        return transactionResponseLiveData;
-    }
-
-    public LiveData<TransactionEntity> getInsertedTransaction() {
-        return insertedTransaction;
+    public CardModel getCardModel() {
+        return cardModel;
     }
 
     public void insertTransaction(TransactionEntity transaction) {
         transactionRepository.insertTransaction(transaction);       //TODO IOda yapılcak
-        insertedTransaction.postValue(transaction);
     }
-
-    //TODO View state
 
     public List<TransactionEntity> getAllTransactions() {
         return transactionRepository.getAllTransactions();
@@ -119,34 +107,4 @@ public class TransactionViewModel extends ViewModel{
         transactionRepository.deleteAll();
     }
 
-    public void performSaleTransaction(ICCCard card, TransactionService transactionService,
-                                       BatchViewModel batchViewModel, Context context, String uuid) {
-        ContentValues values = cardModel.prepareContentValues(card, uuid);
-        final TransactionResponse[] transactionResponse = {new TransactionResponse()};
-        transactionService.doInBackground(main, context, values,TransactionCode.SALE, this,
-                                        batchViewModel, new TransactionResponseListener() {
-            @Override
-            public void onComplete(TransactionResponse response) {
-                transactionResponse[0] = response;
-                transactionResponseLiveData.postValue(transactionResponse[0]);
-            }
-        });
-    }
-
-    public void performRefundTransaction(ICCCard card, TransactionCode transactionCode,
-                                         TransactionService transactionService, Context context, String uuid,
-                                            BatchViewModel batchViewModel, List<CustomInputFormat> inputList) {
-        ContentValues values = cardModel.prepareContentValues(card, uuid);
-        values = cardModel.putExtraContents(values,transactionCode,inputList);
-        final TransactionResponse[] transactionResponse = {new TransactionResponse()};
-        transactionService.doInBackground(main, context, values, transactionCode,this,
-                batchViewModel,
-                new TransactionResponseListener() {
-            @Override
-            public void onComplete(TransactionResponse response) {
-                transactionResponse[0] = response;
-                transactionResponseLiveData.postValue(transactionResponse[0]);
-            }
-        });
-    }
 }

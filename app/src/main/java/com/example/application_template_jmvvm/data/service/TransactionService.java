@@ -108,7 +108,7 @@ public class TransactionService implements InfoDialogListener {
         TransactionEntity transactionEntity = entityCreator(values1);
         transactionEntity.setBatchNo(batchViewModel.getBatchNo());
         transactionEntity.setUlGUP_SN(batchViewModel.getGroupSN());
-        transactionViewModel.insertTransaction(transactionEntity); //TODO düzenlenecek
+        transactionViewModel.insertTransaction(transactionEntity);
         batchViewModel.updateGUPSN(batchViewModel.getGroupSN());
         return new TransactionResponse(onlineTransactionResponse,1,values1);
     }
