@@ -19,6 +19,8 @@ import com.example.application_template_jmvvm.data.response.TransactionResponse;
 import com.example.application_template_jmvvm.data.service.TransactionResponseListener;
 import com.example.application_template_jmvvm.data.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.domain.entity.TransactionCode;
+import com.token.uicomponents.CustomInput.CustomInputFormat;
 
 import java.util.List;
 import dagger.hilt.android.lifecycle.HiltViewModel;
@@ -82,7 +84,7 @@ public class TransactionViewModel extends ViewModel{
     }
 
     public void insertTransaction(TransactionEntity transaction) {
-        transactionRepository.insertTransaction(transaction);
+        transactionRepository.insertTransaction(transaction);       //TODO IOda yapılcak
         insertedTransaction.postValue(transaction);
     }
 
@@ -111,7 +113,24 @@ public class TransactionViewModel extends ViewModel{
     public void performSaleTransaction(ICCCard card, TransactionService transactionService, Context context, String uuid) {
         ContentValues values = cardModel.prepareContentValues(card, uuid);
         final TransactionResponse[] transactionResponse = {new TransactionResponse()};
-        transactionService.doInBackground(main, context, values,this, new TransactionResponseListener() {
+        transactionService.doInBackground(main, context, values,TransactionCode.SALE, this,
+                new TransactionResponseListener() {
+            @Override
+            public void onComplete(TransactionResponse response) {
+                transactionResponse[0] = response;
+                transactionResponseLiveData.postValue(transactionResponse[0]);
+            }
+        });
+    }
+
+    public void performRefundTransaction(ICCCard card, TransactionCode transactionCode,
+                                         TransactionService transactionService, Context context, String uuid,
+                                            List<CustomInputFormat> inputList) {
+        ContentValues values = cardModel.prepareContentValues(card, uuid);
+        values = cardModel.putExtraContents(values,transactionCode,inputList);
+        final TransactionResponse[] transactionResponse = {new TransactionResponse()};
+        transactionService.doInBackground(main, context, values, transactionCode,this,
+                new TransactionResponseListener() {
             @Override
             public void onComplete(TransactionResponse response) {
                 transactionResponse[0] = response;

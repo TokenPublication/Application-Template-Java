@@ -199,7 +199,6 @@ public class SaleFragment extends Fragment{
         bundle.putString("CardNumber", cardNo); // Optional, Card No can be masked
         bundle.putInt("PaymentStatus", 0); // #2 Payment Status
         bundle.putInt("Amount", (Integer) transactionResponse.getContentValues().get(TransactionCol.col_ulAmount.name())); // #3 Amount
-        bundle.putInt("Amount2", (Integer) transactionResponse.getContentValues().get(TransactionCol.col_ulAmount2.name()));
         //bundle.putInt("BatchNo", databaseHelper.getBatchNo());
         bundle.putString("CardNo", StringHelper.MaskTheCardNo((String) transactionResponse.getContentValues().get(TransactionCol.col_baPAN.name()))); //#5 Card No "MASKED"
         bundle.putString("MID", ActivationDB.getInstance(getContext()).getMerchantId()); //#6 Merchant ID
