@@ -59,7 +59,6 @@ public class TransactionService implements InfoDialogListener {
                     dialog.update(InfoDialog.InfoType.Progress,"Progress: "+(i*10));
                 }
                 Log.i("Values",contentValues.toString());
-                dialog.update(InfoDialog.InfoType.Confirmed, "Confirmed");
             }
 
             @Override
@@ -72,6 +71,7 @@ public class TransactionService implements InfoDialogListener {
                 Log.i("Complete","Complete");
                 OnlineTransactionResponse onlineTransactionResponse = parseResponse(1);
                 TransactionResponse transactionResponse = finishTransaction(context,values,onlineTransactionResponse, batchViewModel, transactionViewModel);
+                dialog.update(InfoDialog.InfoType.Confirmed, "Confirmed");
                 responseTransactionResponseListener.onComplete(transactionResponse);
                 try {
                     Thread.sleep(2000);
@@ -98,19 +98,25 @@ public class TransactionService implements InfoDialogListener {
 
     private TransactionResponse finishTransaction(Context context, ContentValues values, OnlineTransactionResponse onlineTransactionResponse,
                                                   BatchViewModel batchViewModel, TransactionViewModel transactionViewModel){
-        ContentValues values1 = values;
-        values1.put(TransactionCol.col_baRspCode.name(), onlineTransactionResponse.getmResponseCode().toString());
-        values1.put(TransactionCol.col_stPrintData1.name(), onlineTransactionResponse.getmTextPrintCode1());
-        values1.put(TransactionCol.col_stPrintData2.name(), onlineTransactionResponse.getmTextPrintCode2());
-        values1.put(TransactionCol.col_authCode.name(), onlineTransactionResponse.getmAuthCode());
-        values1.put(TransactionCol.col_baHostLogKey.name(), onlineTransactionResponse.getmHostLogKey());
-        values1.put(TransactionCol.col_displayData.name(), onlineTransactionResponse.getmDisplayData());
-        TransactionEntity transactionEntity = entityCreator(values1);
+        ContentValues contentValues = values;
+        contentValues.put(TransactionCol.col_baRspCode.name(), onlineTransactionResponse.getmResponseCode().toString());
+        contentValues.put(TransactionCol.col_stPrintData1.name(), onlineTransactionResponse.getmTextPrintCode1());
+        contentValues.put(TransactionCol.col_stPrintData2.name(), onlineTransactionResponse.getmTextPrintCode2());
+        contentValues.put(TransactionCol.col_authCode.name(), onlineTransactionResponse.getmAuthCode());
+        contentValues.put(TransactionCol.col_baHostLogKey.name(), onlineTransactionResponse.getmHostLogKey());
+        contentValues.put(TransactionCol.col_displayData.name(), onlineTransactionResponse.getmDisplayData());
+        TransactionEntity transactionEntity = entityCreator(contentValues);
         transactionEntity.setBatchNo(batchViewModel.getBatchNo());
-        transactionEntity.setUlGUP_SN(batchViewModel.getGroupSN());
-        transactionViewModel.insertTransaction(transactionEntity);
-        batchViewModel.updateGUPSN(batchViewModel.getGroupSN());
-        return new TransactionResponse(onlineTransactionResponse,1,values1);
+        if (transactionCode != TransactionCode.VOID){
+            transactionEntity.setUlGUP_SN(batchViewModel.getGroupSN());
+            transactionViewModel.insertTransaction(transactionEntity);
+            batchViewModel.updateGUPSN(batchViewModel.getGroupSN());
+        }
+        else {
+            transactionEntity.setUlGUP_SN(Integer.parseInt(values.get(TransactionCol.col_ulGUP_SN.name()).toString()));
+            transactionViewModel.setVoid(transactionEntity.getUlGUP_SN(),transactionEntity.getBaDate(),transactionEntity.getSID());
+        }
+        return new TransactionResponse(onlineTransactionResponse,1,contentValues);
     }
 
     private TransactionEntity entityCreator(ContentValues values){

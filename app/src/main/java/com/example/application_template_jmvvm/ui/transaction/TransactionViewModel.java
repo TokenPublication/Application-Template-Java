@@ -34,7 +34,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 public class TransactionViewModel extends ViewModel{
     private MainActivity main;
     private TransactionRepository transactionRepository;
-    private TransactionDao transactionDao;
     private CardModel cardModel;
     private MutableLiveData<Boolean> isCardServiceConnected = new MutableLiveData<>(false);
     private MutableLiveData<ICCCard> cardLiveData = new MutableLiveData<>();
@@ -72,7 +71,7 @@ public class TransactionViewModel extends ViewModel{
     }
 
     public void afterCardDataReceived(ICCCard card) {
-        setCard(card);
+        setCard(card);      //TODO boş olmuş.
     }
 
     public CardModel getCardModel() {

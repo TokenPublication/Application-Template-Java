@@ -77,7 +77,7 @@ public class PosTxnFragment extends Fragment {
             main.replaceFragment(R.id.container,RefundFragment,true);
         }));
         menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {
-            VoidFragment VoidFragment = new VoidFragment(this.main, transactionViewModel);    //TODO backstack ayarlanacak.
+            VoidFragment VoidFragment = new VoidFragment(this.main, transactionViewModel, batchViewModel);    //TODO backstack ayarlanacak.
             main.replaceFragment(R.id.container,VoidFragment,false);
         }));
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {

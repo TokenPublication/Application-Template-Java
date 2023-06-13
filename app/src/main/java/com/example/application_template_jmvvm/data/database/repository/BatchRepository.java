@@ -29,7 +29,7 @@ public class BatchRepository {
         // Check if the initial row exists
         if (allBatch.isEmpty()) {
             BatchDB batch = new BatchDB();
-            batch.setCol_ulGUP_SN(1);
+            batch.setCol_ulGUP_SN(1);   //TODO silinecek.
             batch.setCol_batchNo(1);
             batchDao.insertBatch(batch);
         }
