@@ -26,6 +26,7 @@ import com.example.application_template_jmvvm.domain.entity.ICCCard;
 import com.example.application_template_jmvvm.domain.entity.MSRCard;
 import com.example.application_template_jmvvm.domain.entity.PaymentTypes;
 import com.example.application_template_jmvvm.domain.entity.ResponseCode;
+import com.example.application_template_jmvvm.domain.entity.SampleReceipt;
 import com.example.application_template_jmvvm.domain.entity.SlipType;
 import com.example.application_template_jmvvm.data.database.activation.ActivationDB;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
@@ -36,6 +37,7 @@ import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.response.TransactionResponse;
 import com.example.application_template_jmvvm.data.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.domain.helper.printHelpers.SalePrintHelper;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
@@ -52,11 +54,13 @@ public class SaleFragment extends Fragment{
     private Intent intent;
     private TransactionViewModel transactionViewModel;
     private BatchViewModel batchViewModel;
+    private CardViewModel cardViewModel;
     private MainActivity main;
     Spinner spinner;
 
-    public SaleFragment(MainActivity mainActivity, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
+    public SaleFragment(MainActivity mainActivity, CardViewModel cardViewModel, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
         this.main = mainActivity;
+        this.cardViewModel = cardViewModel;
         this.transactionViewModel = transactionViewModel;
         this.batchViewModel = batchViewModel;
     }
@@ -76,15 +80,12 @@ public class SaleFragment extends Fragment{
         view.findViewById(R.id.btnSale).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {       //TODO service için boolean observer kaldırılacak.
-                transactionViewModel.getIsCardServiceConnected().observe(getViewLifecycleOwner(), isConnected -> {
-                    if (isConnected) {
-                        transactionViewModel.readCard(amount);
-                    } else {
-                        transactionViewModel.initializeCardServiceBinding();
-                    }
-                });
-                transactionViewModel.setIsCardServiceConnected(true);
-                transactionViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
+                if (!cardViewModel.getIsCardServiceConnected()){
+                    cardViewModel.initializeCardServiceBinding(main);
+                    cardViewModel.setIsCardServiceConnected(true);
+                }
+                cardViewModel.readCard(amount);
+                cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
                     if (card != null) {
                         doSale(card);
                     }
@@ -165,7 +166,7 @@ public class SaleFragment extends Fragment{
     };
 
     public void doSale(ICCCard card) {
-        ContentValues values = transactionViewModel.getCardModel().prepareContentValues(card, uuid);  //CardViewModel implemente edilecek.
+        ContentValues values = cardViewModel.getCardModel().prepareContentValues(card, uuid);  //CardViewModel implemente edilecek.
         transactionService.doInBackground(main, getContext(), values, TransactionCode.SALE, transactionViewModel,
                 batchViewModel, new TransactionResponseListener() {
                     @Override
@@ -176,9 +177,7 @@ public class SaleFragment extends Fragment{
     }
 
     private void finishSale(TransactionResponse transactionResponse) {
-        //TODO Response code ve transaction code ayarlanacak. Transaction code enum olmayacak.Activation ve Transaction viewmodel açılacak.,
-        Intent resultIntent = new Intent();
-        Bundle bundle = new Bundle();
+        //TODO Response code ve transaction code ayarlanacak. Transaction code enum olmayacak.Activation ve Transaction viewmodel açılacak.Sliptype düzenlenecek.
         SlipType slipType = SlipType.BOTH_SLIPS;
         String cardNo = (String) transactionResponse.getContentValues().get(TransactionCol.col_baPAN.name());
         bundle.putInt("ResponseCode", transactionResponse.getOnlineTransactionResponse().getmResponseCode().ordinal()); // #1 Response Code
@@ -186,34 +185,42 @@ public class SaleFragment extends Fragment{
         bundle.putString("CardNumber", cardNo); // Optional, Card No can be masked
         bundle.putInt("PaymentStatus", 0); // #2 Payment Status
         bundle.putInt("Amount", (Integer) transactionResponse.getContentValues().get(TransactionCol.col_ulAmount.name())); // #3 Amount
-        //bundle.putInt("BatchNo", databaseHelper.getBatchNo());
+        bundle.putInt("BatchNo", batchViewModel.getBatchNo());
         bundle.putString("CardNo", StringHelper.MaskTheCardNo((String) transactionResponse.getContentValues().get(TransactionCol.col_baPAN.name()))); //#5 Card No "MASKED"
         bundle.putString("MID", ActivationDB.getInstance(getContext()).getMerchantId()); //#6 Merchant ID
         bundle.putString("TID", ActivationDB.getInstance(getContext()).getTerminalId()); //#7 Terminal ID
-        //bundle.putInt("TxnNo", databaseHelper.getTxNo());
+        bundle.putInt("TxnNo", batchViewModel.getGroupSN());
         bundle.putInt("SlipType", slipType.value);
-        //bundle.putString("RefNo", String.valueOf(databaseHelper.getSaleID()));
-        //bundle.putInt("PaymentType", paymentType);
-
-        if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {      //TODO AppTemp cannot cast hatası incelenecek.
-            //bundle.putString("customerSlipData", SalePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), SlipType.CARDHOLDER_SLIP, main, 1, 2));
+        bundle.putBoolean("IsSlip", true);
+        bundle.putString("RefNo", transactionResponse.getOnlineTransactionResponse().getmHostLogKey());
+        bundle.putString("AuthNo", transactionResponse.getOnlineTransactionResponse().getmAuthCode());
+        bundle.putInt("PaymentType", 3);
+        SalePrintHelper salePrintHelper = new SalePrintHelper();
+        if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
+            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), SlipType.CARDHOLDER_SLIP, main, 1, 2));
         }
         if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            //bundle.putString("merchantSlipData", SalePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), SlipType.MERCHANT_SLIP, main, 1, 2));
+            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), SlipType.MERCHANT_SLIP, main, 1, 2));
         }
         bundle.putString("ApprovalCode", getApprovalCode());
-        resultIntent.putExtras(bundle);
-        main.setResult(Activity.RESULT_OK, resultIntent);
+        intent.putExtras(bundle);
+        main.setResult(Activity.RESULT_OK, intent);
         main.finish();
-        for (int i = 0; i <= 10; i++) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        PrintHelper.PrintSuccess();
-        PrintHelper.PrintError();
+    }
+
+    private SampleReceipt getSampleReceipt(String cardNo, String ownerName) {
+        SampleReceipt receipt = new SampleReceipt();
+        receipt.setMerchantName("TOKEN FINTECH");
+        receipt.setMerchantID(ActivationDB.getInstance(getContext()).getMerchantId());
+        receipt.setPosID(ActivationDB.getInstance(getContext()).getTerminalId());
+        receipt.setCardNo(StringHelper.maskCardNumber(cardNo));
+        receipt.setFullName(ownerName);
+        receipt.setAmount(StringHelper.getAmount(amount));
+        receipt.setGroupNo(String.valueOf(batchViewModel.getBatchNo()));
+        receipt.setAid("A0000000000031010");
+        receipt.setSerialNo(String.valueOf(batchViewModel.getGroupSN()));
+        receipt.setApprovalCode(StringHelper.GenerateApprovalCode(String.valueOf(batchViewModel.getBatchNo()), String.valueOf(batchViewModel.getGroupSN()), String.valueOf(batchViewModel.getGroupSN()-1)));
+        return receipt;     //TODO barış abiyle bakılacak.
     }
 
     private String getApprovalCode() {

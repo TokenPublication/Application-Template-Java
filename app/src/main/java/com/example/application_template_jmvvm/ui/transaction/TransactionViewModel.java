@@ -34,9 +34,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 public class TransactionViewModel extends ViewModel{
     private MainActivity main;
     private TransactionRepository transactionRepository;
-    private CardModel cardModel;
-    private MutableLiveData<Boolean> isCardServiceConnected = new MutableLiveData<>(false);
-    private MutableLiveData<ICCCard> cardLiveData = new MutableLiveData<>();
 
     @Inject
     public TransactionViewModel(MainActivity main, TransactionRepository transactionRepository) {
@@ -44,42 +41,8 @@ public class TransactionViewModel extends ViewModel{
         this.transactionRepository = transactionRepository;
     }
 
-    public void initializeCardServiceBinding() {
-        cardModel = new CardModel(this,main);
-    }
-
-    public LiveData<Boolean> getIsCardServiceConnected() {
-        return isCardServiceConnected;
-    }
-
-    public void setIsCardServiceConnected(boolean isConnected) {
-        isCardServiceConnected.setValue(isConnected);
-    }
-
-    public LiveData<ICCCard> getCardLiveData() {
-        return cardLiveData;
-    }
-
-    private void setCard(ICCCard card) {
-        cardLiveData.setValue(card);
-    }
-
-    public void readCard(int amount) {
-        if (cardModel != null) {
-            cardModel.readCard(amount);
-        }
-    }
-
-    public void afterCardDataReceived(ICCCard card) {
-        setCard(card);      //TODO boş olmuş.
-    }
-
-    public CardModel getCardModel() {
-        return cardModel;
-    }
-
     public void insertTransaction(TransactionEntity transaction) {
-        transactionRepository.insertTransaction(transaction);       //TODO IOda yapılcak
+        transactionRepository.insertTransaction(transaction);
     }
 
     public List<TransactionEntity> getAllTransactions() {

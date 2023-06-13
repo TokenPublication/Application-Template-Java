@@ -20,11 +20,9 @@ import java.util.Locale;
 
 public class SalePrintHelper extends BasePrintHelper{
 
-    public static String getFormattedText(SampleReceipt receipt, SlipType slipType, Context context, Integer ZNO, Integer ReceiptNo)
+    public String getFormattedText(SampleReceipt receipt, SlipType slipType, Context context, Integer ZNO, Integer ReceiptNo)
     {
         StyledString styledText = new StyledString();
-
-
         if(slipType == SlipType.CARDHOLDER_SLIP){
             if(!((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.ECR.name())  && !((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.VUK507.name())){
                 printSlipHeader(styledText, receipt);

@@ -4,6 +4,7 @@
     package="com.example.application_template_jmvvm">
 
     <application
+        android:name=".AppTemp"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:dataExtractionRules="@xml/data_extraction_rules"

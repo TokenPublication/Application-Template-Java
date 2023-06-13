@@ -28,6 +28,7 @@ import com.example.application_template_jmvvm.data.service.TransactionResponseLi
 import com.example.application_template_jmvvm.data.service.TransactionService;
 import com.example.application_template_jmvvm.domain.entity.BatchResult;
 import com.example.application_template_jmvvm.domain.entity.TransactionCode;
+import com.example.application_template_jmvvm.ui.transaction.CardViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.utils.MenuItem;
 import com.example.application_template_jmvvm.ui.example.ExampleFragment;
@@ -43,14 +44,16 @@ import java.util.List;
 
 public class PosTxnFragment extends Fragment {
 
+    private CardViewModel cardViewModel;
     private TransactionViewModel transactionViewModel;
     private BatchCloseService batchCloseService  = new BatchCloseService();
     private BatchViewModel batchViewModel;
     ListMenuFragment mListMenuFragment;
     private MainActivity main;
 
-    public PosTxnFragment(MainActivity mainActivity, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
+    public PosTxnFragment(MainActivity mainActivity, CardViewModel cardViewModel, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
         this.main = mainActivity;
+        this.cardViewModel = cardViewModel;
         this.transactionViewModel = transactionViewModel;
         this.batchViewModel = batchViewModel;
     }
@@ -73,11 +76,11 @@ public class PosTxnFragment extends Fragment {
         menuItems.add(new MenuItem(getString(R.string.transactions), iListMenuItem -> {
         }));
         menuItems.add(new MenuItem(getString(R.string.refund), iListMenuItem -> {
-            RefundFragment RefundFragment = new RefundFragment(this.main, transactionViewModel, batchViewModel);
+            RefundFragment RefundFragment = new RefundFragment(this.main, cardViewModel, transactionViewModel, batchViewModel);
             main.replaceFragment(R.id.container,RefundFragment,true);
         }));
         menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {
-            VoidFragment VoidFragment = new VoidFragment(this.main, transactionViewModel, batchViewModel);    //TODO backstack ayarlanacak.
+            VoidFragment VoidFragment = new VoidFragment(this.main, cardViewModel, transactionViewModel, batchViewModel);    //TODO backstack ayarlanacak.
             main.replaceFragment(R.id.container,VoidFragment,false);
         }));
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {

@@ -50,6 +50,7 @@ import java.util.List;
 public class RefundFragment extends Fragment{
 
     private TransactionService transactionService = new TransactionService();
+    private CardViewModel cardViewModel;
     private TransactionViewModel transactionViewModel;
     private BatchViewModel batchViewModel;
     private TransactionCode transactionCode;
@@ -64,8 +65,9 @@ public class RefundFragment extends Fragment{
     private Intent intent;
     private MainActivity main;
 
-    public RefundFragment(MainActivity mainActivity, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
+    public RefundFragment(MainActivity mainActivity, CardViewModel cardViewModel, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
         this.main = mainActivity;
+        this.cardViewModel = cardViewModel;
         this.transactionViewModel = transactionViewModel;
         this.batchViewModel = batchViewModel;
     }
@@ -178,17 +180,17 @@ public class RefundFragment extends Fragment{
     }
 
     private void cardReader(){
-        if (transactionViewModel.getIsCardServiceConnected().getValue() == false){
-            transactionViewModel.initializeCardServiceBinding();
+        if (!cardViewModel.getIsCardServiceConnected()){
+            cardViewModel.initializeCardServiceBinding(main);
+            cardViewModel.setIsCardServiceConnected(true);
         }
-        transactionViewModel.setIsCardServiceConnected(true);
-        transactionViewModel.readCard(amount);
+        cardViewModel.readCard(amount);
     }
 
     private void cardDataObserver(InputListFragment fragment, List<CustomInputFormat> inputList){
         fragment.getViewLifecycleOwnerLiveData().observe(main, lifecycleOwner -> {
             if (lifecycleOwner != null) {
-                transactionViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
+                cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
                     if (card != null) {
                         afterCardRead(card,transactionCode,inputList);
                     }
@@ -198,8 +200,8 @@ public class RefundFragment extends Fragment{
     }
 
     public void afterCardRead(ICCCard card, TransactionCode transactionCode, List<CustomInputFormat> inputList){
-        ContentValues values = transactionViewModel.getCardModel().prepareContentValues(card, uuid);
-        values = transactionViewModel.getCardModel().putExtraContents(values,transactionCode,inputList);
+        ContentValues values = cardViewModel.getCardModel().prepareContentValues(card, uuid); //TODO viewmodel fonksiyonuna taşı
+        values = cardViewModel.getCardModel().putExtraContents(values,transactionCode,inputList);
         transactionService.doInBackground(main, getContext(), values, transactionCode, transactionViewModel,
                 batchViewModel,
                 new TransactionResponseListener() {
