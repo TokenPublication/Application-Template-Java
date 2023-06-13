@@ -9,7 +9,6 @@ import com.example.application_template_jmvvm.data.response.TransactionResponse;
 import com.example.application_template_jmvvm.domain.entity.ResponseCode;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionDB;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.domain.entity.TransactionCode;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
@@ -166,6 +165,7 @@ public class TransactionService implements InfoDialogListener {
         transactionEntity.setIsOnlinePIN(0);
         return transactionEntity;
     }
+
     @Override
     public void confirmed(int i) {
 

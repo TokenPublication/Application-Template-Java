@@ -13,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.application_template_jmvvm.data.database.activation.ActivationDB;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.ui.utils.MenuItem;
@@ -30,22 +29,17 @@ import java.util.List;
 
 public class SettingsFragment extends Fragment {
 
-    private SettingsViewModel mViewModel;
     private MainActivity main;
-    private String terminalId;
+    private ActivationViewModel activationViewModel;
+    private String terminalId, merchantId, ipNo, portNo;
 
-    private Context context;
-
-    private String merchantId, ip_no, port_no;
-
-    public SettingsFragment(MainActivity mainActivity, Context context) {
+    public SettingsFragment(MainActivity mainActivity, ActivationViewModel activationViewModel) {
         this.main = mainActivity;
-        this.context = context;
+        this.activationViewModel = activationViewModel;
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(requireActivity()).get(SettingsViewModel.class);
     }
 
     @Override
@@ -63,38 +57,38 @@ public class SettingsFragment extends Fragment {
     private void showMenu(){
         List<IListMenuItem> menuItems = new ArrayList<>();
         menuItems.add(new MenuItem(getString(R.string.setup), iListMenuItem -> {
-            addTidMidFragment(context);
+            addTidMidFragment();
         }));
         menuItems.add(new MenuItem(getString(R.string.host_settings), iListMenuItem -> {
-            addIpFragment(context);
+            addIpFragment();
         }));
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.settings), true, R.drawable.token_logo_png);
-        mViewModel.replaceFragment(main,mListMenuFragment,false);
+        main.replaceFragment(R.id.container, mListMenuFragment,false);
     }
 
-    private void addTidMidFragment(Context context) {
+    private void addTidMidFragment() {
         List<CustomInputFormat> inputList = new ArrayList<>();
-        inputList.add(new CustomInputFormat(context.getString(R.string.merchant_no), EditTextInputType.Number, 10, context.getString(R.string.invalid_merchant_no), input -> input.getText().length() == 10));
+        inputList.add(new CustomInputFormat(main.getString(R.string.merchant_no), EditTextInputType.Number, 10, main.getString(R.string.invalid_merchant_no), input -> input.getText().length() == 10));
 
-        inputList.add(new CustomInputFormat(context.getString(R.string.terminal_no), EditTextInputType.Text, 8, context.getString(R.string.invalid_terminal_no), input -> input.getText().length() == 8));
+        inputList.add(new CustomInputFormat(main.getString(R.string.terminal_no), EditTextInputType.Text, 8, main.getString(R.string.invalid_terminal_no), input -> input.getText().length() == 8));
 
-        inputList.get(0).setText(ActivationDB.getInstance(context).getMerchantId());
-        inputList.get(1).setText(ActivationDB.getInstance(context).getTerminalId());
+        inputList.get(0).setText(activationViewModel.getMerchantId());
+        inputList.get(1).setText(activationViewModel.getTerminalId());
 
-        InputListFragment TidMidFragment = InputListFragment.newInstance(inputList, context.getString(R.string.save), list -> {
+        InputListFragment TidMidFragment = InputListFragment.newInstance(inputList, main.getString(R.string.save), list -> {
 
             merchantId = inputList.get(0).getText();
             terminalId = inputList.get(1).getText();
 
-            ActivationDB.getInstance(context).insertActivation(context, terminalId, merchantId);
+            activationViewModel.updateActivation(terminalId, merchantId, activationViewModel.getHostIP());
             main.getSupportFragmentManager().popBackStack();
         });
-        main.replaceFragment(R.id.container,TidMidFragment,true);
+        main.replaceFragment(R.id.container, TidMidFragment,true);
     }
 
-    private void addIpFragment(Context context) {
+    private void addIpFragment() {
         List<CustomInputFormat> inputList = new ArrayList<>();
-        inputList.add(new CustomInputFormat("IP", EditTextInputType.IpAddress, null, context.getString(R.string.invalid_ip), customInputFormat -> {
+        inputList.add(new CustomInputFormat("IP", EditTextInputType.IpAddress, null, main.getString(R.string.invalid_ip), customInputFormat -> {
             String text = customInputFormat.getText();
             boolean isValid = StringUtils.countMatches(text, ".") == 3 && text.split("\\.").length == 4;
             if (isValid) {
@@ -107,15 +101,16 @@ public class SettingsFragment extends Fragment {
             }
             return isValid;
         }));
-        inputList.add(new CustomInputFormat("Port", EditTextInputType.Number, 4, context.getString(R.string.invalid_port), customInputFormat -> customInputFormat.getText().length() >= 2 && Integer.parseInt(customInputFormat.getText()) > 0));
-        inputList.get(0).setText(ActivationDB.getInstance(context).getHostIP());
-        inputList.get(1).setText(ActivationDB.getInstance(context).getHostPort());
+        inputList.add(new CustomInputFormat("Port", EditTextInputType.Number, 4, main.getString(R.string.invalid_port), customInputFormat -> customInputFormat.getText().length() >= 2 && Integer.parseInt(customInputFormat.getText()) > 0));
 
-        InputListFragment IpFragment = InputListFragment.newInstance(inputList, context.getString(R.string.save), list -> {
-            ip_no = inputList.get(0).getText();
-            port_no = inputList.get(1).getText();
+        inputList.get(0).setText(activationViewModel.getHostIP());
+        inputList.get(1).setText(activationViewModel.getHostPort());
 
-            ActivationDB.getInstance(context).insertConnection(ip_no, port_no); //TODO return değeri sonra kullanılacak.
+        InputListFragment IpFragment = InputListFragment.newInstance(inputList, main.getString(R.string.save), list -> {
+            ipNo = inputList.get(0).getText();
+            portNo = inputList.get(1).getText();
+
+            activationViewModel.updateConnection(ipNo, portNo, activationViewModel.getHostIP());
             main.getSupportFragmentManager().popBackStack();
         });
         main.replaceFragment(R.id.container,IpFragment,true);

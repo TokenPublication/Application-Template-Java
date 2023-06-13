@@ -1,31 +1,12 @@
 package com.example.application_template_jmvvm.ui.transaction;
 
-import android.content.ContentValues;
-import android.content.Context;
-
 import javax.inject.Inject;
 
-import com.example.application_template_jmvvm.data.database.AppTempDB;
-import com.example.application_template_jmvvm.data.database.batch.BatchDao;
-import com.example.application_template_jmvvm.data.database.repository.BatchRepository;
-import com.example.application_template_jmvvm.data.model.CardModel;
-
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.application_template_jmvvm.domain.entity.ICCCard;
-import com.example.application_template_jmvvm.data.database.TransactionDatabase;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionDao;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.database.repository.TransactionRepository;
-import com.example.application_template_jmvvm.data.response.TransactionResponse;
-import com.example.application_template_jmvvm.data.service.TransactionResponseListener;
-import com.example.application_template_jmvvm.data.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.domain.entity.TransactionCode;
-import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
-import com.token.uicomponents.CustomInput.CustomInputFormat;
 
 import java.util.List;
 import dagger.hilt.android.lifecycle.HiltViewModel;

@@ -72,12 +72,12 @@ public class CardModel implements CardServiceListener{
         }
     }
 
-    public ContentValues prepareContentValues(ICCCard card, String uuid) {
+    public ContentValues prepareContentValues(ICCCard card, String uuid, TransactionCode transactionCode) {
         ContentValues values = new ContentValues();
         values.put(TransactionCol.col_uuid.name(), uuid);
         values.put(TransactionCol.col_ulSTN.name(), "STN");
         values.put(TransactionCol.col_bCardReadType.name(), card.getmCardReadType());
-        values.put(TransactionCol.col_bTransCode.name(), 55);
+        values.put(TransactionCol.col_bTransCode.name(), transactionCode.getType());
         values.put(TransactionCol.col_ulAmount.name(), card.getmTranAmount1());
         values.put(TransactionCol.col_baPAN.name(), card.getmCardNumber());
         values.put(TransactionCol.col_baExpDate.name(), card.getmExpireDate());
