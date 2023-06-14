@@ -72,7 +72,7 @@ public class RefundFragment extends Fragment{
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        uuid = "4234324234";
+        uuid = "4234324234";        //TODO düzenlenecek.
     }
 
     @Override

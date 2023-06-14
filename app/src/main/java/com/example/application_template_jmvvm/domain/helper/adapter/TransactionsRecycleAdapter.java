@@ -1,7 +1,5 @@
 package com.example.application_template_jmvvm.domain.helper.adapter;
 
-import android.content.ContentValues;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,26 +8,24 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.domain.helper.StringHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.transaction.VoidFragment;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TransactionsRecycleAdapter extends RecyclerView.Adapter<TransactionsRecycleAdapter.MyHolder> {
 
     private List<TransactionEntity> transactionList;
-    private TransactionViewModel mViewModel;
+    private TransactionViewModel transactionViewModel;
     private VoidFragment voidFragment;
 
     public TransactionsRecycleAdapter(List<TransactionEntity> transactionList, TransactionViewModel transactionViewModel,
                                       VoidFragment voidFragment) {
         this.transactionList = transactionList;
-        this.mViewModel = transactionViewModel;
+        this.transactionViewModel = transactionViewModel;
         this.voidFragment = voidFragment;
     }
 
@@ -51,10 +47,8 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         holder.serial_no.setText(String.valueOf(transaction.getUlGUP_SN()));
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                mViewModel.setVoid(transaction.getUlGUP_SN(),transaction.getBaDate(),transaction.getSID());
-                Log.d("RecyclerView/onClick", "ContentVal: " + transaction);
-                voidFragment.finishVoid();
+            public void onClick(View v) {       //TODO UI güncelleme. SetVoid Transaction Service'de gerçekleşecek.
+                voidFragment.startVoid(transaction);
             }
         });
     }
