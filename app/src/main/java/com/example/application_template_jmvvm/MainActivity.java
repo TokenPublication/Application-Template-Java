@@ -53,6 +53,17 @@ public class MainActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        /*
+        Firstly, added TR1000 and TR400 configurations to build.gradle file. After that,
+        related to Build Variant (400TRDebug or 1000TRDebug) the manifest file created with apk
+        and the appname in manifest file will be 1000TR or 400TR.
+        */
+        if (BuildConfig.FLAVOR.equals("TR1000")) {
+            Log.v("TR1000 APP","Application Template for 1000TR");
+        }
+        if(BuildConfig.FLAVOR.equals("TR400")) {
+            Log.v("YKB TR400 APP","Application Template for  400TR");
+        }
         AppTempDB.getDatabase(this);
         fragmentManager = getSupportFragmentManager();
 
