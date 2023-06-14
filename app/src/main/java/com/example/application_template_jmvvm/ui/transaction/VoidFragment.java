@@ -34,24 +34,25 @@ import java.util.List;
 
 public class VoidFragment extends Fragment implements InfoDialogListener {
 
+    private MainActivity main;
+    private CardViewModel cardViewModel;
     private TransactionViewModel transactionViewModel;
     private BatchViewModel batchViewModel;
     private InfoDialog dialog;
     int amount;
     private RecyclerView rvTransactions;
-    private List<TransactionEntity> transactionList;
+    private List<TransactionEntity> transactionList = new ArrayList<>();
     private TransactionService transactionService = new TransactionService();
-    private MainActivity main;
 
-    public VoidFragment(MainActivity mainActivity, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
+    public VoidFragment(MainActivity mainActivity, CardViewModel cardViewModel, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
         this.main = mainActivity;
+        this.cardViewModel = cardViewModel;
         this.transactionViewModel = transactionViewModel;
         this.batchViewModel = batchViewModel;
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        transactionList = new ArrayList<>();
     }
 
     @Override
@@ -68,12 +69,12 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
             }, 2000);
         }
         else{
-            if (transactionViewModel.getIsCardServiceConnected().getValue() == false){
-                transactionViewModel.initializeCardServiceBinding();
+            if (!cardViewModel.getIsCardServiceConnected()){
+                cardViewModel.initializeCardServiceBinding(main);
+                cardViewModel.setIsCardServiceConnected(true);
             }
-            transactionViewModel.setIsCardServiceConnected(true);
-            transactionViewModel.readCard(amount);
-            transactionViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
+            cardViewModel.readCard(amount);
+            cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
                 if (card != null) {
                     setView(card);
                 }

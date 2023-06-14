@@ -16,10 +16,12 @@ import com.example.application_template_jmvvm.data.database.AppTempDB;
 import com.example.application_template_jmvvm.data.database.TransactionDatabase;
 import com.example.application_template_jmvvm.data.database.repository.BatchRepository;
 import com.example.application_template_jmvvm.data.database.repository.TransactionRepository;
+import com.example.application_template_jmvvm.data.model.CardModel;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModelFactory;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.settings.SettingsFragment;
+import com.example.application_template_jmvvm.ui.transaction.CardViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.transaction.SaleFragment;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModelFactory;
@@ -36,6 +38,7 @@ public class MainActivity extends AppCompatActivity{
 
     public CardServiceBinding cardServiceBinding;
     private FragmentManager fragmentManager;
+    private CardViewModel cardViewModel;
     private BatchViewModel batchViewModel;
     private BatchViewModelFactory batchViewModelFactory;
     private TransactionViewModel transactionViewModel;
@@ -48,6 +51,8 @@ public class MainActivity extends AppCompatActivity{
         TransactionDatabase.getDatabase(this);
         AppTempDB.getDatabase(this);
         fragmentManager = getSupportFragmentManager();
+
+        cardViewModel = new ViewModelProvider(this).get(CardViewModel.class);
 
         transactionViewModelFactory = new TransactionViewModelFactory(this, new TransactionRepository(AppTempDB.getDatabase(getApplication()).transactionDao()));
         transactionViewModel = new ViewModelProvider(this, transactionViewModelFactory).get(TransactionViewModel.class);
@@ -90,12 +95,12 @@ public class MainActivity extends AppCompatActivity{
 
     private void actionControl(@Nullable String action){
         if (Objects.equals(action, getString(R.string.Sale_Action))){
-            SaleFragment saleTxnFragment = new SaleFragment(this, transactionViewModel, batchViewModel);
+            SaleFragment saleTxnFragment = new SaleFragment(this, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, saleTxnFragment, false);
         }
 
         else if (Objects.equals(action, getString(R.string.PosTxn_Action))){
-            PosTxnFragment posTxnFragment = new PosTxnFragment(this, transactionViewModel, batchViewModel);
+            PosTxnFragment posTxnFragment = new PosTxnFragment(this, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
 
@@ -105,7 +110,7 @@ public class MainActivity extends AppCompatActivity{
         }
 
         else {
-            PosTxnFragment posTxnFragment = new PosTxnFragment(this, transactionViewModel, batchViewModel);
+            PosTxnFragment posTxnFragment = new PosTxnFragment(this, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
     }

@@ -9,6 +9,7 @@ import com.example.application_template_jmvvm.domain.entity.ICCCard;
 import com.example.application_template_jmvvm.domain.entity.MSRCard;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.domain.entity.TransactionCode;
+import com.example.application_template_jmvvm.ui.transaction.CardViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.google.gson.Gson;
 import com.token.uicomponents.CustomInput.CustomInputFormat;
@@ -26,10 +27,10 @@ public class CardModel implements CardServiceListener{
     private CardServiceBinding cardServiceBinding;
     private CardServiceListener cardServiceListener;
     private int amount;
-    private TransactionViewModel mViewModel;
+    private CardViewModel cardViewModel;
 
-    public CardModel(TransactionViewModel mViewModel, MainActivity mainActivity) {
-        this.mViewModel = mViewModel;
+    public CardModel(CardViewModel cardViewModel, MainActivity mainActivity) {
+        this.cardViewModel = cardViewModel;
         this.cardServiceListener = this;
         this.cardServiceBinding = new CardServiceBinding(mainActivity, cardServiceListener);
     }
@@ -65,7 +66,7 @@ public class CardModel implements CardServiceListener{
                 this.msrCard = card;
                 cardServiceBinding.getOnlinePIN(amount, card.getCardNumber(), 0x0A01, 0, 4, 8, 30);
             }
-            mViewModel.afterCardDataReceived(card);
+            cardViewModel.afterCardDataReceived(card);
         } catch (Exception e) {
             e.printStackTrace();
         }
