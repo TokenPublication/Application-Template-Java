@@ -200,7 +200,7 @@ public class RefundFragment extends Fragment{
     }
 
     public void afterCardRead(ICCCard card, TransactionCode transactionCode, List<CustomInputFormat> inputList){
-        ContentValues values = cardViewModel.getCardModel().prepareContentValues(card, uuid); //TODO viewmodel fonksiyonuna taşı
+        ContentValues values = cardViewModel.getCardModel().prepareContentValues(card, uuid, transactionCode); //TODO viewmodel fonksiyonuna taşı
         values = cardViewModel.getCardModel().putExtraContents(values,transactionCode,inputList);
         transactionService.doInBackground(main, getContext(), values, transactionCode, transactionViewModel,
                 batchViewModel,

@@ -28,10 +28,8 @@ import com.example.application_template_jmvvm.domain.entity.PaymentTypes;
 import com.example.application_template_jmvvm.domain.entity.ResponseCode;
 import com.example.application_template_jmvvm.domain.entity.SampleReceipt;
 import com.example.application_template_jmvvm.domain.entity.SlipType;
-import com.example.application_template_jmvvm.data.database.activation.ActivationDB;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
 import com.example.application_template_jmvvm.domain.entity.TransactionCode;
-import com.example.application_template_jmvvm.domain.helper.printHelpers.PrintHelper;
 import com.example.application_template_jmvvm.domain.helper.StringHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.response.TransactionResponse;
@@ -39,6 +37,7 @@ import com.example.application_template_jmvvm.data.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.domain.helper.printHelpers.SalePrintHelper;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
+import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
 
@@ -52,14 +51,17 @@ public class SaleFragment extends Fragment{
     String uuid;
     private Bundle bundle;
     private Intent intent;
+    private ActivationViewModel activationViewModel;
     private TransactionViewModel transactionViewModel;
     private BatchViewModel batchViewModel;
     private CardViewModel cardViewModel;
     private MainActivity main;
     Spinner spinner;
 
-    public SaleFragment(MainActivity mainActivity, CardViewModel cardViewModel, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
+    public SaleFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
+                        TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
         this.main = mainActivity;
+        this.activationViewModel = activationViewModel;
         this.cardViewModel = cardViewModel;
         this.transactionViewModel = transactionViewModel;
         this.batchViewModel = batchViewModel;
@@ -166,7 +168,7 @@ public class SaleFragment extends Fragment{
     };
 
     public void doSale(ICCCard card) {
-        ContentValues values = cardViewModel.getCardModel().prepareContentValues(card, uuid);  //CardViewModel implemente edilecek.
+        ContentValues values = cardViewModel.getCardModel().prepareContentValues(card, uuid, TransactionCode.SALE);  //CardViewModel implemente edilecek.
         transactionService.doInBackground(main, getContext(), values, TransactionCode.SALE, transactionViewModel,
                 batchViewModel, new TransactionResponseListener() {
                     @Override
@@ -187,8 +189,8 @@ public class SaleFragment extends Fragment{
         bundle.putInt("Amount", (Integer) transactionResponse.getContentValues().get(TransactionCol.col_ulAmount.name())); // #3 Amount
         bundle.putInt("BatchNo", batchViewModel.getBatchNo());
         bundle.putString("CardNo", StringHelper.MaskTheCardNo((String) transactionResponse.getContentValues().get(TransactionCol.col_baPAN.name()))); //#5 Card No "MASKED"
-        bundle.putString("MID", ActivationDB.getInstance(getContext()).getMerchantId()); //#6 Merchant ID
-        bundle.putString("TID", ActivationDB.getInstance(getContext()).getTerminalId()); //#7 Terminal ID
+        bundle.putString("MID", activationViewModel.getMerchantId()); //#6 Merchant ID
+        bundle.putString("TID", activationViewModel.getTerminalId()); //#7 Terminal ID
         bundle.putInt("TxnNo", batchViewModel.getGroupSN());
         bundle.putInt("SlipType", slipType.value);
         bundle.putBoolean("IsSlip", true);
@@ -211,8 +213,8 @@ public class SaleFragment extends Fragment{
     private SampleReceipt getSampleReceipt(String cardNo, String ownerName) {
         SampleReceipt receipt = new SampleReceipt();
         receipt.setMerchantName("TOKEN FINTECH");
-        receipt.setMerchantID(ActivationDB.getInstance(getContext()).getMerchantId());
-        receipt.setPosID(ActivationDB.getInstance(getContext()).getTerminalId());
+        receipt.setMerchantID(activationViewModel.getMerchantId());
+        receipt.setPosID(activationViewModel.getTerminalId());
         receipt.setCardNo(StringHelper.maskCardNumber(cardNo));
         receipt.setFullName(ownerName);
         receipt.setAmount(StringHelper.getAmount(amount));

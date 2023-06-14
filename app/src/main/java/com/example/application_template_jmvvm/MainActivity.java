@@ -10,16 +10,19 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.example.application_template_jmvvm.data.database.AppTempDB;
-import com.example.application_template_jmvvm.data.database.TransactionDatabase;
+import com.example.application_template_jmvvm.data.database.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.database.repository.BatchRepository;
 import com.example.application_template_jmvvm.data.database.repository.TransactionRepository;
 import com.example.application_template_jmvvm.data.model.CardModel;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModelFactory;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
+import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
+import com.example.application_template_jmvvm.ui.settings.ActivationViewModelFactory;
 import com.example.application_template_jmvvm.ui.settings.SettingsFragment;
 import com.example.application_template_jmvvm.ui.transaction.CardViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
@@ -38,6 +41,8 @@ public class MainActivity extends AppCompatActivity{
 
     public CardServiceBinding cardServiceBinding;
     private FragmentManager fragmentManager;
+    private ActivationViewModel activationViewModel;
+    private ActivationViewModelFactory activationViewModelFactory;
     private CardViewModel cardViewModel;
     private BatchViewModel batchViewModel;
     private BatchViewModelFactory batchViewModelFactory;
@@ -48,9 +53,11 @@ public class MainActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        TransactionDatabase.getDatabase(this);
         AppTempDB.getDatabase(this);
         fragmentManager = getSupportFragmentManager();
+
+        activationViewModelFactory = new ActivationViewModelFactory(new ActivationRepository(AppTempDB.getDatabase(getApplication()).activationDao()));
+        activationViewModel = new ViewModelProvider(this, activationViewModelFactory).get(ActivationViewModel.class);
 
         cardViewModel = new ViewModelProvider(this).get(CardViewModel.class);
 
@@ -95,7 +102,7 @@ public class MainActivity extends AppCompatActivity{
 
     private void actionControl(@Nullable String action){
         if (Objects.equals(action, getString(R.string.Sale_Action))){
-            SaleFragment saleTxnFragment = new SaleFragment(this, cardViewModel, transactionViewModel, batchViewModel);
+            SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, saleTxnFragment, false);
         }
 
@@ -105,7 +112,7 @@ public class MainActivity extends AppCompatActivity{
         }
 
         else if (Objects.equals(action, getString(R.string.Settings_Action))){
-            SettingsFragment settingsFragment = new SettingsFragment(this,getApplicationContext());
+            SettingsFragment settingsFragment = new SettingsFragment(this, activationViewModel);
             replaceFragment(R.id.container, settingsFragment, false);
         }
 
