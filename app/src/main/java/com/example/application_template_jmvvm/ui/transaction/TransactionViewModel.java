@@ -4,6 +4,10 @@ import android.content.ContentValues;
 import android.content.Context;
 
 import javax.inject.Inject;
+
+import com.example.application_template_jmvvm.data.database.AppTempDB;
+import com.example.application_template_jmvvm.data.database.batch.BatchDao;
+import com.example.application_template_jmvvm.data.database.repository.BatchRepository;
 import com.example.application_template_jmvvm.data.model.CardModel;
 
 import androidx.lifecycle.LiveData;
@@ -20,6 +24,7 @@ import com.example.application_template_jmvvm.data.service.TransactionResponseLi
 import com.example.application_template_jmvvm.data.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.domain.entity.TransactionCode;
+import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.token.uicomponents.CustomInput.CustomInputFormat;
 
 import java.util.List;
@@ -33,16 +38,11 @@ public class TransactionViewModel extends ViewModel{
     private CardModel cardModel;
     private MutableLiveData<Boolean> isCardServiceConnected = new MutableLiveData<>(false);
     private MutableLiveData<ICCCard> cardLiveData = new MutableLiveData<>();
-    private MutableLiveData<TransactionEntity> insertedTransaction = new MutableLiveData<>();
-    private MutableLiveData<TransactionResponse> transactionResponseLiveData = new MutableLiveData<>();
 
     @Inject
-    public TransactionViewModel() {}
-
-    public void setter(MainActivity main) {
+    public TransactionViewModel(MainActivity main, TransactionRepository transactionRepository) {
         this.main = main;
-        transactionDao = TransactionDatabase.getDatabase(main.getApplication()).transactionDao();
-        transactionRepository = new TransactionRepository(transactionDao);
+        this.transactionRepository = transactionRepository;
     }
 
     public void initializeCardServiceBinding() {
@@ -75,20 +75,17 @@ public class TransactionViewModel extends ViewModel{
         setCard(card);
     }
 
-    public LiveData<TransactionResponse> getTransactionResponseLiveData() {
-        return transactionResponseLiveData;
-    }
-
-    public LiveData<TransactionEntity> getInsertedTransaction() {
-        return insertedTransaction;
+    public CardModel getCardModel() {
+        return cardModel;
     }
 
     public void insertTransaction(TransactionEntity transaction) {
         transactionRepository.insertTransaction(transaction);       //TODO IOda yapılcak
-        insertedTransaction.postValue(transaction);
     }
 
-    //TODO View state
+    public List<TransactionEntity> getAllTransactions() {
+        return transactionRepository.getAllTransactions();
+    }
 
     public List<TransactionEntity> getTransactionsByRefNo(String refNo) {
         return transactionRepository.getTransactionsByRefNo(refNo);
@@ -110,32 +107,4 @@ public class TransactionViewModel extends ViewModel{
         transactionRepository.deleteAll();
     }
 
-    public void performSaleTransaction(ICCCard card, TransactionService transactionService, Context context, String uuid) {
-        ContentValues values = cardModel.prepareContentValues(card, uuid);
-        final TransactionResponse[] transactionResponse = {new TransactionResponse()};
-        transactionService.doInBackground(main, context, values,TransactionCode.SALE, this,
-                new TransactionResponseListener() {
-            @Override
-            public void onComplete(TransactionResponse response) {
-                transactionResponse[0] = response;
-                transactionResponseLiveData.postValue(transactionResponse[0]);
-            }
-        });
-    }
-
-    public void performRefundTransaction(ICCCard card, TransactionCode transactionCode,
-                                         TransactionService transactionService, Context context, String uuid,
-                                            List<CustomInputFormat> inputList) {
-        ContentValues values = cardModel.prepareContentValues(card, uuid);
-        values = cardModel.putExtraContents(values,transactionCode,inputList);
-        final TransactionResponse[] transactionResponse = {new TransactionResponse()};
-        transactionService.doInBackground(main, context, values, transactionCode,this,
-                new TransactionResponseListener() {
-            @Override
-            public void onComplete(TransactionResponse response) {
-                transactionResponse[0] = response;
-                transactionResponseLiveData.postValue(transactionResponse[0]);
-            }
-        });
-    }
 }

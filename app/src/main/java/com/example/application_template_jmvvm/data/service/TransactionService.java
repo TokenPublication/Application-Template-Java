@@ -12,6 +12,7 @@ import com.example.application_template_jmvvm.data.database.transaction.Transact
 import com.example.application_template_jmvvm.data.database.transaction.TransactionDB;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.domain.entity.TransactionCode;
+import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
@@ -32,7 +33,9 @@ public class TransactionService implements InfoDialogListener {
     private Observable<ContentValues> observable;
     private Observer<ContentValues> observer;
     private TransactionCode transactionCode;
-    public void doInBackground(MainActivity main, Context context, ContentValues values, TransactionCode transactionCode, TransactionViewModel transactionViewModel, TransactionResponseListener responseTransactionResponseListener) {
+    public void doInBackground(MainActivity main, Context context, ContentValues values,
+                               TransactionCode transactionCode, TransactionViewModel transactionViewModel,
+                               BatchViewModel batchViewModel, TransactionResponseListener responseTransactionResponseListener) {
 
         this.transactionCode = transactionCode;
         dialog = main.showInfoDialog(InfoDialog.InfoType.Progress, "Progress",false);
@@ -68,7 +71,7 @@ public class TransactionService implements InfoDialogListener {
             public void onComplete() {
                 Log.i("Complete","Complete");
                 OnlineTransactionResponse onlineTransactionResponse = parseResponse(1);
-                TransactionResponse transactionResponse = finishTransaction(context,values,onlineTransactionResponse, transactionViewModel);
+                TransactionResponse transactionResponse = finishTransaction(context,values,onlineTransactionResponse, batchViewModel, transactionViewModel);
                 responseTransactionResponseListener.onComplete(transactionResponse);
                 try {
                     Thread.sleep(2000);
@@ -93,7 +96,8 @@ public class TransactionService implements InfoDialogListener {
         return onlineTransactionResponse;
     }
 
-    private TransactionResponse finishTransaction(Context context, ContentValues values, OnlineTransactionResponse onlineTransactionResponse, TransactionViewModel transactionViewModel){
+    private TransactionResponse finishTransaction(Context context, ContentValues values, OnlineTransactionResponse onlineTransactionResponse,
+                                                  BatchViewModel batchViewModel, TransactionViewModel transactionViewModel){
         ContentValues values1 = values;
         values1.put(TransactionCol.col_baRspCode.name(), onlineTransactionResponse.getmResponseCode().toString());
         values1.put(TransactionCol.col_stPrintData1.name(), onlineTransactionResponse.getmTextPrintCode1());
@@ -102,7 +106,10 @@ public class TransactionService implements InfoDialogListener {
         values1.put(TransactionCol.col_baHostLogKey.name(), onlineTransactionResponse.getmHostLogKey());
         values1.put(TransactionCol.col_displayData.name(), onlineTransactionResponse.getmDisplayData());
         TransactionEntity transactionEntity = entityCreator(values1);
-        transactionViewModel.insertTransaction(transactionEntity); //TODO düzenlenecek
+        transactionEntity.setBatchNo(batchViewModel.getBatchNo());
+        transactionEntity.setUlGUP_SN(batchViewModel.getGroupSN());
+        transactionViewModel.insertTransaction(transactionEntity);
+        batchViewModel.updateGUPSN(batchViewModel.getGroupSN());
         return new TransactionResponse(onlineTransactionResponse,1,values1);
     }
 

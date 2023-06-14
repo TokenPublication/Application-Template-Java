@@ -12,40 +12,48 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.application_template_jmvvm.R;
+import com.example.application_template_jmvvm.data.database.AppTempDB;
 import com.example.application_template_jmvvm.data.database.TransactionDatabase;
+import com.example.application_template_jmvvm.data.database.repository.BatchRepository;
+import com.example.application_template_jmvvm.data.database.repository.TransactionRepository;
+import com.example.application_template_jmvvm.ui.posTxn.BatchViewModelFactory;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
-import com.example.application_template_jmvvm.ui.posTxn.PosTxnViewModel;
+import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.settings.SettingsFragment;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.transaction.SaleFragment;
-import com.token.uicomponents.ListMenuFragment.IListMenuItem;
+import com.example.application_template_jmvvm.ui.transaction.TransactionViewModelFactory;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
-import com.tokeninc.cardservicebinding.CardServiceListener;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements CardServiceListener {
+public class MainActivity extends AppCompatActivity{
 
     public CardServiceBinding cardServiceBinding;
     private FragmentManager fragmentManager;
-    private List<IListMenuItem> menuItems = new ArrayList<>();
-    private PosTxnViewModel posTxnViewModel;
+    private BatchViewModel batchViewModel;
+    private BatchViewModelFactory batchViewModelFactory;
     private TransactionViewModel transactionViewModel;
+    private TransactionViewModelFactory transactionViewModelFactory;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         TransactionDatabase.getDatabase(this);
+        AppTempDB.getDatabase(this);
         fragmentManager = getSupportFragmentManager();
-        posTxnViewModel = new ViewModelProvider(this).get(PosTxnViewModel.class);
+
+        transactionViewModelFactory = new TransactionViewModelFactory(this, new TransactionRepository(AppTempDB.getDatabase(getApplication()).transactionDao()));
+        transactionViewModel = new ViewModelProvider(this, transactionViewModelFactory).get(TransactionViewModel.class);
+
+        batchViewModelFactory = new BatchViewModelFactory(new BatchRepository(AppTempDB.getDatabase(getApplication()).batchDao()));
+        batchViewModel = new ViewModelProvider(this, batchViewModelFactory).get(BatchViewModel.class);
 
         actionControl(getIntent().getAction());
     }
@@ -82,12 +90,12 @@ public class MainActivity extends AppCompatActivity implements CardServiceListen
 
     private void actionControl(@Nullable String action){
         if (Objects.equals(action, getString(R.string.Sale_Action))){
-            SaleFragment saleTxnFragment = new SaleFragment(this);
+            SaleFragment saleTxnFragment = new SaleFragment(this, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, saleTxnFragment, false);
         }
 
         else if (Objects.equals(action, getString(R.string.PosTxn_Action))){
-            PosTxnFragment posTxnFragment = new PosTxnFragment(this);
+            PosTxnFragment posTxnFragment = new PosTxnFragment(this, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
 
@@ -97,29 +105,9 @@ public class MainActivity extends AppCompatActivity implements CardServiceListen
         }
 
         else {
-            PosTxnFragment posTxnFragment = new PosTxnFragment(this);
+            PosTxnFragment posTxnFragment = new PosTxnFragment(this, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
-    }
-
-    @Override
-    public void onCardServiceConnected() {
-
-    }
-
-    @Override
-    public void onCardDataReceived(String s) {
-
-    }
-
-    @Override
-    public void onPinReceived(String s) {
-
-    }
-
-    @Override
-    public void onICCTakeOut() {
-
     }
 
     public void showDialog(InfoDialog infoDialog) {

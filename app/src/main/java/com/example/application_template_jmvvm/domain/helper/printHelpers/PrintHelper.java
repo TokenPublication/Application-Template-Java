@@ -1,5 +1,6 @@
 package com.example.application_template_jmvvm.domain.helper.printHelpers;
 
+import com.example.application_template_jmvvm.domain.helper.StringHelper;
 import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.PrinterService;
 import com.token.printerlib.StyledString;
@@ -54,45 +55,41 @@ public class PrintHelper extends BasePrintHelper {
         styledText.print(PrinterService.getService());
     }
 
-    public static void PrintBatchClose(String batch_no, String tx_no, String MID, String TID)
-    {
-        StyledString styledText = new StyledString();
-
+    public String PrintBatchClose(StyledString styledText, String batch_no, String tx_no, int totalAmount, String MID, String TID) {
         addTextToNewLine(styledText, "TOKEN", PrinterDefinitions.Alignment.Center);
         addTextToNewLine(styledText, "FINTECH", PrinterDefinitions.Alignment.Center);
-
+        styledText.setFontFace(PrinterDefinitions.Font_E.Sans_Bold);
         addTextToNewLine(styledText, "İŞYERİ NO: ", PrinterDefinitions.Alignment.Left);
         addText(styledText, MID, PrinterDefinitions.Alignment.Right);
-
         addTextToNewLine(styledText, "TERMİNAL NO: ", PrinterDefinitions.Alignment.Left);
         addText(styledText, TID, PrinterDefinitions.Alignment.Right);
+        styledText.setFontFace(PrinterDefinitions.Font_E.Sans_Semi_Bold);
 
-        addTextToNewLine(styledText, " ", PrinterDefinitions.Alignment.Center);
-        addTextToNewLine(styledText, "Grup Kapama Başarılı", PrinterDefinitions.Alignment.Center);
-        addTextToNewLine(styledText, " ", PrinterDefinitions.Alignment.Center);
-
-        if (batch_no.equals("")){
+        if (batch_no.equals("")) {
             addTextToNewLine(styledText, "Grup Yok", PrinterDefinitions.Alignment.Center);
-        }
-        else{
-            addTextToNewLine(styledText, "Grup No: ", PrinterDefinitions.Alignment.Left);
+        } else {
+            addTextToNewLine(styledText, "GRUP NO: ", PrinterDefinitions.Alignment.Center);
             addText(styledText, batch_no, PrinterDefinitions.Alignment.Right);
         }
-        if (tx_no.equals("") || tx_no.equals("null") || tx_no.equals("0")){
+
+        addTextToNewLine(styledText, DateUtil.getDate("dd/MM/yy"), PrinterDefinitions.Alignment.Left);
+        addText(styledText, DateUtil.getTime("HH:mm"), PrinterDefinitions.Alignment.Right);
+
+        if (tx_no.equals("") || tx_no.equals("null") || tx_no.equals("0")) {
             addTextToNewLine(styledText, "İşlem Yok", PrinterDefinitions.Alignment.Center);
-        }
-        else{
+        } else {
             addTextToNewLine(styledText, "İşlem Sayısı: ", PrinterDefinitions.Alignment.Left);
             addText(styledText, tx_no, PrinterDefinitions.Alignment.Right);
         }
 
-        addTextToNewLine(styledText, DateUtil.getDate("dd-MM-yy"), PrinterDefinitions.Alignment.Left);
-        addText(styledText, DateUtil.getTime("HH:mm"), PrinterDefinitions.Alignment.Right);
-
+        addTextToNewLine(styledText, "TOPLAM:", PrinterDefinitions.Alignment.Left);
+        addText(styledText, StringHelper.getAmount(totalAmount), PrinterDefinitions.Alignment.Right);
+        addTextToNewLine(styledText, " ", PrinterDefinitions.Alignment.Center);
+        addTextToNewLine(styledText, "Grup Kapama Başarılı", PrinterDefinitions.Alignment.Center);
+        addTextToNewLine(styledText, " ", PrinterDefinitions.Alignment.Center);
         styledText.newLine();
-        styledText.addSpace(100);
 
-        styledText.print(PrinterService.getService());
+        return styledText.toString();
     }
 
     public static void PrintContactless(boolean is32)

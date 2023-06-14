@@ -1,9 +1,7 @@
 package com.example.application_template_jmvvm.ui.transaction;
 
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -23,21 +21,22 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.example.application_template_jmvvm.data.service.TransactionResponseListener;
 import com.example.application_template_jmvvm.domain.entity.ICCCard;
 import com.example.application_template_jmvvm.domain.entity.MSRCard;
 import com.example.application_template_jmvvm.domain.entity.PaymentTypes;
 import com.example.application_template_jmvvm.domain.entity.ResponseCode;
 import com.example.application_template_jmvvm.domain.entity.SlipType;
-import com.example.application_template_jmvvm.data.database.TransactionDatabase;
 import com.example.application_template_jmvvm.data.database.activation.ActivationDB;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
+import com.example.application_template_jmvvm.domain.entity.TransactionCode;
 import com.example.application_template_jmvvm.domain.helper.printHelpers.PrintHelper;
 import com.example.application_template_jmvvm.domain.helper.StringHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.response.TransactionResponse;
 import com.example.application_template_jmvvm.data.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
 
@@ -46,29 +45,24 @@ import java.util.Locale;
 @AndroidEntryPoint
 public class SaleFragment extends Fragment{
 
-    private boolean isCardServiceConnected;
-    private CardServiceListener cardServiceListener;
-    private CardServiceBinding cardServiceBinding;
     private TransactionService transactionService = new TransactionService();
-    int cardReadType = 0;
     int amount;
     String uuid;
     private Bundle bundle;
     private Intent intent;
-    private ICCCard card;
-    private MSRCard msrCard;
-    private TransactionViewModel mViewModel;
+    private TransactionViewModel transactionViewModel;
+    private BatchViewModel batchViewModel;
     private MainActivity main;
     Spinner spinner;
 
-    public SaleFragment(MainActivity mainActivity) {
+    public SaleFragment(MainActivity mainActivity, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
         this.main = mainActivity;
+        this.transactionViewModel = transactionViewModel;
+        this.batchViewModel = batchViewModel;
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
-        mViewModel.setter(main);
         intent = main.getIntent();
         bundle = intent.getExtras();
         amount = bundle.getInt("Amount");
@@ -81,16 +75,16 @@ public class SaleFragment extends Fragment{
         View view = inflater.inflate(R.layout.fragment_sale, container, false);
         view.findViewById(R.id.btnSale).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                mViewModel.getIsCardServiceConnected().observe(getViewLifecycleOwner(), isConnected -> {
+            public void onClick(View v) {       //TODO service için boolean observer kaldırılacak.
+                transactionViewModel.getIsCardServiceConnected().observe(getViewLifecycleOwner(), isConnected -> {
                     if (isConnected) {
-                        mViewModel.readCard(amount);
+                        transactionViewModel.readCard(amount);
                     } else {
-                        mViewModel.initializeCardServiceBinding();
+                        transactionViewModel.initializeCardServiceBinding();
                     }
                 });
-                mViewModel.setIsCardServiceConnected(true);
-                mViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
+                transactionViewModel.setIsCardServiceConnected(true);
+                transactionViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
                     if (card != null) {
                         doSale(card);
                     }
@@ -171,25 +165,18 @@ public class SaleFragment extends Fragment{
     };
 
     public void doSale(ICCCard card) {
-        mViewModel.performSaleTransaction(card,transactionService, getContext(), uuid);
-        mViewModel.getTransactionResponseLiveData().observe(getViewLifecycleOwner(), new Observer<TransactionResponse>() {
-            @Override
-            public void onChanged(TransactionResponse transactionResponse) {
-                finishSale(transactionResponse);
-            }
-        });
+        ContentValues values = transactionViewModel.getCardModel().prepareContentValues(card, uuid);  //CardViewModel implemente edilecek.
+        transactionService.doInBackground(main, getContext(), values, TransactionCode.SALE, transactionViewModel,
+                batchViewModel, new TransactionResponseListener() {
+                    @Override
+                    public void onComplete(TransactionResponse response) {
+                        finishSale(response);
+                    }
+                });
     }
 
     private void finishSale(TransactionResponse transactionResponse) {
         //TODO Response code ve transaction code ayarlanacak. Transaction code enum olmayacak.Activation ve Transaction viewmodel açılacak.,
-        mViewModel.getInsertedTransaction().observe(getViewLifecycleOwner(), new Observer<TransactionEntity>() {
-            @Override
-            public void onChanged(TransactionEntity insertedTransaction) {
-                if (insertedTransaction != null) {
-                    Log.d("Transaction Info:",insertedTransaction.getBaPAN());
-                }
-            }
-        });
         Intent resultIntent = new Intent();
         Bundle bundle = new Bundle();
         SlipType slipType = SlipType.BOTH_SLIPS;

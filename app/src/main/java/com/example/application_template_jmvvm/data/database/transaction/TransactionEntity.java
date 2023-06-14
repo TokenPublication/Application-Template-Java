@@ -14,7 +14,7 @@ public class TransactionEntity {
     @ColumnInfo(name = "col_ulSTN")
     public String ulSTN;
 
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey
     @ColumnInfo(name = "col_ulGUP_SN")
     public int ulGUP_SN;
 

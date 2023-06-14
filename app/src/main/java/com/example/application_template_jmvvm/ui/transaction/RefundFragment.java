@@ -23,6 +23,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.application_template_jmvvm.data.service.TransactionResponseListener;
 import com.example.application_template_jmvvm.domain.entity.ICCCard;
 import com.example.application_template_jmvvm.domain.entity.ResponseCode;
 import com.example.application_template_jmvvm.domain.entity.TransactionCode;
@@ -31,6 +32,7 @@ import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.response.TransactionResponse;
 import com.example.application_template_jmvvm.data.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.utils.MenuItem;
 
 import com.token.uicomponents.CustomInput.CustomInputFormat;
@@ -48,7 +50,8 @@ import java.util.List;
 public class RefundFragment extends Fragment{
 
     private TransactionService transactionService = new TransactionService();
-    private TransactionViewModel mViewModel;
+    private TransactionViewModel transactionViewModel;
+    private BatchViewModel batchViewModel;
     private TransactionCode transactionCode;
     int amount;
     String uuid;
@@ -61,14 +64,14 @@ public class RefundFragment extends Fragment{
     private Intent intent;
     private MainActivity main;
 
-    public RefundFragment(MainActivity mainActivity) {
+    public RefundFragment(MainActivity mainActivity, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
         this.main = mainActivity;
+        this.transactionViewModel = transactionViewModel;
+        this.batchViewModel = batchViewModel;
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(requireActivity()).get(TransactionViewModel.class);
-        mViewModel.setter(main);
         uuid = "4234324234";
     }
 
@@ -90,7 +93,7 @@ public class RefundFragment extends Fragment{
             showMatchedReturnFragment();
         }));
         menuItems.add(new MenuItem(getString(R.string.installment_refund), iListMenuItem -> {
-            //TODO will be implemented.
+            //TODO will be implemented.Bastıktan sonra cash ve matched gelmeme hatası.inst amount ve cnt 0 dummy bak
         }));
         menuItems.add(new MenuItem(getString(R.string.cash_refund), iListMenuItem -> {
             showReturnFragment();
@@ -175,33 +178,36 @@ public class RefundFragment extends Fragment{
     }
 
     private void cardReader(){
-        if (mViewModel.getIsCardServiceConnected().getValue() == false){
-            mViewModel.initializeCardServiceBinding();
+        if (transactionViewModel.getIsCardServiceConnected().getValue() == false){
+            transactionViewModel.initializeCardServiceBinding();
         }
-        mViewModel.setIsCardServiceConnected(true);
-        mViewModel.readCard(amount);
+        transactionViewModel.setIsCardServiceConnected(true);
+        transactionViewModel.readCard(amount);
     }
 
     private void cardDataObserver(InputListFragment fragment, List<CustomInputFormat> inputList){
         fragment.getViewLifecycleOwnerLiveData().observe(main, lifecycleOwner -> {
             if (lifecycleOwner != null) {
-                mViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
+                transactionViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
                     if (card != null) {
-                        afterCardRead(card,transactionCode,fragment,inputList);
+                        afterCardRead(card,transactionCode,inputList);
                     }
                 });
             }
         });
     }
 
-    public void afterCardRead(ICCCard card, TransactionCode transactionCode, InputListFragment fragment,List<CustomInputFormat> inputList){
-        mViewModel.performRefundTransaction(card,transactionCode,transactionService,getContext(),uuid,inputList);
-        mViewModel.getTransactionResponseLiveData().observe(fragment.getViewLifecycleOwner(), new Observer<TransactionResponse>() {
-            @Override
-            public void onChanged(TransactionResponse transactionResponse) {
-                finishRefund(transactionResponse);
-            }
-        });
+    public void afterCardRead(ICCCard card, TransactionCode transactionCode, List<CustomInputFormat> inputList){
+        ContentValues values = transactionViewModel.getCardModel().prepareContentValues(card, uuid);
+        values = transactionViewModel.getCardModel().putExtraContents(values,transactionCode,inputList);
+        transactionService.doInBackground(main, getContext(), values, transactionCode, transactionViewModel,
+                batchViewModel,
+                new TransactionResponseListener() {
+                    @Override
+                    public void onComplete(TransactionResponse response) {
+                        finishRefund(response);
+                    }
+                });
     }
 
     private void finishRefund(TransactionResponse transactionResponse) {
