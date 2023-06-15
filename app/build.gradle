@@ -26,6 +26,28 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    flavorDimensions "default"
+    productFlavors{
+        TR400{
+            manifestPlaceholders = [
+                    APP_LABEL:"Application Template",
+                    MODEL_NAME:"400TR",
+                    APP_NAME:"BNK_000_TMPLT"
+            ]
+        }
+        TR1000{
+            manifestPlaceholders = [
+                    APP_LABEL:"Application Template",
+                    MODEL_NAME:"1000TR",
+                    APP_NAME:"BNK_000_TMPLT"
+            ]
+        }
+    }
+}
+
+configurations {
+    TR400
+    TR1000
 }
 
 dependencies {
