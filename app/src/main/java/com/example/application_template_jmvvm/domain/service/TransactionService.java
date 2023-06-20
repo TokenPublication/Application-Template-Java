@@ -1,16 +1,20 @@
-package com.example.application_template_jmvvm.data.service;
+package com.example.application_template_jmvvm.domain.service;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
-import com.example.application_template_jmvvm.data.response.OnlineTransactionResponse;
-import com.example.application_template_jmvvm.data.response.TransactionResponse;
-import com.example.application_template_jmvvm.domain.entity.ResponseCode;
+import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
+import com.example.application_template_jmvvm.data.model.response.TransactionResponse;
+import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.domain.entity.TransactionCode;
+import com.example.application_template_jmvvm.data.model.code.TransactionCode;
+import com.example.application_template_jmvvm.data.repository.BatchRepository;
+import com.example.application_template_jmvvm.data.repository.TransactionRepository;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.token.uicomponents.infodialog.InfoDialog;
@@ -24,20 +28,17 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
+public class TransactionService {       //TODO ViewModel'a taşınacak. İsim değişecek.
 
-
-public class TransactionService implements InfoDialogListener {
-
-    private InfoDialog dialog;
     private Observable<ContentValues> observable;
     private Observer<ContentValues> observer;
     private TransactionCode transactionCode;
-    public void doInBackground(MainActivity main, Context context, ContentValues values,
-                               TransactionCode transactionCode, TransactionViewModel transactionViewModel,
-                               BatchViewModel batchViewModel, TransactionResponseListener responseTransactionResponseListener) {
+    public void doInBackground(ContentValues values, TransactionCode transactionCode, TransactionViewModel transactionViewModel,
+                               BatchRepository batchRepository, TransactionResponseListener responseTransactionResponseListener) {
 
-        this.transactionCode = transactionCode;
-        dialog = main.showInfoDialog(InfoDialog.InfoType.Progress, "Progress",false);
+        this.transactionCode = transactionCode;     //TODO dialog incelenecek.
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+        transactionViewModel.setShowDialogLiveData("Progress");
         observable = Observable.just(values)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io());
@@ -49,13 +50,21 @@ public class TransactionService implements InfoDialogListener {
 
             @Override
             public void onNext(ContentValues contentValues) {
-                for (int i = 0; i <= 11; i++){
+                for (int i = 0; i <= 10; i++){
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    dialog.update(InfoDialog.InfoType.Progress,"Progress: "+(i*10));
+                    final String progressText = "Progress: " + (i * 10);
+
+                    // Use the handler to post a Runnable on the main thread
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            transactionViewModel.setShowDialogLiveData(progressText); //TODO bakılacak.
+                        }
+                    });
                 }
                 Log.i("Values",contentValues.toString());
             }
@@ -69,8 +78,13 @@ public class TransactionService implements InfoDialogListener {
             public void onComplete() {
                 Log.i("Complete","Complete");
                 OnlineTransactionResponse onlineTransactionResponse = parseResponse(1);
-                TransactionResponse transactionResponse = finishTransaction(context,values,onlineTransactionResponse, batchViewModel, transactionViewModel);
-                dialog.update(InfoDialog.InfoType.Confirmed, "Confirmed");
+                TransactionResponse transactionResponse = finishTransaction(values,onlineTransactionResponse, batchRepository, transactionViewModel.getTransactionRepository());
+                mainHandler.post(new Runnable() {  //TODO Detaylı mesaj yazılacak.
+                    @Override
+                    public void run() {
+                        transactionViewModel.setTransactionResponseLiveData(transactionResponse);
+                    }
+                });
                 responseTransactionResponseListener.onComplete(transactionResponse);
                 try {
                     Thread.sleep(2000);
@@ -82,7 +96,7 @@ public class TransactionService implements InfoDialogListener {
         observable.subscribe(observer);
     }
 
-    private OnlineTransactionResponse parseResponse(int transactionCode) {
+    private OnlineTransactionResponse parseResponse(int transactionCode) {  //Repository
         OnlineTransactionResponse onlineTransactionResponse = new OnlineTransactionResponse();
         onlineTransactionResponse.setmResponseCode(ResponseCode.SUCCESS);
         onlineTransactionResponse.setmTextPrintCode1("Test Print 1");
@@ -95,8 +109,8 @@ public class TransactionService implements InfoDialogListener {
         return onlineTransactionResponse;
     }
 
-    private TransactionResponse finishTransaction(Context context, ContentValues values, OnlineTransactionResponse onlineTransactionResponse,
-                                                  BatchViewModel batchViewModel, TransactionViewModel transactionViewModel){
+    private TransactionResponse finishTransaction(ContentValues values, OnlineTransactionResponse onlineTransactionResponse,
+                                                  BatchRepository batchRepository, TransactionRepository transactionRepository){
         ContentValues contentValues = values;
         contentValues.put(TransactionCol.col_baRspCode.name(), onlineTransactionResponse.getmResponseCode().toString());
         contentValues.put(TransactionCol.col_stPrintData1.name(), onlineTransactionResponse.getmTextPrintCode1());
@@ -104,17 +118,18 @@ public class TransactionService implements InfoDialogListener {
         contentValues.put(TransactionCol.col_authCode.name(), onlineTransactionResponse.getmAuthCode());
         contentValues.put(TransactionCol.col_baHostLogKey.name(), onlineTransactionResponse.getmHostLogKey());
         contentValues.put(TransactionCol.col_displayData.name(), onlineTransactionResponse.getmDisplayData());
+        contentValues.put(TransactionCol.col_batchNo.name(), batchRepository.getBatchNo());
         TransactionEntity transactionEntity = entityCreator(contentValues);
-        transactionEntity.setBatchNo(batchViewModel.getBatchNo());
+        transactionEntity.setBatchNo(batchRepository.getBatchNo());
         if (transactionCode != TransactionCode.VOID){
-            transactionEntity.setUlGUP_SN(batchViewModel.getGroupSN());
-            transactionViewModel.insertTransaction(transactionEntity);
-            batchViewModel.updateGUPSN(batchViewModel.getGroupSN());
+            transactionEntity.setUlGUP_SN(batchRepository.getGroupSN());
+            transactionRepository.insertTransaction(transactionEntity); //TODO erdem abi
+            batchRepository.updateGUPSN(batchRepository.getGroupSN());
         }
         else {
             transactionEntity.setUlGUP_SN(Integer.parseInt(values.get(TransactionCol.col_ulGUP_SN.name()).toString()));
-            transactionViewModel.setVoid(transactionEntity.getUlGUP_SN(),transactionEntity.getBaDate(),transactionEntity.getSID());
-        }
+            transactionRepository.setVoid(transactionEntity.getUlGUP_SN(),transactionEntity.getBaDate(),transactionEntity.getSID());
+        }   //TODO slip hazırlanacak.
         return new TransactionResponse(onlineTransactionResponse,1,contentValues);
     }
 
@@ -166,14 +181,5 @@ public class TransactionService implements InfoDialogListener {
         return transactionEntity;
     }
 
-    @Override
-    public void confirmed(int i) {
-
-    }
-
-    @Override
-    public void canceled(int i) {
-
-    }
 }
 
