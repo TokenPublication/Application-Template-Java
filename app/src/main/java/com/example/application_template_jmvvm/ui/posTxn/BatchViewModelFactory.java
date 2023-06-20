@@ -4,9 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.data.database.repository.BatchRepository;
-import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
+import com.example.application_template_jmvvm.data.repository.BatchRepository;
 
 public class BatchViewModelFactory implements ViewModelProvider.Factory {
     private BatchRepository batchRepository;

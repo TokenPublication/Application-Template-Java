@@ -4,7 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.application_template_jmvvm.data.database.repository.ActivationRepository;
+import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 
 public class ActivationViewModelFactory implements ViewModelProvider.Factory {
     private ActivationRepository activationRepository;

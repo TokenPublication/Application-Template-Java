@@ -1,18 +1,26 @@
 package com.example.application_template_jmvvm.ui.settings;
 
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModel;
 
-import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.data.database.repository.ActivationRepository;
+import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
+
+@HiltViewModel
 public class ActivationViewModel extends ViewModel {
 
-    private ActivationRepository activationRepository;
+    @Inject
+    public ActivationRepository activationRepository;
 
+    @Inject
     public ActivationViewModel(ActivationRepository activationRepository) {
         this.activationRepository = activationRepository;
+    }
+
+    public ActivationRepository getActivationRepository() {
+        return activationRepository;
     }
 
     public void updateConnection(String ip, String port, String old_ip) {

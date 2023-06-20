@@ -4,14 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.data.database.repository.TransactionRepository;
+import com.example.application_template_jmvvm.data.repository.TransactionRepository;
 
 public class TransactionViewModelFactory implements ViewModelProvider.Factory {
-    private MainActivity main;
     private TransactionRepository transactionRepository;
-    public TransactionViewModelFactory(MainActivity main, TransactionRepository transactionRepository) {
-        this.main = main;
+
+    public TransactionViewModelFactory(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }
 
@@ -19,7 +17,7 @@ public class TransactionViewModelFactory implements ViewModelProvider.Factory {
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(TransactionViewModel.class)) {
-            return (T) new TransactionViewModel(main,transactionRepository);
+            return (T) new TransactionViewModel(transactionRepository);
         }
         return null;
     }

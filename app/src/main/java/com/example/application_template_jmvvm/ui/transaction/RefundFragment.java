@@ -6,31 +6,23 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleObserver;
-import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.OnLifecycleEvent;
-import androidx.lifecycle.ViewModelProvider;
 
-import com.example.application_template_jmvvm.data.service.TransactionResponseListener;
-import com.example.application_template_jmvvm.domain.entity.ICCCard;
-import com.example.application_template_jmvvm.domain.entity.ResponseCode;
-import com.example.application_template_jmvvm.domain.entity.TransactionCode;
-import com.example.application_template_jmvvm.domain.helper.printHelpers.PrintHelper;
+import com.example.application_template_jmvvm.domain.service.TransactionResponseListener;
+import com.example.application_template_jmvvm.data.model.card.ICCCard;
+import com.example.application_template_jmvvm.data.model.code.ResponseCode;
+import com.example.application_template_jmvvm.data.model.code.TransactionCode;
+import com.example.application_template_jmvvm.domain.printHelpers.PrintHelper;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.data.response.TransactionResponse;
-import com.example.application_template_jmvvm.data.service.TransactionService;
+import com.example.application_template_jmvvm.data.model.response.TransactionResponse;
+import com.example.application_template_jmvvm.domain.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.utils.MenuItem;
@@ -63,10 +55,10 @@ public class RefundFragment extends Fragment{
     private CustomInputFormat inputAuthCode;
     private Bundle bundle;
     private Intent intent;
-    private MainActivity main;
+    private MainActivity mainActivity;
 
     public RefundFragment(MainActivity mainActivity, CardViewModel cardViewModel, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
-        this.main = mainActivity;
+        this.mainActivity = mainActivity;
         this.cardViewModel = cardViewModel;
         this.transactionViewModel = transactionViewModel;
         this.batchViewModel = batchViewModel;
@@ -104,7 +96,7 @@ public class RefundFragment extends Fragment{
 
         }));
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.refund), true, R.drawable.token_logo_png);
-        main.replaceFragment(R.id.container, mListMenuFragment,false);
+        mainActivity.replaceFragment(R.id.container, mListMenuFragment,false);
     }
 
     private void showMatchedReturnFragment() {
@@ -154,7 +146,7 @@ public class RefundFragment extends Fragment{
             transactionCode = TransactionCode.MATCHED_REFUND;
             cardReader();
         });
-        main.replaceFragment(R.id.container, fragment, true);
+        mainActivity.replaceFragment(R.id.container, fragment, true);
         cardDataObserver(fragment,inputList);
     }
 
@@ -175,20 +167,20 @@ public class RefundFragment extends Fragment{
             transactionCode = TransactionCode.CASH_REFUND;
             cardReader();
         });
-        main.replaceFragment(R.id.container, fragment, true);
+        mainActivity.replaceFragment(R.id.container, fragment, true);
         cardDataObserver(fragment,inputList);
     }
 
     private void cardReader(){
         if (!cardViewModel.getIsCardServiceConnected()){
-            cardViewModel.initializeCardServiceBinding(main);
+            cardViewModel.initializeCardServiceBinding(mainActivity);
             cardViewModel.setIsCardServiceConnected(true);
         }
         cardViewModel.readCard(amount);
     }
 
     private void cardDataObserver(InputListFragment fragment, List<CustomInputFormat> inputList){
-        fragment.getViewLifecycleOwnerLiveData().observe(main, lifecycleOwner -> {
+        fragment.getViewLifecycleOwnerLiveData().observe(mainActivity, lifecycleOwner -> {
             if (lifecycleOwner != null) {
                 cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
                     if (card != null) {
@@ -200,10 +192,10 @@ public class RefundFragment extends Fragment{
     }
 
     public void afterCardRead(ICCCard card, TransactionCode transactionCode, List<CustomInputFormat> inputList){
-        ContentValues values = cardViewModel.getCardModel().prepareContentValues(card, uuid, transactionCode); //TODO viewmodel fonksiyonuna taşı
-        values = cardViewModel.getCardModel().putExtraContents(values,transactionCode,inputList);
-        transactionService.doInBackground(main, getContext(), values, transactionCode, transactionViewModel,
-                batchViewModel,
+        ContentValues values = transactionViewModel.prepareContents(card, uuid, transactionCode);
+        values = transactionViewModel.prepareExtraContents(values, transactionCode, inputList);
+        transactionService.doInBackground(values, transactionCode, transactionViewModel,
+                batchViewModel.getBatchRepository(),
                 new TransactionResponseListener() {
                     @Override
                     public void onComplete(TransactionResponse response) {
@@ -220,8 +212,8 @@ public class RefundFragment extends Fragment{
         bundle.putInt("ResponseCode", responseCode.ordinal());
         PrintHelper.PrintSuccess();
         intent.putExtras(bundle);
-        main.setResult(Activity.RESULT_OK, intent);
-        main.finish();
+        mainActivity.setResult(Activity.RESULT_OK, intent);
+        mainActivity.finish();
     }
 
     private String getFormattedDate(String dateText) {

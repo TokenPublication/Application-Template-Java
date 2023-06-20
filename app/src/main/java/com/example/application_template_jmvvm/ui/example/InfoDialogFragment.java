@@ -64,11 +64,11 @@ public class InfoDialogFragment extends Fragment {
 
     List<IListMenuItem> menuItems = new ArrayList<>();
 
-    private MainActivity main;
+    private MainActivity mainActivity;
 
 
     public InfoDialogFragment(MainActivity mainActivity) {
-        this.main = mainActivity;
+        this.mainActivity = mainActivity;
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -100,11 +100,11 @@ public class InfoDialogFragment extends Fragment {
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.None, "None", listener, null));
 
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems,"Info Dialog" , true, R.drawable.token_logo_png);
-        main.replaceFragment(R.id.container,mListMenuFragment,false);
+        mainActivity.replaceFragment(R.id.container,mListMenuFragment,false);
     }
 
     private void showPopup(InfoDialogItem item){
-        InfoDialog dialog = main.showInfoDialog(item.mType, item.mText, true);
+        InfoDialog dialog = mainActivity.showInfoDialog(item.mType, item.mText, true);
         //Dismiss dialog by calling dialog.dismiss() when needed.
     }
 
@@ -113,8 +113,8 @@ public class InfoDialogFragment extends Fragment {
         Bundle bundle = new Bundle();
         //bundle.putString("ResponseCode", PosTxnResponse);
         resultIntent.putExtras(bundle);
-        main.setResult(Activity.RESULT_OK, resultIntent);//PosTxn_Request_Code:13
-        main.finish();
+        mainActivity.setResult(Activity.RESULT_OK, resultIntent);//PosTxn_Request_Code:13
+        mainActivity.finish();
     }
 
 

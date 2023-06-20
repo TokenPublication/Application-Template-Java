@@ -10,14 +10,12 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.example.application_template_jmvvm.data.database.AppTempDB;
-import com.example.application_template_jmvvm.data.database.repository.ActivationRepository;
-import com.example.application_template_jmvvm.data.database.repository.BatchRepository;
-import com.example.application_template_jmvvm.data.database.repository.TransactionRepository;
-import com.example.application_template_jmvvm.data.model.CardModel;
+import com.example.application_template_jmvvm.data.repository.ActivationRepository;
+import com.example.application_template_jmvvm.data.repository.BatchRepository;
+import com.example.application_template_jmvvm.data.repository.TransactionRepository;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModelFactory;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
@@ -37,14 +35,21 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Objects;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class MainActivity extends AppCompatActivity{
 
     public CardServiceBinding cardServiceBinding;
     private FragmentManager fragmentManager;
-    private ActivationViewModel activationViewModel;
+    @Inject
+    public ActivationViewModel activationViewModel;
     private ActivationViewModelFactory activationViewModelFactory;
     private CardViewModel cardViewModel;
-    private BatchViewModel batchViewModel;
+    @Inject
+    public BatchViewModel batchViewModel;
     private BatchViewModelFactory batchViewModelFactory;
     private TransactionViewModel transactionViewModel;
     private TransactionViewModelFactory transactionViewModelFactory;
@@ -62,21 +67,22 @@ public class MainActivity extends AppCompatActivity{
             Log.v("TR1000 APP","Application Template for 1000TR");
         }
         if(BuildConfig.FLAVOR.equals("TR400")) {
-            Log.v("YKB TR400 APP","Application Template for  400TR");
+            Log.v("TR400 APP","Application Template for  400TR");
         }
-        AppTempDB.getDatabase(this);
+        //AppTempDB.getDatabase(this);
         fragmentManager = getSupportFragmentManager();
 
         activationViewModelFactory = new ActivationViewModelFactory(new ActivationRepository(AppTempDB.getDatabase(getApplication()).activationDao()));
         activationViewModel = new ViewModelProvider(this, activationViewModelFactory).get(ActivationViewModel.class);
 
-        cardViewModel = new ViewModelProvider(this).get(CardViewModel.class);
-
-        transactionViewModelFactory = new TransactionViewModelFactory(this, new TransactionRepository(AppTempDB.getDatabase(getApplication()).transactionDao()));
-        transactionViewModel = new ViewModelProvider(this, transactionViewModelFactory).get(TransactionViewModel.class);
-
         batchViewModelFactory = new BatchViewModelFactory(new BatchRepository(AppTempDB.getDatabase(getApplication()).batchDao()));
         batchViewModel = new ViewModelProvider(this, batchViewModelFactory).get(BatchViewModel.class);
+
+        cardViewModel = new ViewModelProvider(this).get(CardViewModel.class);
+
+        transactionViewModelFactory = new TransactionViewModelFactory(new TransactionRepository(this, activationViewModel.getActivationRepository(),
+                                                                    batchViewModel.getBatchRepository(), AppTempDB.getDatabase(getApplication()).transactionDao()));
+        transactionViewModel = new ViewModelProvider(this, transactionViewModelFactory).get(TransactionViewModel.class);
 
         actionControl(getIntent().getAction());
     }
@@ -131,6 +137,11 @@ public class MainActivity extends AppCompatActivity{
             PosTxnFragment posTxnFragment = new PosTxnFragment(this, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     public void showDialog(InfoDialog infoDialog) {
