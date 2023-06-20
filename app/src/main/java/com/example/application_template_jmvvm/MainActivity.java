@@ -12,20 +12,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.application_template_jmvvm.data.database.AppTempDB;
-import com.example.application_template_jmvvm.data.repository.ActivationRepository;
-import com.example.application_template_jmvvm.data.repository.BatchRepository;
-import com.example.application_template_jmvvm.data.repository.TransactionRepository;
-import com.example.application_template_jmvvm.ui.posTxn.BatchViewModelFactory;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
-import com.example.application_template_jmvvm.ui.settings.ActivationViewModelFactory;
 import com.example.application_template_jmvvm.ui.settings.SettingsFragment;
 import com.example.application_template_jmvvm.ui.transaction.CardViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.transaction.SaleFragment;
-import com.example.application_template_jmvvm.ui.transaction.TransactionViewModelFactory;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
@@ -35,8 +28,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Objects;
 
-import javax.inject.Inject;
-
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -44,15 +35,10 @@ public class MainActivity extends AppCompatActivity{
 
     public CardServiceBinding cardServiceBinding;
     private FragmentManager fragmentManager;
-    @Inject
     public ActivationViewModel activationViewModel;
-    private ActivationViewModelFactory activationViewModelFactory;
     private CardViewModel cardViewModel;
-    @Inject
     public BatchViewModel batchViewModel;
-    private BatchViewModelFactory batchViewModelFactory;
     private TransactionViewModel transactionViewModel;
-    private TransactionViewModelFactory transactionViewModelFactory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,17 +58,10 @@ public class MainActivity extends AppCompatActivity{
         //AppTempDB.getDatabase(this);
         fragmentManager = getSupportFragmentManager();
 
-        activationViewModelFactory = new ActivationViewModelFactory(new ActivationRepository(AppTempDB.getDatabase(getApplication()).activationDao()));
-        activationViewModel = new ViewModelProvider(this, activationViewModelFactory).get(ActivationViewModel.class);
-
-        batchViewModelFactory = new BatchViewModelFactory(new BatchRepository(AppTempDB.getDatabase(getApplication()).batchDao()));
-        batchViewModel = new ViewModelProvider(this, batchViewModelFactory).get(BatchViewModel.class);
-
+        activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);
+        batchViewModel = new ViewModelProvider(this).get(BatchViewModel.class);
         cardViewModel = new ViewModelProvider(this).get(CardViewModel.class);
-
-        transactionViewModelFactory = new TransactionViewModelFactory(new TransactionRepository(this, activationViewModel.getActivationRepository(),
-                                                                    batchViewModel.getBatchRepository(), AppTempDB.getDatabase(getApplication()).transactionDao()));
-        transactionViewModel = new ViewModelProvider(this, transactionViewModelFactory).get(TransactionViewModel.class);
+        transactionViewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
 
         actionControl(getIntent().getAction());
     }

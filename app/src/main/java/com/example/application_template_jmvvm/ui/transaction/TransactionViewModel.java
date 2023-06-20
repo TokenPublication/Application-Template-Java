@@ -9,7 +9,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.repository.ActivationRepository;
+import com.example.application_template_jmvvm.data.repository.BatchRepository;
 import com.example.application_template_jmvvm.data.repository.TransactionRepository;
 import com.example.application_template_jmvvm.data.model.response.TransactionResponse;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
@@ -40,8 +43,9 @@ public class TransactionViewModel extends ViewModel{
         return transactionRepository;
     }
 
-    public void prepareSlip(Fragment fragment, TransactionResponse transactionResponse){
-        transactionRepository.prepareSlip(this, fragment, transactionResponse);
+    public void prepareSlip(Fragment fragment, ActivationRepository activationRepository,
+                            BatchRepository batchRepository, MainActivity mainActivity, TransactionResponse transactionResponse){
+        transactionRepository.prepareSlip(this, activationRepository, batchRepository, mainActivity, fragment, transactionResponse);
     }
 
     public ContentValues prepareContents(ICCCard card, String uuid, TransactionCode transactionCode){
@@ -53,9 +57,11 @@ public class TransactionViewModel extends ViewModel{
         return transactionRepository.putExtraContents(values, transactionCode, inputList);
     }
 
-    public void prepareDummyResponse(Fragment fragment, Integer price, ResponseCode code, Boolean hasSlip,
+    public void prepareDummyResponse(ActivationRepository activationRepository, BatchRepository batchRepository, MainActivity mainActivity,
+                                     Fragment fragment, Integer price, ResponseCode code, Boolean hasSlip,
                                        SlipType slipType, String cardNo, String ownerName, int paymentType){
-        transactionRepository.prepareDummyResponse(this, fragment, price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
+        transactionRepository.prepareDummyResponse(this, activationRepository, batchRepository, mainActivity,
+                                                    fragment, price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
     }
 
     public MutableLiveData<Intent> getIntentLiveData() {

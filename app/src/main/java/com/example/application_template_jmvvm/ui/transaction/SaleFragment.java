@@ -40,7 +40,6 @@ import com.token.uicomponents.infodialog.InfoDialogListener;
 
 import java.util.Objects;
 
-@AndroidEntryPoint
 public class SaleFragment extends Fragment implements InfoDialogListener {
 
     private TransactionService transactionService = new TransactionService();
@@ -238,7 +237,8 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     }
 
     public void onSaleResponseRetrieved(Integer price, ResponseCode code, Boolean hasSlip, SlipType slipType, String cardNo, String ownerName, int paymentType) {
-        transactionViewModel.prepareDummyResponse(this, price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
+        transactionViewModel.prepareDummyResponse(activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(),
+                                                mainActivity, this, price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
         transactionViewModel.getIntentLiveData().observe(getViewLifecycleOwner(), resultIntent -> {
             if (code == ResponseCode.SUCCESS) {
                 mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Success", false);
@@ -273,7 +273,8 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     }
 
     private void finishSale(TransactionResponse transactionResponse) {
-        transactionViewModel.prepareSlip(this, transactionResponse);
+        transactionViewModel.prepareSlip(this, activationViewModel.getActivationRepository(),
+                batchViewModel.getBatchRepository(), mainActivity, transactionResponse);
         transactionViewModel.getIntentLiveData().observe(getViewLifecycleOwner(), resultIntent -> {
             mainActivity.setResult(Activity.RESULT_OK,resultIntent);
             mainActivity.finish();

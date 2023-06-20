@@ -3,9 +3,12 @@ package com.example.application_template_jmvvm.data.repository;
 import com.example.application_template_jmvvm.data.database.activation.ActivationDao;
 import com.example.application_template_jmvvm.data.database.activation.ActivationEntity;
 
+import javax.inject.Inject;
+
 public class ActivationRepository {
     private ActivationDao activationDao;
 
+    @Inject
     public ActivationRepository(ActivationDao activationDao) {
         this.activationDao = activationDao;
         initializeActivation();

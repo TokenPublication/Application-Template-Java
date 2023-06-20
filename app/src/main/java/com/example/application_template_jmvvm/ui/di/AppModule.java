@@ -16,7 +16,7 @@ import dagger.hilt.android.components.ActivityComponent;
 import dagger.hilt.components.SingletonComponent;
 
 @Module
-@InstallIn(ActivityComponent.class)
+@InstallIn(SingletonComponent.class)
 public class AppModule {
 
     @Provides
@@ -35,6 +35,12 @@ public class AppModule {
     @Singleton
     public BatchRepository provideBatchRepository(AppTempDB database) {
         return new BatchRepository(database.batchDao());
+    }
+
+    @Provides
+    @Singleton
+    public TransactionRepository provideTransactionRepository(AppTempDB database) {
+        return new TransactionRepository(database.transactionDao());
     }
 
 }

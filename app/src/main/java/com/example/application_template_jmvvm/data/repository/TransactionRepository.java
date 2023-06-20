@@ -33,21 +33,11 @@ import javax.inject.Inject;
 
 public class TransactionRepository {
 
-    private MainActivity mainActivity;
-    private ActivationRepository activationRepository;
-    private BatchRepository batchRepository;
-    private int amount;
     private TransactionDao transactionDao;
-    private List<TransactionEntity> allTransactions;
 
     @Inject
-    public TransactionRepository(MainActivity mainActivity, ActivationRepository activationRepository,
-                                     BatchRepository batchRepository, TransactionDao transactionDao) {
-        this.mainActivity = mainActivity;
-        this.activationRepository = activationRepository;
-        this.batchRepository = batchRepository;
+    public TransactionRepository(TransactionDao transactionDao) {
         this.transactionDao = transactionDao;
-        this.allTransactions = transactionDao.getAllTransactions();
     }
 
     public List<TransactionEntity> getAllTransactions(){
@@ -122,8 +112,9 @@ public class TransactionRepository {
         return values;
     }
 
-    public void prepareSlip(TransactionViewModel transactionViewModel, Fragment fragment, TransactionResponse transactionResponse){
-        this.amount = (Integer) transactionResponse.getContentValues().get(TransactionCol.col_ulAmount.name());
+    public void prepareSlip(TransactionViewModel transactionViewModel, ActivationRepository activationRepository, BatchRepository batchRepository,
+                            MainActivity mainActivity, Fragment fragment, TransactionResponse transactionResponse){
+        int amount = (Integer) transactionResponse.getContentValues().get(TransactionCol.col_ulAmount.name());
         Bundle bundle = new Bundle();
         Intent intent = new Intent();
         SlipType slipType = SlipType.BOTH_SLIPS;
@@ -145,19 +136,19 @@ public class TransactionRepository {
         bundle.putInt("PaymentType", 3);
         SalePrintHelper salePrintHelper = new SalePrintHelper();
         if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), transactionResponse, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
+            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionResponse, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
         }
         if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), transactionResponse, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
+            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionResponse, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
         }
         bundle.putString("ApprovalCode", getApprovalCode(fragment));
         intent.putExtras(bundle);
         transactionViewModel.setIntentLiveData(intent);
     }
 
-    public void prepareDummyResponse(TransactionViewModel transactionViewModel, Fragment fragment, Integer price, ResponseCode code, Boolean hasSlip,
+    public void prepareDummyResponse(TransactionViewModel transactionViewModel, ActivationRepository activationRepository, BatchRepository batchRepository,
+                                     MainActivity mainActivity, Fragment fragment, Integer price, ResponseCode code, Boolean hasSlip,
                                        SlipType slipType, String cardNo, String ownerName, int paymentType){
-        this.amount = price;
         Intent resultIntent = new Intent();
         Bundle bundle = new Bundle();
         bundle.putInt("ResponseCode", code.ordinal()); // #1 Response Code
@@ -175,22 +166,23 @@ public class TransactionRepository {
         bundle.putInt("TxnNo", batchRepository.getGroupSN());
         bundle.putInt("SlipType", slipType.value);
 
-        bundle.putString("RefundInfo", getRefundInfo(ResponseCode.SUCCESS, cardNo));
+        bundle.putString("RefundInfo", getRefundInfo(ResponseCode.SUCCESS, cardNo, price, activationRepository, batchRepository));
         bundle.putString("RefNo", String.valueOf(32134323));
         bundle.putInt("PaymentType", paymentType);
         SalePrintHelper salePrintHelper = new SalePrintHelper();
         if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, ownerName), null, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
+            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, ownerName, price, activationRepository, batchRepository), null, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
         }
         if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, ownerName), null, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
+            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, ownerName, price, activationRepository, batchRepository), null, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
         }
         bundle.putString("ApprovalCode", getApprovalCode(fragment));
         resultIntent.putExtras(bundle);
         transactionViewModel.setIntentLiveData(resultIntent);
     }
 
-    private String getRefundInfo(ResponseCode response, String cardNumber) {
+    private String getRefundInfo(ResponseCode response, String cardNumber, int amount,
+                                 ActivationRepository activationRepository, BatchRepository batchRepository) {
         JSONObject json = new JSONObject();
         try {
             json.put("BatchNo", batchRepository.getBatchNo());
@@ -206,7 +198,8 @@ public class TransactionRepository {
         return json.toString();
     }
 
-    private SampleReceipt getSampleReceipt(String cardNo, String ownerName) {
+    private SampleReceipt getSampleReceipt(String cardNo, String ownerName, int amount,
+                                           ActivationRepository activationRepository, BatchRepository batchRepository) {
         SampleReceipt receipt = new SampleReceipt();
         receipt.setMerchantName("TOKEN FINTECH");
         receipt.setMerchantID(activationRepository.getMerchantId());
