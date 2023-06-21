@@ -210,7 +210,7 @@ public class RefundFragment extends Fragment{
         intent = new Intent();
         bundle = new Bundle();
         bundle.putInt("ResponseCode", responseCode.ordinal());
-        PrintHelper.PrintSuccess();
+        PrintHelper.PrintSuccess(mainActivity.getApplicationContext());
         intent.putExtras(bundle);
         mainActivity.setResult(Activity.RESULT_OK, intent);
         mainActivity.finish();

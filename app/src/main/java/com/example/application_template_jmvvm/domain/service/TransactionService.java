@@ -28,7 +28,7 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class TransactionService {       //TODO ViewModel'a taşınacak. İsim değişecek.
+public class TransactionService {
 
     private Observable<ContentValues> observable;
     private Observer<ContentValues> observer;
@@ -36,7 +36,7 @@ public class TransactionService {       //TODO ViewModel'a taşınacak. İsim de
     public void doInBackground(ContentValues values, TransactionCode transactionCode, TransactionViewModel transactionViewModel,
                                BatchRepository batchRepository, TransactionResponseListener responseTransactionResponseListener) {
 
-        this.transactionCode = transactionCode;     //TODO dialog incelenecek.
+        this.transactionCode = transactionCode;
         Handler mainHandler = new Handler(Looper.getMainLooper());
         transactionViewModel.setShowDialogLiveData("Progress");
         observable = Observable.just(values)
@@ -79,7 +79,7 @@ public class TransactionService {       //TODO ViewModel'a taşınacak. İsim de
                 Log.i("Complete","Complete");
                 OnlineTransactionResponse onlineTransactionResponse = parseResponse(1);
                 TransactionResponse transactionResponse = finishTransaction(values,onlineTransactionResponse, batchRepository, transactionViewModel.getTransactionRepository());
-                mainHandler.post(new Runnable() {  //TODO Detaylı mesaj yazılacak.
+                mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         transactionViewModel.setTransactionResponseLiveData(transactionResponse);
@@ -123,7 +123,7 @@ public class TransactionService {       //TODO ViewModel'a taşınacak. İsim de
         transactionEntity.setBatchNo(batchRepository.getBatchNo());
         if (transactionCode != TransactionCode.VOID){
             transactionEntity.setUlGUP_SN(batchRepository.getGroupSN());
-            transactionRepository.insertTransaction(transactionEntity); //TODO erdem abi
+            transactionRepository.insertTransaction(transactionEntity);
             batchRepository.updateGUPSN(batchRepository.getGroupSN());
         }
         else {

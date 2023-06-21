@@ -36,11 +36,11 @@ public class BatchRepository {
     }
 
     public int getGroupSN() {
-        return groupSN;
+        return batchDao.getGUPSN();
     }
 
     public int getBatchNo() {
-        return batchNo;
+        return batchDao.getBatchNo();
     }
 
     public String getPreviousBatchSlip() {
@@ -61,6 +61,10 @@ public class BatchRepository {
 
     public void updateGUPSN(int groupSn) {
         batchDao.updateGUPSN(groupSn);
+    }
+
+    public void incrementGUPSN() {
+        batchDao.incrementGUPSN();
     }
 
     public void deleteAll() {

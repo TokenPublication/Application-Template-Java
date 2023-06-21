@@ -19,6 +19,8 @@ import com.example.application_template_jmvvm.ui.settings.SettingsFragment;
 import com.example.application_template_jmvvm.ui.transaction.CardViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.transaction.SaleFragment;
+import com.token.printerlib.PrinterService;
+import com.token.printerlib.StyledString;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
@@ -55,7 +57,6 @@ public class MainActivity extends AppCompatActivity{
         if(BuildConfig.FLAVOR.equals("TR400")) {
             Log.v("TR400 APP","Application Template for  400TR");
         }
-        //AppTempDB.getDatabase(this);
         fragmentManager = getSupportFragmentManager();
 
         activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);

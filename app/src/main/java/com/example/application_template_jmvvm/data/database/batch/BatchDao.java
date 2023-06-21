@@ -16,6 +16,9 @@ public interface BatchDao {
     @Query("UPDATE " + DatabaseInfo.BATCHTABLE + " SET " + BatchCol.col_ulGUP_SN + " = :groupSn + 1 WHERE " + BatchCol.col_ulGUP_SN + " = :groupSn")
     void updateGUPSN(int groupSn);
 
+    @Query("UPDATE " + DatabaseInfo.BATCHTABLE + " SET " + BatchCol.col_ulGUP_SN + " = " + BatchCol.col_ulGUP_SN + " + 1 WHERE ROWID = (SELECT ROWID FROM " + DatabaseInfo.BATCHTABLE + " LIMIT 1)")
+    void incrementGUPSN();
+
     @Query("UPDATE " + DatabaseInfo.BATCHTABLE + " SET " + BatchCol.col_ulGUP_SN + " = 1, " + BatchCol.col_batchNo + " = :batchNo + 1 WHERE " + BatchCol.col_batchNo + " = :batchNo")
     void updateBatchNo(int batchNo);
 

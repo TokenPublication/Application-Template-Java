@@ -1,12 +1,15 @@
 package com.example.application_template_jmvvm.domain.printHelpers;
 
+import android.content.ContentValues;
+import android.content.Context;
+
 import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.PrinterService;
 import com.token.printerlib.StyledString;
 
 public class PrintHelper extends BasePrintHelper {
 
-    public static void PrintSuccess()
+    public static void PrintSuccess(Context context)
     {   // Print the success message
         StyledString styledText = new StyledString();
 
@@ -32,10 +35,10 @@ public class PrintHelper extends BasePrintHelper {
         styledText.newLine();
         styledText.addSpace(100);
 
-        styledText.print(PrinterService.getService());
+        styledText.print(PrinterService.getService(context));
     }
 
-    public static void PrintError()
+    public static void PrintError(Context context)
     {   // Print the error message if necessary
         StyledString styledText = new StyledString();
 
@@ -51,7 +54,7 @@ public class PrintHelper extends BasePrintHelper {
         styledText.newLine();
         styledText.addSpace(100);
 
-        styledText.print(PrinterService.getService());
+        styledText.print(PrinterService.getService(context));
     }
 
     public String PrintBatchClose(StyledString styledText, String batch_no, String tx_no, int totalAmount, String MID, String TID) {
@@ -91,21 +94,21 @@ public class PrintHelper extends BasePrintHelper {
         return styledText.toString();
     }
 
-    public static void PrintContactless(boolean is32)
+    public static void PrintContactless(boolean is32, Context context)
     {
         StyledString styledText = new StyledString();
         styledText.printBitmap(is32 ? "contactless32" : "contactless64", 0);
         styledText.newLine();
         styledText.addSpace(100);
-        styledText.print(PrinterService.getService());
+        styledText.print(PrinterService.getService(context));
     }
 
-    public static void PrintVisa()
+    public static void PrintVisa(Context context)
     {
         StyledString styledText = new StyledString();
         styledText.printBitmap("visa-contactless", 0);
         styledText.newLine();
         styledText.addSpace(100);
-        styledText.print(PrinterService.getService());
+        styledText.print(PrinterService.getService(context));
     }
 }

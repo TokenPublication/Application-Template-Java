@@ -77,7 +77,7 @@ public class SettingsFragment extends Fragment {
             merchantId = inputList.get(0).getText();
             terminalId = inputList.get(1).getText();
 
-            activationViewModel.updateActivation(terminalId, merchantId, activationViewModel.getHostIP()); //TODO sorulacak.
+            activationViewModel.updateActivation(terminalId, merchantId, activationViewModel.getHostIP());
             mainActivity.getSupportFragmentManager().popBackStack();
         });
         mainActivity.replaceFragment(R.id.container, TidMidFragment,true);

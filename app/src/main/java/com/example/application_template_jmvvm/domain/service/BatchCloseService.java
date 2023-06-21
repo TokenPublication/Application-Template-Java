@@ -8,9 +8,10 @@ import com.example.application_template_jmvvm.data.database.transaction.Transact
 import com.example.application_template_jmvvm.data.model.response.BatchCloseResponse;
 import com.example.application_template_jmvvm.data.model.code.BatchResult;
 import com.example.application_template_jmvvm.domain.printHelpers.BatchClosePrintHelper;
-import com.example.application_template_jmvvm.domain.printHelpers.PrintServiceBinding;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
+import com.token.printerlib.PrinterService;
+import com.token.printerlib.StyledString;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 
@@ -64,20 +65,19 @@ public class BatchCloseService implements InfoDialogListener {
             @Override
             public void onComplete() {
                 Log.i("Complete","Complete");
-                BatchCloseResponse batchCloseResponse = finishTransaction(context, transactionViewModel, batchViewModel, batchResult, dialog);
+                BatchCloseResponse batchCloseResponse = finishTransaction(main, context, transactionViewModel, batchViewModel, batchResult, dialog);
                 batchCloseResponseListener.onComplete(batchCloseResponse);
             }
         };
         observable.subscribe(observer);
     }
 
-    private BatchCloseResponse finishTransaction(Context context, TransactionViewModel transactionViewModel,
+    private BatchCloseResponse finishTransaction(MainActivity mainActivity, Context context, TransactionViewModel transactionViewModel,
                                                   BatchViewModel batchViewModel, BatchResult batchResult, InfoDialog dialog){
         List<TransactionEntity> transactionList = transactionViewModel.getAllTransactions();
         BatchClosePrintHelper batchClosePrintHelper = new BatchClosePrintHelper();
-        PrintServiceBinding printServiceBinding = new PrintServiceBinding();
         String slip = batchClosePrintHelper.batchText(String.valueOf(batchViewModel.getBatchNo()),transactionList,true);
-        printServiceBinding.print(slip);
+        print(slip, mainActivity);
         Log.d("Repetition",slip);
         batchViewModel.updateBatchSlip(slip,batchViewModel.getBatchNo());
         dialog.update(InfoDialog.InfoType.Confirmed, "Grup Kapama Başarılı");
@@ -85,6 +85,13 @@ public class BatchCloseService implements InfoDialogListener {
         batchViewModel.updateGUPSN(0);
         transactionViewModel.deleteAllTransactions();
         return new BatchCloseResponse(batchResult,new SimpleDateFormat("dd-MM-yy HH:mm:ss", Locale.getDefault()));
+    }
+
+    public void print(String printText, MainActivity mainActivity) {
+        StyledString styledText = new StyledString();
+        styledText.addStyledText(printText);
+        styledText.finishPrintingProcedure();
+        styledText.print(PrinterService.getService(mainActivity.getApplicationContext()));
     }
 
     @Override

@@ -47,7 +47,7 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         holder.serial_no.setText(String.valueOf(transaction.getUlGUP_SN()));
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {       //TODO UI güncelleme. SetVoid Transaction Service'de gerçekleşecek.
+            public void onClick(View v) {
                 voidFragment.startVoid(transaction);
             }
         });

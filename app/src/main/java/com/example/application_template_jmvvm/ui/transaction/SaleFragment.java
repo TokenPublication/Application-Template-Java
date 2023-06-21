@@ -91,7 +91,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
                         infoDialog.update(InfoDialog.InfoType.Declined, "Connect Failed");
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
                             if (infoDialog != null) {
-                                infoDialog.dismiss();   //TODO Backpressed
+                                infoDialog.dismiss();
                                 mainActivity.finish();
                             }
                         }, 2000);
@@ -253,28 +253,20 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     }
 
     public void doSale(ICCCard card) {
-        ContentValues values = transactionViewModel.getTransactionRepository().prepareContentValues(card, uuid, TransactionCode.SALE); //TODO yapmaya gerek yok. ICC passle
-        transactionService.doInBackground(values, TransactionCode.SALE, transactionViewModel,
-                batchViewModel.getBatchRepository(), new TransactionResponseListener() {     //TODO Refund ve Void için değiştirildiğinde silinecek.
-                    @Override
-                    public void onComplete(TransactionResponse response) {}
-                });
+        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, this, null, TransactionCode.SALE, activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
         transactionViewModel.getShowDialogLiveData().observe(getViewLifecycleOwner(), text -> {
-            if (text != null){
-                if (Objects.equals(text, "Progress"))
+            if (text != null) {
+                if (Objects.equals(text, "Progress")) {
                     infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, text, false);
-                infoDialog.update(InfoDialog.InfoType.Progress, text);
+                } else {
+                    infoDialog.update(InfoDialog.InfoType.Progress, text); //TODO onay kodu
+                }
+                if (text.contains("ONAY KODU")) {
+                    infoDialog.update(InfoDialog.InfoType.Confirmed, text);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {}, 2000);
+                }
             }
         });
-        transactionViewModel.getTransactionResponseLiveData().observe(getViewLifecycleOwner(), transactionResponse -> {
-            infoDialog.update(InfoDialog.InfoType.Confirmed, "Confirmed");
-            finishSale(transactionResponse);
-        });
-    }
-
-    private void finishSale(TransactionResponse transactionResponse) {
-        transactionViewModel.prepareSlip(this, activationViewModel.getActivationRepository(),
-                batchViewModel.getBatchRepository(), mainActivity, transactionResponse);
         transactionViewModel.getIntentLiveData().observe(getViewLifecycleOwner(), resultIntent -> {
             mainActivity.setResult(Activity.RESULT_OK,resultIntent);
             mainActivity.finish();
