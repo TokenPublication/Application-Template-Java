@@ -3,9 +3,11 @@ package com.example.application_template_jmvvm.ui.transaction;
 import static com.token.uicomponents.CustomInput.EditTextInputType.Amount;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,16 +17,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.application_template_jmvvm.domain.service.TransactionResponseListener;
+import com.example.application_template_jmvvm.domain.extraContentInfo;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.domain.printHelpers.PrintHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.model.response.TransactionResponse;
-import com.example.application_template_jmvvm.domain.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
+import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
 import com.example.application_template_jmvvm.ui.utils.MenuItem;
 
 import com.token.uicomponents.CustomInput.CustomInputFormat;
@@ -32,21 +34,26 @@ import com.token.uicomponents.CustomInput.EditTextInputType;
 import com.token.uicomponents.CustomInput.InputListFragment;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
+import com.token.uicomponents.ListMenuFragment.MenuItemClickListener;
+import com.token.uicomponents.infodialog.InfoDialog;
+import com.token.uicomponents.infodialog.InfoDialogListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
-public class RefundFragment extends Fragment{
+public class RefundFragment extends Fragment implements InfoDialogListener {
 
-    private TransactionService transactionService = new TransactionService();
+    private ActivationViewModel activationViewModel;
     private CardViewModel cardViewModel;
     private TransactionViewModel transactionViewModel;
     private BatchViewModel batchViewModel;
     private TransactionCode transactionCode;
     int amount;
+    int instCount;
     String uuid;
     private CustomInputFormat inputTranDate;
     private CustomInputFormat inputOrgAmount;
@@ -56,9 +63,12 @@ public class RefundFragment extends Fragment{
     private Bundle bundle;
     private Intent intent;
     private MainActivity mainActivity;
+    private InfoDialog infoDialog;
 
-    public RefundFragment(MainActivity mainActivity, CardViewModel cardViewModel, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
+    public RefundFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
+                          TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
         this.mainActivity = mainActivity;
+        this.activationViewModel = activationViewModel;
         this.cardViewModel = cardViewModel;
         this.transactionViewModel = transactionViewModel;
         this.batchViewModel = batchViewModel;
@@ -84,10 +94,10 @@ public class RefundFragment extends Fragment{
     private void showMenu(){
         List<IListMenuItem> menuItems = new ArrayList<>();
         menuItems.add(new MenuItem(getString(R.string.matched_refund), iListMenuItem -> {
-            showMatchedReturnFragment();
+            showMatchedReturnFragment(TransactionCode.MATCHED_REFUND);
         }));
         menuItems.add(new MenuItem(getString(R.string.installment_refund), iListMenuItem -> {
-            //TODO will be implemented.Bastıktan sonra cash ve matched gelmeme hatası.inst amount ve cnt 0 dummy bak
+            showInstallmentRefundFragment();
         }));
         menuItems.add(new MenuItem(getString(R.string.cash_refund), iListMenuItem -> {
             showReturnFragment();
@@ -99,7 +109,7 @@ public class RefundFragment extends Fragment{
         mainActivity.replaceFragment(R.id.container, mListMenuFragment,false);
     }
 
-    private void showMatchedReturnFragment() {
+    private void showMatchedReturnFragment(TransactionCode transactionCode) {
         List<CustomInputFormat> inputList = new ArrayList<>();
         inputOrgAmount = new CustomInputFormat(getString(R.string.original_amount), Amount, null, getString(R.string.invalid_amount),
                 input -> {
@@ -143,11 +153,24 @@ public class RefundFragment extends Fragment{
 
         InputListFragment fragment = InputListFragment.newInstance(inputList, getString(R.string.refund), list -> {
             amount = Integer.parseInt(list.get(1));
-            transactionCode = TransactionCode.MATCHED_REFUND;
-            cardReader();
+            if (transactionCode == TransactionCode.INSTALLMENT_REFUND) {
+                this.transactionCode = TransactionCode.INSTALLMENT_REFUND;
+            } else {
+                this.transactionCode = transactionCode;
+            }
+            transactionViewModel.setIsButtonClickedLiveData(true);
         });
+
         mainActivity.replaceFragment(R.id.container, fragment, true);
-        cardDataObserver(fragment,inputList);
+        fragment.getViewLifecycleOwnerLiveData().observe(mainActivity, lifecycleOwner -> {
+            if (lifecycleOwner != null) {
+                transactionViewModel.getIsButtonClickedLiveData().observe(fragment.getViewLifecycleOwner(), isClicked -> {
+                    if (isClicked) {
+                        cardReader(fragment, inputList);
+                    }
+                });
+            }
+        });
     }
 
     private void showReturnFragment(){
@@ -165,55 +188,142 @@ public class RefundFragment extends Fragment{
         InputListFragment fragment = InputListFragment.newInstance(inputList, getString(R.string.refund), list -> {
             amount = Integer.parseInt(list.get(0));
             transactionCode = TransactionCode.CASH_REFUND;
-            cardReader();
+            transactionViewModel.setIsButtonClickedLiveData(true);
         });
+
         mainActivity.replaceFragment(R.id.container, fragment, true);
-        cardDataObserver(fragment,inputList);
-    }
-
-    private void cardReader(){
-        if (!cardViewModel.getIsCardServiceConnected()){
-            cardViewModel.initializeCardServiceBinding(mainActivity);
-            cardViewModel.setIsCardServiceConnected(true);
-        }
-        cardViewModel.readCard(amount);
-    }
-
-    private void cardDataObserver(InputListFragment fragment, List<CustomInputFormat> inputList){
         fragment.getViewLifecycleOwnerLiveData().observe(mainActivity, lifecycleOwner -> {
             if (lifecycleOwner != null) {
-                cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
-                    if (card != null) {
-                        afterCardRead(card,transactionCode,inputList);
+                transactionViewModel.getIsButtonClickedLiveData().observe(fragment.getViewLifecycleOwner(), isClicked -> {
+                    if (isClicked) {
+                        cardReader(fragment, inputList);
                     }
                 });
             }
         });
     }
 
-    public void afterCardRead(ICCCard card, TransactionCode transactionCode, List<CustomInputFormat> inputList){
-        ContentValues values = transactionViewModel.prepareContents(card, uuid, transactionCode);
-        values = transactionViewModel.prepareExtraContents(values, transactionCode, inputList);
-        transactionService.doInBackground(values, transactionCode, transactionViewModel,
-                batchViewModel.getBatchRepository(),
-                new TransactionResponseListener() {
-                    @Override
-                    public void onComplete(TransactionResponse response) {
-                        finishRefund(response);
-                    }
-                });
+    private void showInstallmentRefundFragment() {
+        MenuItemClickListener<MenuItem> listener = menuItem -> {
+            String itemName = menuItem.getName().toString();
+            String[] itemNameSplit = itemName.split(" ");
+            instCount = Integer.parseInt(itemNameSplit[0]);
+            showMatchedReturnFragment(TransactionCode.INSTALLMENT_REFUND);
+        };
+
+        int maxInst = 12;
+        List<IListMenuItem> menuItems = new ArrayList<>();
+        for (int i = 2; i <= maxInst; i++) {
+            MenuItem menuItem = new MenuItem(i +" " +getString(R.string.installment), listener);
+            menuItems.add(menuItem);
+        }
+
+        ListMenuFragment instFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.installment_refund), true, R.drawable.token_logo_png);
+        mainActivity.replaceFragment(R.id.container, instFragment, true);
     }
 
-    private void finishRefund(TransactionResponse transactionResponse) {
-        ResponseCode responseCode = transactionResponse.getOnlineTransactionResponse().getmResponseCode();
-        Log.d("TransactionResponse/Refund", "responseCode:" + responseCode + " ContentVals: " + transactionResponse.getContentValues());
-        intent = new Intent();
-        bundle = new Bundle();
-        bundle.putInt("ResponseCode", responseCode.ordinal());
-        PrintHelper.PrintSuccess(mainActivity.getApplicationContext());
-        intent.putExtras(bundle);
-        mainActivity.setResult(Activity.RESULT_OK, intent);
-        mainActivity.finish();
+    private void cardReader(InputListFragment fragment, List<CustomInputFormat> inputList) {
+        final boolean[] isCancelled = {false};
+        infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Processing, "Processing", false);
+        CountDownTimer timer = new CountDownTimer(10000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {}
+
+            @Override
+            public void onFinish() {
+                isCancelled[0] = true;
+                infoDialog.update(InfoDialog.InfoType.Declined, "Connect Failed");
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    if (infoDialog != null) {
+                        infoDialog.dismiss();
+                        mainActivity.finish();
+                    }
+                }, 2000);
+            }
+        };
+        timer.start();
+        cardViewModel.initializeCardServiceBinding(mainActivity);
+
+        fragment.getViewLifecycleOwnerLiveData().observe(mainActivity, lifecycleOwner -> {
+            if (lifecycleOwner != null) {
+                cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
+                    if (isConnected && !isCancelled[0]) {
+                        timer.cancel();
+                        infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            cardViewModel.readCard(amount);
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                infoDialog.dismiss();
+                            }, 1000);
+                        }, 2000);
+                    }
+                });
+            }
+        });
+
+        fragment.getViewLifecycleOwnerLiveData().observe(mainActivity, lifecycleOwner -> {
+            if (lifecycleOwner != null) {
+                cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
+                    if (card != null) {
+                        mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            doRefund(card, transactionCode, inputList, fragment);
+                            infoDialog.dismiss();
+                        }, 2000);
+                    }
+                });
+            }
+        });
+    }
+
+    public void doRefund(ICCCard card, TransactionCode transactionCode, List<CustomInputFormat> inputList, Fragment fragment) {
+        Bundle refundInfo = bundleCreator(transactionCode, inputList);
+        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, this, null, refundInfo, transactionCode,
+                                                    activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
+        transactionViewModel.getShowDialogLiveData().observe(fragment.getViewLifecycleOwner(), text -> {
+            if (text != null) {
+                if (Objects.equals(text, "Progress")) {
+                    infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, text, false);
+                } else {
+                    infoDialog.update(InfoDialog.InfoType.Progress, text);
+                }
+                if (text.contains("ONAY KODU")) {
+                    infoDialog.update(InfoDialog.InfoType.Confirmed, text);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {}, 2000);
+                }
+            }
+        });
+        transactionViewModel.getIntentLiveData().observe(fragment.getViewLifecycleOwner(), resultIntent -> {
+            mainActivity.setResult(Activity.RESULT_OK,resultIntent);
+            mainActivity.finish();
+        });
+    }
+
+    public Bundle bundleCreator(TransactionCode transactionCode, List<CustomInputFormat> inputList) {
+        Bundle bundle = new Bundle();
+        switch (transactionCode) {
+            case MATCHED_REFUND:
+                bundle.putInt(extraContentInfo.orgAmount, Integer.parseInt(inputList.get(0).getText()));
+                bundle.putInt(extraContentInfo.refAmount, Integer.parseInt(inputList.get(1).getText()));
+                bundle.putString(extraContentInfo.refNo, inputList.get(2).getText());
+                bundle.putString(extraContentInfo.authCode, inputList.get(3).getText());
+                bundle.putString(extraContentInfo.tranDate, inputList.get(4).getText());
+                break;
+            case CASH_REFUND:
+                bundle.putInt(extraContentInfo.refAmount, Integer.parseInt(inputList.get(0).getText()));
+                break;
+            case INSTALLMENT_REFUND:
+                bundle.putInt(extraContentInfo.orgAmount, Integer.parseInt(inputList.get(0).getText()));
+                bundle.putInt(extraContentInfo.refAmount, Integer.parseInt(inputList.get(1).getText()));
+                bundle.putString(extraContentInfo.refNo, inputList.get(2).getText());
+                bundle.putString(extraContentInfo.authCode, inputList.get(3).getText());
+                bundle.putString(extraContentInfo.tranDate, inputList.get(4).getText());
+                bundle.putInt(extraContentInfo.instCount, instCount);
+                break;
+            default:
+                break;
+        }
+        return bundle;
     }
 
     private String getFormattedDate(String dateText) {
@@ -230,4 +340,13 @@ public class RefundFragment extends Fragment{
         return sdf.format(Calendar.getInstance().getTime()).equals(date);
     }
 
+    @Override
+    public void confirmed(int i) {
+
+    }
+
+    @Override
+    public void canceled(int i) {
+
+    }
 }

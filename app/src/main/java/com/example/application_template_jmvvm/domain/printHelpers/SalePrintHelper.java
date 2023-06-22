@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.example.application_template_jmvvm.AppTemp;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.domain.SampleReceipt;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.token.printerlib.PrinterDefinitions;
@@ -19,8 +20,13 @@ public class SalePrintHelper extends BasePrintHelper{
 
     public String getFormattedText(SampleReceipt receipt, TransactionEntity transactionEntity, SlipType slipType, Context context, Integer ZNO, Integer ReceiptNo)
     {
+        int transactionCode = TransactionCode.SALE.getType();
+        if (transactionEntity != null) {
+            transactionCode = transactionEntity.getbTransCode();
+        }
+
         StyledString styledText = new StyledString();
-        if(slipType == SlipType.CARDHOLDER_SLIP){
+        if(slipType == SlipType.CARDHOLDER_SLIP) {
             if(!((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.ECR.name())  && !((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.VUK507.name())){
                 printSlipHeader(styledText, receipt);
             }
@@ -38,24 +44,57 @@ public class SalePrintHelper extends BasePrintHelper{
             styledText.addTextToLine("İŞYERİ NÜSHASI", Alignment.Center);
             styledText.newLine();
         }
-        styledText.addTextToLine("SATIŞ", Alignment.Center);
+        if (transactionCode == TransactionCode.VOID.getType()) {
+            String transactionType = "";
+            switch (transactionEntity.getbTransCode()) {
+                case 1:
+                    transactionType = "SATIŞ İPTALİ";
+                    break;
+                case 3:
+                    transactionType = "İPTAL İŞLEMİ";
+                    break;
+                case 4:
+                    transactionType = "E. İADE İPTALİ";
+                    break;
+                case 5:
+                    transactionType = "N. İADE İPTALİ";
+                    break;
+                case 6:
+                    transactionType = "T. İADE İPTALİ";
+                    break;
+            }
+            styledText.addTextToLine(transactionType, PrinterDefinitions.Alignment.Center);
+        }
+        if (transactionCode == TransactionCode.SALE.getType()) {
+            styledText.addTextToLine("SATIŞ", PrinterDefinitions.Alignment.Center);
+        }
+        if (transactionCode == TransactionCode.MATCHED_REFUND.getType()) {
+            styledText.addTextToLine("E. İADE", PrinterDefinitions.Alignment.Center);
+        }
+        if (transactionCode == TransactionCode.INSTALLMENT_REFUND.getType()) {
+            styledText.addTextToLine("T. SATIŞ İADE", PrinterDefinitions.Alignment.Center);
+            styledText.newLine();
+            styledText.addTextToLine(transactionEntity.getbInstCnt() + " TAKSİT", PrinterDefinitions.Alignment.Center);
+        }
+        if (transactionCode == TransactionCode.CASH_REFUND.getType()) {
+            styledText.addTextToLine("NAKİT İADE", PrinterDefinitions.Alignment.Center);
+        }
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yy HH:mm:ss", Locale.getDefault());
-        String time = sdf.format(Calendar.getInstance().getTime());
+        String dateTime = sdf.format(Calendar.getInstance().getTime());
+        String lineTime = "";
+        if (transactionCode == TransactionCode.VOID.getType()) {
+            lineTime = dateTime + " M OFFLINE";
+        }
+        if (transactionCode == TransactionCode.SALE.getType()) {
+            lineTime = dateTime + " C ONLINE";
+        }
+        if (transactionCode == TransactionCode.MATCHED_REFUND.getType()) {
+            lineTime = dateTime + " M ONLINE";
+        }
 
         styledText.newLine();
-
-        if(slipType == SlipType.CARDHOLDER_SLIP){
-            if(((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.ECR.name())|| ((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.VUK507.name())){
-                styledText.addTextToLine("C ONLINE", Alignment.Center);
-            }
-            else{
-                styledText.addTextToLine(time + " " + "C ONLINE", Alignment.Center);
-            }
-        }
-        else if(slipType == SlipType.MERCHANT_SLIP){
-            styledText.addTextToLine(time + " " + "C ONLINE", Alignment.Center);
-        }
+        styledText.addTextToLine(lineTime, PrinterDefinitions.Alignment.Center);
 
         styledText.newLine();
         styledText.addTextToLine(receipt.getCardNo(), Alignment.Center);
@@ -63,23 +102,77 @@ public class SalePrintHelper extends BasePrintHelper{
         styledText.newLine();
         styledText.addTextToLine(receipt.getFullName(), Alignment.Center);
 
+        styledText.newLine();
+        SimpleDateFormat ddMMyy = new SimpleDateFormat("dd-MM-yy", Locale.getDefault());
+        String date = ddMMyy.format(Calendar.getInstance().getTime());
+
+        SimpleDateFormat hhmmss = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+        String time = hhmmss.format(Calendar.getInstance().getTime());
+
+        styledText.addTextToLine(date);
+        styledText.addTextToLine(time, PrinterDefinitions.Alignment.Right);
+
         styledText.setLineSpacing(1f);
         styledText.setFontSize(14);
         styledText.setFontFace(PrinterDefinitions.Font_E.Sans_Semi_Bold);
         styledText.newLine();
         styledText.addTextToLine("TUTAR:");
-        styledText.addTextToLine(receipt.getAmount(), Alignment.Right);
+        if (transactionCode == TransactionCode.MATCHED_REFUND.getType() || transactionCode == TransactionCode.INSTALLMENT_REFUND.getType() || transactionCode == TransactionCode.CASH_REFUND.getType()) {
+            styledText.addTextToLine(StringHelper.getAmount(transactionEntity.getUlAmount2()), PrinterDefinitions.Alignment.Right);
+        }
+        else {
+            styledText.addTextToLine(StringHelper.getAmount(transactionEntity.getUlAmount()), PrinterDefinitions.Alignment.Right);
+        }
 
         styledText.setLineSpacing(0.5f);
         styledText.setFontSize(10);
         styledText.newLine();
-        if (slipType == SlipType.CARDHOLDER_SLIP) {
-            styledText.addTextToLine("KARŞILIĞI MAL/HİZM ALDIM", Alignment.Center);
-        }
-        else {
-            styledText.addTextToLine("İşlem Şifre Girilerek Yapılmıştır", Alignment.Center);
+
+        if (transactionCode == TransactionCode.VOID.getType()){
+            styledText.addTextToLine("İPTAL EDİLMİŞTİR", PrinterDefinitions.Alignment.Center);
             styledText.newLine();
-            styledText.addTextToLine("İMZAYA GEREK YOKTUR", Alignment.Center);
+            styledText.addTextToLine("===========================",PrinterDefinitions.Alignment.Center);
+            styledText.newLine();
+            styledText.addTextToLine("İŞLEM TEMASSIZ TAMAMLANMIŞTIR", PrinterDefinitions.Alignment.Center);
+            styledText.newLine();
+            styledText.addTextToLine("MASTERCARD CONTACTLESS", PrinterDefinitions.Alignment.Center);
+            if (slipType == SlipType.CARDHOLDER_SLIP) {
+                styledText.newLine();
+                String signature = "İŞ YERİ İMZA: _ _ _ _ _ _ _ _ _ _ _ _ _ _";
+                styledText.addTextToLine(signature,PrinterDefinitions.Alignment.Center);
+                styledText.newLine();
+                styledText.addTextToLine("===========================",PrinterDefinitions.Alignment.Center);
+            }
+        }
+        if (transactionCode == TransactionCode.MATCHED_REFUND.getType() || transactionCode == TransactionCode.INSTALLMENT_REFUND.getType() || transactionCode == TransactionCode.CASH_REFUND.getType()){
+            styledText.addTextToLine("MAL/HİZM İADE EDİLMİŞTİR", PrinterDefinitions.Alignment.Center);
+            styledText.newLine();
+            if (transactionCode != TransactionCode.CASH_REFUND.getType()) {
+                styledText.addTextToLine("İŞLEM TARİHİ: " + transactionEntity.getBaTranDate2(),PrinterDefinitions.Alignment.Center);
+            } else {
+                styledText.addTextToLine("İŞLEM TARİHİ: " + transactionEntity.getBaDate(),PrinterDefinitions.Alignment.Center);
+            }
+            styledText.newLine();
+            styledText.addTextToLine("ORJ. İŞ YERİ NO: " + receipt.getMerchantID(),PrinterDefinitions.Alignment.Center);
+            styledText.newLine();
+            styledText.addTextToLine("İŞLEM TEMASSIZ TAMAMLANMIŞTIR", PrinterDefinitions.Alignment.Center);
+            styledText.newLine();
+            styledText.addTextToLine("MASTERCARD CONTACTLESS", PrinterDefinitions.Alignment.Center);
+            if (slipType == SlipType.CARDHOLDER_SLIP) {
+                styledText.newLine();
+                String signature = "İŞ YERİ İMZA: _ _ _ _ _ _ _ _ _ _ _ _ _ _";
+                styledText.addTextToLine(signature,PrinterDefinitions.Alignment.Center);
+            }
+        }
+        if (transactionCode == TransactionCode.SALE.getType()) {
+            if (slipType == SlipType.CARDHOLDER_SLIP) {
+                styledText.addTextToLine("KARŞILIĞI MAL/HİZM ALDIM", Alignment.Center);
+            }
+            else {
+                styledText.addTextToLine("İşlem Şifre Girilerek Yapılmıştır", Alignment.Center);
+                styledText.newLine();
+                styledText.addTextToLine("İMZAYA GEREK YOKTUR", Alignment.Center);
+            }
         }
 
         styledText.setFontFace(PrinterDefinitions.Font_E.Sans_Bold);
@@ -99,7 +192,7 @@ public class SalePrintHelper extends BasePrintHelper{
 
         if (transactionEntity != null) {
             styledText.addTextToLine("GRUP NO:" + transactionEntity.getBatchNo());
-            styledText.addTextToLine("REF NO: " + transactionEntity.getBaHostLogKey(), PrinterDefinitions.Alignment.Right);
+            styledText.addTextToLine("REF NO: " + transactionEntity.getRefNo(), PrinterDefinitions.Alignment.Right);
             styledText.newLine();
             styledText.addTextToLine("AID: " + transactionEntity.getAid());
             styledText.addTextToLine(transactionEntity.getAidLabel(), PrinterDefinitions.Alignment.Right);
@@ -109,27 +202,31 @@ public class SalePrintHelper extends BasePrintHelper{
             styledText.addTextToLine("REF NO: " + ((int) (Math.random() * 90000000) + 10000000), Alignment.Right);
             styledText.newLine();
             styledText.addTextToLine("AID: " + receipt.getAid());
-            styledText.addTextToLine("54354353asd34234234", PrinterDefinitions.Alignment.Right);
+            styledText.addTextToLine("42414E4B41204B41525449", PrinterDefinitions.Alignment.Right);
         }
+        styledText.newLine();
+        styledText.addTextToLine("Ver: 92.12.05");
 
-        if (slipType == SlipType.MERCHANT_SLIP) {
-            addTextToNewLine(styledText, "*MALİ DEĞERİ YOKTUR*", Alignment.Center, 8);
-        }
-
-        if (slipType == SlipType.MERCHANT_SLIP) {
-            if(((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.ECR.name())) {
-                styledText.newLine();
-                styledText.addTextToLine("Z NO: " +ZNO, Alignment.Right);
-                styledText.addTextToLine("FİŞ NO: " +ReceiptNo, Alignment.Left);
+        if (transactionCode == TransactionCode.SALE.getType()) {
+            if (slipType == SlipType.MERCHANT_SLIP) {
+                addTextToNewLine(styledText, "*MALİ DEĞERİ YOKTUR*", Alignment.Center, 8);
             }
-        }
 
-        if (slipType == SlipType.MERCHANT_SLIP) {
-            if(((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.ECR.name())
-                    || ((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.VUK507.name())) {
+            if (slipType == SlipType.MERCHANT_SLIP) {
+                if(((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.ECR.name())) {
+                    styledText.newLine();
+                    styledText.addTextToLine("Z NO: " +ZNO, Alignment.Right);
+                    styledText.addTextToLine("FİŞ NO: " +ReceiptNo, Alignment.Left);
+                }
+            }
 
-                addTextToNewLine(styledText, ((AppTemp) context.getApplicationContext()).getCurrentFiscalID(), Alignment.Center, 8);
+            if (slipType == SlipType.MERCHANT_SLIP) {
+                if(((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.ECR.name())
+                        || ((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.VUK507.name())) {
 
+                    addTextToNewLine(styledText, ((AppTemp) context.getApplicationContext()).getCurrentFiscalID(), Alignment.Center, 8);
+
+                }
             }
         }
 

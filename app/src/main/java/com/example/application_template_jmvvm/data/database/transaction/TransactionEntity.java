@@ -8,113 +8,110 @@ import com.example.application_template_jmvvm.data.database.DatabaseInfo;
 
 @Entity(tableName = DatabaseInfo.TRANSACTIONTABLE)
 public class TransactionEntity {
-    @ColumnInfo(name = "col_uuid")
+    @ColumnInfo(name = TransactionCols.col_uuid)
     public String uuid;
 
-    @ColumnInfo(name = "col_ulSTN")
+    @ColumnInfo(name = TransactionCols.col_ulSTN)
     public String ulSTN;
 
     @PrimaryKey
-    @ColumnInfo(name = "col_ulGUP_SN")
+    @ColumnInfo(name = TransactionCols.col_ulGUP_SN)
     public int ulGUP_SN;
 
-    @ColumnInfo(name = "col_batchNo")
+    @ColumnInfo(name = TransactionCols.col_batchNo)
     public int batchNo;
 
-    @ColumnInfo(name = "col_settleNo")
+    @ColumnInfo(name = TransactionCols.col_settleNo)
     public int settleNo;
 
-    @ColumnInfo(name = "col_bCardReadType")
+    @ColumnInfo(name = TransactionCols.col_bCardReadType)
     public int bCardReadType;
 
-    @ColumnInfo(name = "col_bTransCode")
+    @ColumnInfo(name = TransactionCols.col_bTransCode)
     public int bTransCode;
 
-    @ColumnInfo(name = "col_ulAmount")
+    @ColumnInfo(name = TransactionCols.col_ulAmount)
     public int ulAmount;
 
-    @ColumnInfo(name = "col_ulAmount2")
+    @ColumnInfo(name = TransactionCols.col_ulAmount2)
     public int ulAmount2;
 
-    @ColumnInfo(name = "col_baPAN")
+    @ColumnInfo(name = TransactionCols.col_baPAN)
     public String baPAN;
 
-    @ColumnInfo(name = "col_baExpDate")
+    @ColumnInfo(name = TransactionCols.col_baExpDate)
     public String baExpDate;
 
-    @ColumnInfo(name = "col_baDate")
+    @ColumnInfo(name = TransactionCols.col_baDate)
     public String baDate;
 
-    @ColumnInfo(name = "col_baTime")
+    @ColumnInfo(name = TransactionCols.col_baTime)
     public String baTime;
 
-    @ColumnInfo(name = "col_baTrack2")
+    @ColumnInfo(name = TransactionCols.col_baTrack2)
     public String baTrack2;
 
-    @ColumnInfo(name = "col_baCustomName")
+    @ColumnInfo(name = TransactionCols.col_baCustomName)
     public String baCustomName;
 
-    @ColumnInfo(name = "col_baRspCode")
+    @ColumnInfo(name = TransactionCols.col_baRspCode)
     public String baRspCode;
 
-    @ColumnInfo(name = "col_isVoid")
+    @ColumnInfo(name = TransactionCols.col_isVoid)
     public int isVoid;
 
-    @ColumnInfo(name = "col_bInstCnt")
+    @ColumnInfo(name = TransactionCols.col_bInstCnt)
     public int bInstCnt;
 
-    @ColumnInfo(name = "col_ulInstAmount")
-    public int ulInstAmount;
-
-    @ColumnInfo(name = "col_baTranDate")
+    @ColumnInfo(name = TransactionCols.col_baTranDate)
     public String baTranDate;
 
-    @ColumnInfo(name = "col_baTranDate2")
+    @ColumnInfo(name = TransactionCols.col_baTranDate2)
     public String baTranDate2;
 
-    @ColumnInfo(name = "col_baHostLogKey")
-    public String baHostLogKey;
+    @ColumnInfo(name = TransactionCols.col_refNo)
+    public String refNo;
 
-    @ColumnInfo(name = "col_stChipData")
+    @ColumnInfo(name = TransactionCols.col_stChipData)
     public String stChipData;
 
-    @ColumnInfo(name = "col_isSignature")
+    @ColumnInfo(name = TransactionCols.col_isSignature)
     public int isSignature;
 
-    @ColumnInfo(name = "col_stPrintData1")
+    @ColumnInfo(name = TransactionCols.col_stPrintData1)
     public String stPrintData1;
 
-    @ColumnInfo(name = "col_stPrintData2")
+    @ColumnInfo(name = TransactionCols.col_stPrintData2)
     public String stPrintData2;
 
-    @ColumnInfo(name = "col_baVoidDateTime")
+    @ColumnInfo(name = TransactionCols.col_baVoidDateTime)
     public String baVoidDateTime;
 
-    @ColumnInfo(name = "col_authCode")
+    @ColumnInfo(name = TransactionCols.col_authCode)
     public String authCode;
 
-    @ColumnInfo(name = "col_aid")
+    @ColumnInfo(name = TransactionCols.col_aid)
     public String aid;
 
-    @ColumnInfo(name = "col_aidLabel")
+    @ColumnInfo(name = TransactionCols.col_aidLabel)
     public String aidLabel;
 
-    @ColumnInfo(name = "col_pinByPass")
+    @ColumnInfo(name = TransactionCols.col_pinByPass)
     public int pinByPass;
 
-    @ColumnInfo(name = "col_displayData")
+    @ColumnInfo(name = TransactionCols.col_displayData)
     public String displayData;
 
-    @ColumnInfo(name = "col_baCVM")
+    @ColumnInfo(name = TransactionCols.col_baCVM)
     public String baCVM;
 
-    @ColumnInfo(name = "col_isOffline")
+    @ColumnInfo(name = TransactionCols.col_isOffline)
     public int isOffline;
 
-    @ColumnInfo(name = "col_SID")
+    @ColumnInfo(name = TransactionCols.col_SID)
     public String SID;
 
-    @ColumnInfo(name = "col_is_onlinePIN")
+    @ColumnInfo(name = TransactionCols.col_is_onlinePIN)
     public int isOnlinePIN;
 
     public void setUuid(String uuid) {
@@ -189,10 +186,6 @@ public class TransactionEntity {
         this.bInstCnt = bInstCnt;
     }
 
-    public void setUlInstAmount(int ulInstAmount) {
-        this.ulInstAmount = ulInstAmount;
-    }
-
     public void setBaTranDate(String baTranDate) {
         this.baTranDate = baTranDate;
     }
@@ -201,8 +194,8 @@ public class TransactionEntity {
         this.baTranDate2 = baTranDate2;
     }
 
-    public void setBaHostLogKey(String baHostLogKey) {
-        this.baHostLogKey = baHostLogKey;
+    public void setRefNo(String refNo) {
+        this.refNo = refNo;
     }
 
     public void setStChipData(String stChipData) {
@@ -260,8 +253,6 @@ public class TransactionEntity {
     public void setIsOnlinePIN(int isOnlinePIN) {
         this.isOnlinePIN = isOnlinePIN;
     }
-
-
 
     public String getUuid() {
         return uuid;
@@ -335,10 +326,6 @@ public class TransactionEntity {
         return bInstCnt;
     }
 
-    public int getUlInstAmount() {
-        return ulInstAmount;
-    }
-
     public String getBaTranDate() {
         return baTranDate;
     }
@@ -347,8 +334,8 @@ public class TransactionEntity {
         return baTranDate2;
     }
 
-    public String getBaHostLogKey() {
-        return baHostLogKey;
+    public String getRefNo() {
+        return refNo;
     }
 
     public String getStChipData() {

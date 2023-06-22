@@ -18,7 +18,7 @@ public interface TransactionDao {
     @Query("SELECT * FROM " + DatabaseInfo.TRANSACTIONTABLE + " WHERE " + TransactionCols.col_baPAN + " = :cardNo AND " + TransactionCols.col_isVoid + " <> 1 ORDER BY " + TransactionCols.col_ulGUP_SN + " DESC")
     List<TransactionEntity> getTransactionsByCardNo(String cardNo);
 
-    @Query("SELECT * FROM " + DatabaseInfo.TRANSACTIONTABLE + " WHERE " + TransactionCols.col_baHostLogKey + " = :refNo")
+    @Query("SELECT * FROM " + DatabaseInfo.TRANSACTIONTABLE + " WHERE " + TransactionCols.col_refNo + " = :refNo")
     List<TransactionEntity> getTransactionsByRefNo(String refNo);
 
     @Query("SELECT * FROM " + DatabaseInfo.TRANSACTIONTABLE + " ORDER BY " + TransactionCols.col_ulGUP_SN)

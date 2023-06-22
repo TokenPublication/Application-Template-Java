@@ -19,10 +19,9 @@ public class TransactionCols {
     public static final String col_baRspCode = "col_baRspCode";
     public static final String col_isVoid = "col_isVoid";
     public static final String col_bInstCnt = "col_bInstCnt";
-    public static final String col_ulInstAmount = "col_ulInstAmount";
     public static final String col_baTranDate = "col_baTranDate";
     public static final String col_baTranDate2 = "col_baTranDate2";
-    public static final String col_baHostLogKey = "col_baHostLogKey";
+    public static final String col_refNo = "col_refNo";
     public static final String col_stChipData = "col_stChipData";
     public static final String col_isSignature = "col_isSignature";
     public static final String col_stPrintData1 = "col_stPrintData1";

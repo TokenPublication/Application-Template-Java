@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity{
         }
 
         else if (Objects.equals(action, getString(R.string.PosTxn_Action))){
-            PosTxnFragment posTxnFragment = new PosTxnFragment(this, cardViewModel, transactionViewModel, batchViewModel);
+            PosTxnFragment posTxnFragment = new PosTxnFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
 
@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity{
         }
 
         else {
-            PosTxnFragment posTxnFragment = new PosTxnFragment(this, cardViewModel, transactionViewModel, batchViewModel);
+            PosTxnFragment posTxnFragment = new PosTxnFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
     }
