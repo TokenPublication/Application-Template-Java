@@ -51,22 +51,22 @@ public class TransactionViewModel extends ViewModel{
         return transactionRepository;
     }
 
-    public void TransactionRoutine(ICCCard card, String uuid, MainActivity mainActivity, Fragment fragment, ContentValues extraContentValues,
+    public void TransactionRoutine(ICCCard card, String uuid, MainActivity mainActivity, Fragment fragment, TransactionEntity transactionEntity,
                                    Bundle bundle, TransactionCode transactionCode, ActivationRepository activationRepository, BatchRepository batchRepository){
         TransactionViewModel transactionViewModel = this;
         Handler mainHandler = new Handler(Looper.getMainLooper());
         setShowDialogLiveData("Progress");
-        Observable<ICCCard> observable = Observable.just(card)
+        Observable<Boolean> observable = Observable.just(true)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io());
-        Observer<ICCCard> observer = new Observer<ICCCard>() {
+        Observer<Boolean> observer = new Observer<Boolean>() {
             @Override
             public void onSubscribe(Disposable d) {
                 Log.i("Disposed","Dispose");
             }
 
             @Override
-            public void onNext(ICCCard card) {
+            public void onNext(Boolean bool) {
                 for (int i = 0; i <= 10; i++){
                     try {
                         Thread.sleep(500);
@@ -93,7 +93,7 @@ public class TransactionViewModel extends ViewModel{
             public void onComplete() {
                 Log.i("Complete","Complete");
                 OnlineTransactionResponse onlineTransactionResponse = transactionRepository.parseResponse(transactionViewModel);
-                Intent resultIntent = finishTransaction(card, uuid, mainActivity, fragment, extraContentValues,
+                Intent resultIntent = finishTransaction(card, uuid, mainActivity, fragment, transactionEntity,
                                                         bundle, transactionCode, onlineTransactionResponse, activationRepository, batchRepository);
                 mainHandler.post(new Runnable() {
                     @Override
@@ -106,21 +106,20 @@ public class TransactionViewModel extends ViewModel{
         observable.subscribe(observer);
     }
 
-    private Intent finishTransaction(ICCCard card, String uuid, MainActivity mainActivity, Fragment fragment, ContentValues extraContentValues,
+    private Intent finishTransaction(ICCCard card, String uuid, MainActivity mainActivity, Fragment fragment, TransactionEntity transactionEntity,
                                                   Bundle bundle, TransactionCode transactionCode, OnlineTransactionResponse onlineTransactionResponse,
                                                   ActivationRepository activationRepository, BatchRepository batchRepository){
-        TransactionEntity transactionEntity = transactionRepository.entityCreator(card, uuid, extraContentValues, bundle, onlineTransactionResponse, transactionCode);
-        transactionEntity.setBatchNo(batchRepository.getBatchNo());
         if (transactionCode != TransactionCode.VOID){
+            transactionEntity = transactionRepository.entityCreator(card, uuid, bundle, onlineTransactionResponse, transactionCode);
+            transactionEntity.setBatchNo(batchRepository.getBatchNo());
             transactionEntity.setUlGUP_SN(batchRepository.getGroupSN());
             transactionRepository.insertTransaction(transactionEntity);
             batchRepository.incrementGUPSN();
         }
         else {
-            transactionEntity.setUlGUP_SN(Integer.parseInt(extraContentValues.get(TransactionCols.col_ulGUP_SN).toString()));
             transactionRepository.setVoid(transactionEntity.getUlGUP_SN(),transactionEntity.getBaDate(),transactionEntity.getSID());
         }
-        return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, fragment, transactionEntity, onlineTransactionResponse.getmResponseCode());
+        return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, fragment, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
     }
 
     public ContentValues prepareContents(ICCCard card, String uuid, TransactionCode transactionCode){
