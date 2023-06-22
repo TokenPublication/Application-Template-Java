@@ -170,8 +170,7 @@ public class TransactionRepository {
         if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
             bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
         }
-        if (transactionEntity.getbTransCode() == TransactionCode.MATCHED_REFUND.getType() || transactionEntity.getbTransCode() == TransactionCode.CASH_REFUND.getType()
-        || transactionEntity.getbTransCode() == TransactionCode.INSTALLMENT_REFUND.getType() || transactionEntity.getbTransCode() == TransactionCode.VOID.getType()) {
+        if (transactionCode == TransactionCode.MATCHED_REFUND || transactionCode == TransactionCode.CASH_REFUND || transactionCode == TransactionCode.INSTALLMENT_REFUND || transactionCode == TransactionCode.VOID) {
             printSlip(bundle.getString("customerSlipData"), mainActivity);
             printSlip(bundle.getString("merchantSlipData"), mainActivity);
         }

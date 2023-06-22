@@ -44,7 +44,6 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     int amount;
     private RecyclerView rvTransactions;
     private List<TransactionEntity> transactionList = new ArrayList<>();
-    private TransactionService transactionService = new TransactionService();
 
     public VoidFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
                         TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
@@ -63,7 +62,7 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_void, container, false);
-        boolean empty = transactionViewModel.isTransactionListEmpty();
+        boolean empty = transactionViewModel.isTransactionListEmpty(); //TODO 1 işlem voidse hiç yoksa boş dönüyor
         if(empty){
             infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Info, getString(R.string.no_trans_found), false);
             new Handler().postDelayed(() -> {
@@ -101,16 +100,18 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
                         cardViewModel.readCard(amount);
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            // Do something after the delay
                             infoDialog.dismiss();
                         }, 1000);
                     }, 2000);
                 }
             });
+
             cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
-                if (card != null) {
+                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     setView(card);
-                }
+                    infoDialog.dismiss();
+                }, 2000);
             });
         }
         rvTransactions = view.findViewById(R.id.rvTransactions);
@@ -147,13 +148,6 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
         });
     }
 
-    public void finishVoid(TransactionResponse response) {      //TODO Slip ayarlanacak.
-        Log.d("RspCode:",response.getOnlineTransactionResponse().getmResponseCode().toString());
-        PrintHelper.PrintError(mainActivity.getApplicationContext());
-        mainActivity.setResult(Activity.RESULT_OK);
-        mainActivity.finish();
-    }
-
     @Override
     public void confirmed(int i) {
 
@@ -163,6 +157,4 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     public void canceled(int i) {
 
     }
-
-
 }
