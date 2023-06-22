@@ -14,8 +14,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.example.application_template_jmvvm.domain.helper.printHelpers.PrintHelper;
-import com.example.application_template_jmvvm.domain.helper.StringHelper;
+import com.example.application_template_jmvvm.domain.printHelpers.PrintHelper;
+import com.example.application_template_jmvvm.domain.printHelpers.StringHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.ui.utils.MenuItem;
@@ -34,13 +34,13 @@ public class ExampleFragment extends Fragment {
 
     List<IListMenuItem> menuItems = new ArrayList<>();
     private ExampleViewModel mViewModel;
-    private MainActivity main;
+    private MainActivity mainActivity;
 
     protected int qrAmount = 100;
     protected String qrString = "QR Code Test";
 
     public ExampleFragment(MainActivity mainActivity) {
-        this.main = mainActivity;
+        this.mainActivity = mainActivity;
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,18 +60,18 @@ public class ExampleFragment extends Fragment {
 
         List<IListMenuItem> subList1 = new ArrayList<>();
         subList1.add(new MenuItem("Menu Item 1", (menuItem) -> {
-            Toast.makeText(this.main,"Sub Menu 1", Toast.LENGTH_LONG).show();
+            Toast.makeText(this.mainActivity,"Sub Menu 1", Toast.LENGTH_LONG).show();
 
         }, null));
 
         subList1.add(new MenuItem("Menu Item 2", (menuItem) -> {
 
-            Toast.makeText(this.main,"Sub Menu 2", Toast.LENGTH_LONG).show();
+            Toast.makeText(this.mainActivity,"Sub Menu 2", Toast.LENGTH_LONG).show();
 
         }, null));
         subList1.add(new MenuItem("Menu Item 3", (menuItem) -> {
 
-            Toast.makeText(this.main,"Sub Menu 3", Toast.LENGTH_LONG).show();
+            Toast.makeText(this.mainActivity,"Sub Menu 3", Toast.LENGTH_LONG).show();
 
         }, null));
 
@@ -79,24 +79,24 @@ public class ExampleFragment extends Fragment {
 
 
         menuItems.add(new MenuItem("Custom Input List", (MenuItemClickListener<MenuItem>) menuItem -> {
-            CustomInputListFragment CustomInputListFragment = new CustomInputListFragment(this.main);
-            main.replaceFragment(R.id.container,CustomInputListFragment,true);
+            CustomInputListFragment CustomInputListFragment = new CustomInputListFragment(this.mainActivity);
+            mainActivity.replaceFragment(R.id.container,CustomInputListFragment,true);
         }));
 
         menuItems.add(new MenuItem("Info Dialog", (menuItem) -> {
-            InfoDialogFragment InfoDialogFragment = new InfoDialogFragment(this.main);
-            main.replaceFragment(R.id.container,InfoDialogFragment,true);
+            InfoDialogFragment InfoDialogFragment = new InfoDialogFragment(this.mainActivity);
+            mainActivity.replaceFragment(R.id.container,InfoDialogFragment,true);
         }));
 
         menuItems.add(new MenuItem("Confirmation Dialog", (menuItem) -> {
-            ConfirmationDialogFragment ConfirmationDialogFragment = new ConfirmationDialogFragment(this.main);
-            main.replaceFragment(R.id.container,ConfirmationDialogFragment,true);
+            ConfirmationDialogFragment ConfirmationDialogFragment = new ConfirmationDialogFragment(this.mainActivity);
+            mainActivity.replaceFragment(R.id.container,ConfirmationDialogFragment,true);
         }));
 
         menuItems.add(new MenuItem("Device Info", (menuItem) -> {
             /*    [Device Info](https://github.com/TokenPublication/DeviceInfoClientApp)    */
 
-            DeviceInfo deviceInfo = new DeviceInfo(main.getApplicationContext());
+            DeviceInfo deviceInfo = new DeviceInfo(mainActivity.getApplicationContext());
             deviceInfo.getFields(
                     fields -> {
                         if (fields == null) return;
@@ -108,7 +108,7 @@ public class ExampleFragment extends Fragment {
                         Log.d("Example 4", "LYNX Number: "    + fields[4]);
                         Log.d("Example 5", "POS Mode: "       + fields[5]);
 
-                        main.showInfoDialog(InfoDialog.InfoType.Info,
+                        mainActivity.showInfoDialog(InfoDialog.InfoType.Info,
                                 "Fiscal ID: "     +fields[0] +"\n"
                                         +"IMEI Number: "   +fields[1] +"\n"
                                         +"IMSI Number: "   +fields[2] +"\n"
@@ -138,14 +138,14 @@ public class ExampleFragment extends Fragment {
                     //Num pad canceled callback
                 }
             }, "Please enter PIN", 8);
-            dialog.show(main.getSupportFragmentManager(), "Num Pad");
+            dialog.show(mainActivity.getSupportFragmentManager(), "Num Pad");
         }));
 
         //TODO: Card Service binding
         menuItems.add(new MenuItem("Show QR", (menuItem) -> {
-            InfoDialog dialog = main.showInfoDialog(InfoDialog.InfoType.Progress, "QR Loading", true);
+            InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, "QR Loading", true);
             // For detailed usage; SaleActivity
-            main.cardServiceBinding.showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(qrAmount), qrString); // Shows QR on the back screen
+            mainActivity.cardServiceBinding.showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(qrAmount), qrString); // Shows QR on the back screen
             dialog.setQr(qrString, "WAITING FOR THE QR CODE"); // Shows the same QR on Info Dialog
         }));
 
@@ -175,7 +175,7 @@ public class ExampleFragment extends Fragment {
         menuItems.add(new MenuItem("Print Functions", subListPrint, null));
 
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.examples), true, R.drawable.token_logo_png);
-        mViewModel.replaceFragment(main,mListMenuFragment,false);
+        mViewModel.replaceFragment(mainActivity,mListMenuFragment,false);
     }
 
 }

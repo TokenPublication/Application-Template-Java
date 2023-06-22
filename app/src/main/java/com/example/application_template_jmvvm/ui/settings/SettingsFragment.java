@@ -1,8 +1,5 @@
 package com.example.application_template_jmvvm.ui.settings;
 
-import androidx.lifecycle.ViewModelProvider;
-
-import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -29,12 +26,12 @@ import java.util.List;
 
 public class SettingsFragment extends Fragment {
 
-    private MainActivity main;
+    private MainActivity mainActivity;
     private ActivationViewModel activationViewModel;
     private String terminalId, merchantId, ipNo, portNo;
 
     public SettingsFragment(MainActivity mainActivity, ActivationViewModel activationViewModel) {
-        this.main = mainActivity;
+        this.mainActivity = mainActivity;
         this.activationViewModel = activationViewModel;
     }
 
@@ -63,32 +60,32 @@ public class SettingsFragment extends Fragment {
             addIpFragment();
         }));
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.settings), true, R.drawable.token_logo_png);
-        main.replaceFragment(R.id.container, mListMenuFragment,false);
+        mainActivity.replaceFragment(R.id.container, mListMenuFragment,false);
     }
 
     private void addTidMidFragment() {
         List<CustomInputFormat> inputList = new ArrayList<>();
-        inputList.add(new CustomInputFormat(main.getString(R.string.merchant_no), EditTextInputType.Number, 10, main.getString(R.string.invalid_merchant_no), input -> input.getText().length() == 10));
+        inputList.add(new CustomInputFormat(mainActivity.getString(R.string.merchant_no), EditTextInputType.Number, 10, mainActivity.getString(R.string.invalid_merchant_no), input -> input.getText().length() == 10));
 
-        inputList.add(new CustomInputFormat(main.getString(R.string.terminal_no), EditTextInputType.Text, 8, main.getString(R.string.invalid_terminal_no), input -> input.getText().length() == 8));
+        inputList.add(new CustomInputFormat(mainActivity.getString(R.string.terminal_no), EditTextInputType.Text, 8, mainActivity.getString(R.string.invalid_terminal_no), input -> input.getText().length() == 8));
 
         inputList.get(0).setText(activationViewModel.getMerchantId());
         inputList.get(1).setText(activationViewModel.getTerminalId());
 
-        InputListFragment TidMidFragment = InputListFragment.newInstance(inputList, main.getString(R.string.save), list -> {
+        InputListFragment TidMidFragment = InputListFragment.newInstance(inputList, mainActivity.getString(R.string.save), list -> {
 
             merchantId = inputList.get(0).getText();
             terminalId = inputList.get(1).getText();
 
-            activationViewModel.updateActivation(terminalId, merchantId, activationViewModel.getHostIP());
-            main.getSupportFragmentManager().popBackStack();
+            activationViewModel.updateActivation(terminalId, merchantId, activationViewModel.getHostIP()); //TODO sorulacak.
+            mainActivity.getSupportFragmentManager().popBackStack();
         });
-        main.replaceFragment(R.id.container, TidMidFragment,true);
+        mainActivity.replaceFragment(R.id.container, TidMidFragment,true);
     }
 
     private void addIpFragment() {
         List<CustomInputFormat> inputList = new ArrayList<>();
-        inputList.add(new CustomInputFormat("IP", EditTextInputType.IpAddress, null, main.getString(R.string.invalid_ip), customInputFormat -> {
+        inputList.add(new CustomInputFormat("IP", EditTextInputType.IpAddress, null, mainActivity.getString(R.string.invalid_ip), customInputFormat -> {
             String text = customInputFormat.getText();
             boolean isValid = StringUtils.countMatches(text, ".") == 3 && text.split("\\.").length == 4;
             if (isValid) {
@@ -101,18 +98,18 @@ public class SettingsFragment extends Fragment {
             }
             return isValid;
         }));
-        inputList.add(new CustomInputFormat("Port", EditTextInputType.Number, 4, main.getString(R.string.invalid_port), customInputFormat -> customInputFormat.getText().length() >= 2 && Integer.parseInt(customInputFormat.getText()) > 0));
+        inputList.add(new CustomInputFormat("Port", EditTextInputType.Number, 4, mainActivity.getString(R.string.invalid_port), customInputFormat -> customInputFormat.getText().length() >= 2 && Integer.parseInt(customInputFormat.getText()) > 0));
 
         inputList.get(0).setText(activationViewModel.getHostIP());
         inputList.get(1).setText(activationViewModel.getHostPort());
 
-        InputListFragment IpFragment = InputListFragment.newInstance(inputList, main.getString(R.string.save), list -> {
+        InputListFragment IpFragment = InputListFragment.newInstance(inputList, mainActivity.getString(R.string.save), list -> {
             ipNo = inputList.get(0).getText();
             portNo = inputList.get(1).getText();
 
             activationViewModel.updateConnection(ipNo, portNo, activationViewModel.getHostIP());
-            main.getSupportFragmentManager().popBackStack();
+            mainActivity.getSupportFragmentManager().popBackStack();
         });
-        main.replaceFragment(R.id.container,IpFragment,true);
+        mainActivity.replaceFragment(R.id.container,IpFragment,true);
     }
 }

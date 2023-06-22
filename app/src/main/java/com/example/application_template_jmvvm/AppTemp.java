@@ -4,11 +4,14 @@ import android.app.Application;
 
 import com.tokeninc.deviceinfo.DeviceInfo;
 
+import dagger.hilt.android.HiltAndroidApp;
+
+@HiltAndroidApp
 public class AppTemp extends Application {
     private String currentDeviceMode = DeviceInfo.PosModeEnum.VUK507.name();
     private String currentFiscalID = null;
     private String currentCardRedirection = DeviceInfo.CardRedirect.NOT_ASSIGNED.name();
-
+    //TODO mvvm yapılacak. model ile beraber. öncelik düşük ama yapılacak.
     @Override
     public void onCreate() {
         super.onCreate();
@@ -41,6 +44,17 @@ public class AppTemp extends Application {
 
     private void startDeviceInfo(){
         DeviceInfo deviceInfo = new DeviceInfo(this);
+        deviceInfo.getFiscalId(new DeviceInfo.DeviceInfoResponseHandler() {
+            @Override
+            public void onSuccess(String s) {
+
+            }
+
+            @Override
+            public void onFail(String s) {
+
+            }
+        });
         deviceInfo.getFields(
                 fields -> {
                     if (fields == null) return;

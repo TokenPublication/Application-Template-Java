@@ -23,10 +23,10 @@ import java.util.List;
 public class CustomInputListFragment extends Fragment {
 
     List<IListMenuItem> menuItems = new ArrayList<>();
-    private MainActivity main;
+    private MainActivity mainActivity;
 
     public CustomInputListFragment(MainActivity mainActivity) {
-        this.main = mainActivity;
+        this.mainActivity = mainActivity;
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,7 +70,7 @@ public class CustomInputListFragment extends Fragment {
         inputList.get(1).setText("1234");
 
         InputListFragment fragment = InputListFragment.newInstance(inputList);
-        main.replaceFragment(R.id.container, fragment, false);
+        mainActivity.replaceFragment(R.id.container, fragment, false);
         fragment.setActionLayout("Custom Input List", true, null); // Fragment has a back button and a title
     }
 

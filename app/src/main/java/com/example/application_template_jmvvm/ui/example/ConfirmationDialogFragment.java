@@ -24,10 +24,10 @@ public class ConfirmationDialogFragment extends Fragment implements InfoDialogLi
 
     List<IListMenuItem> menuItems = new ArrayList<>();
 
-    private MainActivity main;
+    private MainActivity mainActivity;
 
     public ConfirmationDialogFragment(MainActivity mainActivity) {
-        this.main = mainActivity;
+        this.mainActivity = mainActivity;
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,83 +45,83 @@ public class ConfirmationDialogFragment extends Fragment implements InfoDialogLi
         super.onViewCreated(view, savedInstanceState);
 
         menuItems.add(new MenuItem("Confirmed", (menuItem) ->
-                main.showConfirmationDialog(InfoDialog.InfoType.Confirmed,"Confirmed", "Confirmation: Confirmed", InfoDialog.InfoDialogButtons.Both, 99, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Confirmed,"Confirmed", "Confirmation: Confirmed", InfoDialog.InfoDialogButtons.Both, 99, this)));
 
         menuItems.add(new MenuItem("Warning", (menuItem) ->
-                main.showConfirmationDialog(InfoDialog.InfoType.Warning,"Warning", "Confirmation: Warning", InfoDialog.InfoDialogButtons.Both, 98, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Warning,"Warning", "Confirmation: Warning", InfoDialog.InfoDialogButtons.Both, 98, this)));
 
         menuItems.add(new MenuItem("Error", (menuItem) ->
-                main.showConfirmationDialog(InfoDialog.InfoType.Error,"Error", "Confirmation: Error", InfoDialog.InfoDialogButtons.Both, 97, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Error,"Error", "Confirmation: Error", InfoDialog.InfoDialogButtons.Both, 97, this)));
 
         menuItems.add(new MenuItem("Info", (menuItem) ->
-                main.showConfirmationDialog(InfoDialog.InfoType.Info,"Info", "Confirmation: Info", InfoDialog.InfoDialogButtons.Both, 96, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Info,"Info", "Confirmation: Info", InfoDialog.InfoDialogButtons.Both, 96, this)));
 
         menuItems.add(new MenuItem("Declined", (menuItem) ->
-                main.showConfirmationDialog(InfoDialog.InfoType.Declined,"Declined", "Confirmation: Declined", InfoDialog.InfoDialogButtons.Both, 95, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Declined,"Declined", "Confirmation: Declined", InfoDialog.InfoDialogButtons.Both, 95, this)));
 
         menuItems.add(new MenuItem("Connecting", (menuItem) ->
-                main.showConfirmationDialog(InfoDialog.InfoType.Connecting,"Connecting", "Confirmation: Connecting", InfoDialog.InfoDialogButtons.Both, 94, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Connecting,"Connecting", "Confirmation: Connecting", InfoDialog.InfoDialogButtons.Both, 94, this)));
 
         menuItems.add(new MenuItem("Downloading", (menuItem) ->
-                main.showConfirmationDialog(InfoDialog.InfoType.Downloading,"Downloading", "Confirmation: Downloading", InfoDialog.InfoDialogButtons.Both, 93, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Downloading,"Downloading", "Confirmation: Downloading", InfoDialog.InfoDialogButtons.Both, 93, this)));
 
         menuItems.add(new MenuItem("Uploading", (menuItem) ->
-                main.showConfirmationDialog(InfoDialog.InfoType.Uploading,"Uploading", "Confirmation: Uploading", InfoDialog.InfoDialogButtons.Both, 92, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Uploading,"Uploading", "Confirmation: Uploading", InfoDialog.InfoDialogButtons.Both, 92, this)));
 
         menuItems.add(new MenuItem("Processing", (menuItem) ->
-                main.showConfirmationDialog(InfoDialog.InfoType.Processing,"Processing", "Confirmation: Processing", InfoDialog.InfoDialogButtons.Both, 91, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Processing,"Processing", "Confirmation: Processing", InfoDialog.InfoDialogButtons.Both, 91, this)));
 
         menuItems.add(new MenuItem("Progress", (menuItem) ->
-                main.showConfirmationDialog(InfoDialog.InfoType.Progress,"Progress", "Confirmation: Progress", InfoDialog.InfoDialogButtons.Both, 90, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Progress,"Progress", "Confirmation: Progress", InfoDialog.InfoDialogButtons.Both, 90, this)));
 
         menuItems.add(new MenuItem("None", (menuItem) ->
-                main.showConfirmationDialog(InfoDialog.InfoType.None,"None", "Confirmation: None", InfoDialog.InfoDialogButtons.Both, 89, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.None,"None", "Confirmation: None", InfoDialog.InfoDialogButtons.Both, 89, this)));
 
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, "Confirmation Dialog", true, R.drawable.token_logo_png);
-        main.replaceFragment(R.id.container,mListMenuFragment,false);
+        mainActivity.replaceFragment(R.id.container,mListMenuFragment,false);
     }
 
     public void confirmed(int arg) {
         if (arg == 99) {
-            main.showInfoDialog(InfoDialog.InfoType.Confirmed, "Confirmed!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Confirmed!", true);
         }
         //else if (arg == ***) { Do something else... }
         if (arg == 98) {
-            main.showInfoDialog(InfoDialog.InfoType.Warning, "Warning!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Warning, "Warning!", true);
         }
         if (arg == 97) {
-            main.showInfoDialog(InfoDialog.InfoType.Error, "Error!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Error, "Error!", true);
         }
         if (arg == 96) {
-            main.showInfoDialog(InfoDialog.InfoType.Info, "Info!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Info, "Info!", true);
         }
         if (arg == 95) {
-            main.showInfoDialog(InfoDialog.InfoType.Declined, "Declined!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Declined, "Declined!", true);
         }
         if (arg == 94) {
-            main.showInfoDialog(InfoDialog.InfoType.Connecting, "Connecting!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Connecting, "Connecting!", true);
         }
         if (arg == 93) {
-            main.showInfoDialog(InfoDialog.InfoType.Downloading, "Downloading!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Downloading, "Downloading!", true);
         }
         if (arg == 92) {
-            main.showInfoDialog(InfoDialog.InfoType.Uploading, "Uploading!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Uploading, "Uploading!", true);
         }
         if (arg == 91) {
-            main.showInfoDialog(InfoDialog.InfoType.Processing, "Processing!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Processing, "Processing!", true);
         }
         if (arg == 90) {
-            main.showInfoDialog(InfoDialog.InfoType.Progress, "Progress!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, "Progress!", true);
         }
         if (arg == 89) {
-            main.showInfoDialog(InfoDialog.InfoType.None, "None!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.None, "None!", true);
         }
     }
 
     @Override
     public void canceled(int arg) {
         if (arg <= 99|| arg >= 89) {
-            main.showInfoDialog(InfoDialog.InfoType.Error, "Canceled", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Error, "Canceled", true);
         }
         //else if (arg == ***) { Do something else... }
     }

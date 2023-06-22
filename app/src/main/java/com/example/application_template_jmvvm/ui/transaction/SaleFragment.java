@@ -3,51 +3,48 @@ package com.example.application_template_jmvvm.ui.transaction;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import dagger.hilt.android.AndroidEntryPoint;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import android.preference.PreferenceManager;
-import android.util.Log;
+import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.example.application_template_jmvvm.data.service.TransactionResponseListener;
-import com.example.application_template_jmvvm.domain.entity.ICCCard;
-import com.example.application_template_jmvvm.domain.entity.MSRCard;
-import com.example.application_template_jmvvm.domain.entity.PaymentTypes;
-import com.example.application_template_jmvvm.domain.entity.ResponseCode;
-import com.example.application_template_jmvvm.domain.entity.SampleReceipt;
-import com.example.application_template_jmvvm.domain.entity.SlipType;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
-import com.example.application_template_jmvvm.domain.entity.TransactionCode;
-import com.example.application_template_jmvvm.domain.helper.StringHelper;
+import com.example.application_template_jmvvm.domain.service.TransactionResponseListener;
+import com.example.application_template_jmvvm.data.model.card.ICCCard;
+import com.example.application_template_jmvvm.data.model.type.PaymentTypes;
+import com.example.application_template_jmvvm.data.model.code.ResponseCode;
+import com.example.application_template_jmvvm.data.model.type.SlipType;
+import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.data.response.TransactionResponse;
-import com.example.application_template_jmvvm.data.service.TransactionService;
+import com.example.application_template_jmvvm.data.model.response.TransactionResponse;
+import com.example.application_template_jmvvm.domain.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.domain.helper.printHelpers.SalePrintHelper;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
-import com.tokeninc.cardservicebinding.CardServiceBinding;
-import com.tokeninc.cardservicebinding.CardServiceListener;
+import com.token.uicomponents.infodialog.InfoDialog;
+import com.token.uicomponents.infodialog.InfoDialogListener;
 
-import java.util.Locale;
+import java.util.Objects;
 
-@AndroidEntryPoint
-public class SaleFragment extends Fragment{
+public class SaleFragment extends Fragment implements InfoDialogListener {
 
     private TransactionService transactionService = new TransactionService();
     int amount;
+    View view;
     String uuid;
     private Bundle bundle;
     private Intent intent;
@@ -55,12 +52,13 @@ public class SaleFragment extends Fragment{
     private TransactionViewModel transactionViewModel;
     private BatchViewModel batchViewModel;
     private CardViewModel cardViewModel;
-    private MainActivity main;
+    private MainActivity mainActivity;
     Spinner spinner;
+    InfoDialog infoDialog;
 
     public SaleFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
                         TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
-        this.main = mainActivity;
+        this.mainActivity = mainActivity;
         this.activationViewModel = activationViewModel;
         this.cardViewModel = cardViewModel;
         this.transactionViewModel = transactionViewModel;
@@ -69,27 +67,59 @@ public class SaleFragment extends Fragment{
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        intent = main.getIntent();
+        intent = mainActivity.getIntent();
         bundle = intent.getExtras();
         amount = bundle.getInt("Amount");
         uuid = intent.getExtras().getString("UUID");
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_sale, container, false);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         view.findViewById(R.id.btnSale).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {       //TODO service için boolean observer kaldırılacak.
-                if (!cardViewModel.getIsCardServiceConnected()){
-                    cardViewModel.initializeCardServiceBinding(main);
-                    cardViewModel.setIsCardServiceConnected(true);
-                }
-                cardViewModel.readCard(amount);
+            public void onClick(View v) {
+                final boolean[] isCancelled = {false};
+                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Processing, "Processing", false);
+                CountDownTimer timer = new CountDownTimer(10000, 1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {}
+
+                    @Override
+                    public void onFinish() {
+                        isCancelled[0] = true;
+                        infoDialog.update(InfoDialog.InfoType.Declined, "Connect Failed");
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if (infoDialog != null) {
+                                infoDialog.dismiss();   //TODO Backpressed
+                                mainActivity.finish();
+                            }
+                        }, 2000);
+                    }
+                };
+                timer.start();
+                cardViewModel.initializeCardServiceBinding(mainActivity);
+
+                cardViewModel.getIsCardServiceConnect().observe(getViewLifecycleOwner(), isConnected -> {
+                    if (isConnected && !isCancelled[0]) {
+                        timer.cancel();
+                        infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            cardViewModel.readCard(amount);
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                infoDialog.dismiss();
+                            }, 1000);
+                        }, 2000);
+                    }
+                });
+
                 cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
                     if (card != null) {
-                        doSale(card);
+                        mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            doSale(card);
+                            infoDialog.dismiss();
+                        }, 2000);
                     }
                 });
             }
@@ -98,46 +128,52 @@ public class SaleFragment extends Fragment{
         view.findViewById(R.id.btnSuccess).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("Response Code", ResponseCode.SUCCESS.name());
+                prepareDummyResponse(ResponseCode.SUCCESS);
             }
         });
 
         view.findViewById(R.id.btnError).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("Response Code", ResponseCode.ERROR.name());
+                prepareDummyResponse(ResponseCode.ERROR);
             }
         });
 
         view.findViewById(R.id.btnCancel).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("Response Code", ResponseCode.CANCELLED.name());
+                prepareDummyResponse(ResponseCode.CANCELLED);
             }
         });
 
         view.findViewById(R.id.btnOffline_decline).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("Response Code", ResponseCode.OFFLINE_DECLINE.name());
+                prepareDummyResponse(ResponseCode.OFFLINE_DECLINE);
             }
         });
 
         view.findViewById(R.id.btnUnable_decline).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("Response Code", ResponseCode.UNABLE_DECLINE.name());
+                prepareDummyResponse(ResponseCode.UNABLE_DECLINE);
             }
         });
 
         view.findViewById(R.id.btnOnline_decline).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("Response Code", ResponseCode.ONLINE_DECLINE.name());
+                prepareDummyResponse(ResponseCode.ONLINE_DECLINE);
             }
         });
+        prepareSpinner(view);
+    }
 
-        prepareSpinner(view);           //TODO Response Code ayarlanacak.
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_sale, container, false);
+        this.view = view;
         return view;
     }
 
@@ -150,9 +186,9 @@ public class SaleFragment extends Fragment{
                 String.valueOf(PaymentTypes.TRQRMOBILE),
                 String.valueOf(PaymentTypes.TRQROTHER),
                 String.valueOf(PaymentTypes.OTHER)};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this.main, android.R.layout.simple_spinner_dropdown_item, items);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this.mainActivity, android.R.layout.simple_spinner_dropdown_item, items);
         spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(listener);            //TODO PaymentType finishe eklenecek.
+        spinner.setOnItemSelectedListener(listener);
     }
 
     private final AdapterView.OnItemSelectedListener listener = new AdapterView.OnItemSelectedListener() {
@@ -167,68 +203,118 @@ public class SaleFragment extends Fragment{
         }
     };
 
+    public void prepareDummyResponse(ResponseCode code) {
+        // Dummy response with payment type, for 1000TR device
+        int paymentType = PaymentTypes.CREDITCARD.type;
+
+        CheckBox cbMerchant = view.findViewById(R.id.cbMerchant);
+        CheckBox cbCustomer = view.findViewById(R.id.cbCustomer);
+
+        SlipType slipType = SlipType.NO_SLIP;
+        if (cbMerchant.isChecked() && cbCustomer.isChecked())
+            slipType = SlipType.BOTH_SLIPS;
+        else if (cbMerchant.isChecked())
+            slipType = SlipType.MERCHANT_SLIP;
+        else if (cbCustomer.isChecked())
+            slipType = SlipType.CARDHOLDER_SLIP;
+
+        if(code == ResponseCode.SUCCESS){
+            String text = spinner.getSelectedItem().toString();
+
+            if (text.equals(String.valueOf(PaymentTypes.TRQRCREDITCARD)))
+                paymentType = PaymentTypes.TRQRCREDITCARD.type;
+            else if (text.equals(String.valueOf(PaymentTypes.TRQRFAST)))
+                paymentType = PaymentTypes.TRQRFAST.type;
+            else if(text.equals(String.valueOf(PaymentTypes.TRQRMOBILE)))
+                paymentType = PaymentTypes.TRQRMOBILE.type;
+            else if (text.equals(String.valueOf(PaymentTypes.TRQROTHER)))
+                paymentType = PaymentTypes.TRQROTHER.type;
+            else if (text.equals(String.valueOf(PaymentTypes.OTHER)))
+                paymentType = PaymentTypes.OTHER.type;
+        }
+
+        onSaleResponseRetrieved(amount, code, true, slipType, "1234 **** **** 7890", "OWNER NAME", paymentType);
+    }
+
+    public void onSaleResponseRetrieved(Integer price, ResponseCode code, Boolean hasSlip, SlipType slipType, String cardNo, String ownerName, int paymentType) {
+        transactionViewModel.prepareDummyResponse(activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(),
+                                                mainActivity, this, price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
+        transactionViewModel.getIntentLiveData().observe(getViewLifecycleOwner(), resultIntent -> {
+            if (code == ResponseCode.SUCCESS) {
+                mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Success", false);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    mainActivity.setResult(Activity.RESULT_OK,resultIntent);    //TODO Result gönderilecek.
+                    mainActivity.finish();
+                }, 2000);
+            }
+            mainActivity.setResult(Activity.RESULT_OK,resultIntent);
+            mainActivity.finish();
+        });
+    }
+
     public void doSale(ICCCard card) {
-        ContentValues values = cardViewModel.getCardModel().prepareContentValues(card, uuid, TransactionCode.SALE);  //CardViewModel implemente edilecek.
-        transactionService.doInBackground(main, getContext(), values, TransactionCode.SALE, transactionViewModel,
-                batchViewModel, new TransactionResponseListener() {
+        ContentValues values = transactionViewModel.getTransactionRepository().prepareContentValues(card, uuid, TransactionCode.SALE); //TODO yapmaya gerek yok. ICC passle
+        transactionService.doInBackground(values, TransactionCode.SALE, transactionViewModel,
+                batchViewModel.getBatchRepository(), new TransactionResponseListener() {     //TODO Refund ve Void için değiştirildiğinde silinecek.
                     @Override
-                    public void onComplete(TransactionResponse response) {
-                        finishSale(response);
-                    }
+                    public void onComplete(TransactionResponse response) {}
                 });
+        transactionViewModel.getShowDialogLiveData().observe(getViewLifecycleOwner(), text -> {
+            if (text != null){
+                if (Objects.equals(text, "Progress"))
+                    infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, text, false);
+                infoDialog.update(InfoDialog.InfoType.Progress, text);
+            }
+        });
+        transactionViewModel.getTransactionResponseLiveData().observe(getViewLifecycleOwner(), transactionResponse -> {
+            infoDialog.update(InfoDialog.InfoType.Confirmed, "Confirmed");
+            finishSale(transactionResponse);
+        });
     }
 
     private void finishSale(TransactionResponse transactionResponse) {
-        //TODO Response code ve transaction code ayarlanacak. Transaction code enum olmayacak.Activation ve Transaction viewmodel açılacak.Sliptype düzenlenecek.
-        SlipType slipType = SlipType.BOTH_SLIPS;
-        String cardNo = (String) transactionResponse.getContentValues().get(TransactionCol.col_baPAN.name());
-        bundle.putInt("ResponseCode", transactionResponse.getOnlineTransactionResponse().getmResponseCode().ordinal()); // #1 Response Code
-        bundle.putString("CardOwner", "OWNER NAME"); // Optional
-        bundle.putString("CardNumber", cardNo); // Optional, Card No can be masked
-        bundle.putInt("PaymentStatus", 0); // #2 Payment Status
-        bundle.putInt("Amount", (Integer) transactionResponse.getContentValues().get(TransactionCol.col_ulAmount.name())); // #3 Amount
-        bundle.putInt("BatchNo", batchViewModel.getBatchNo());
-        bundle.putString("CardNo", StringHelper.MaskTheCardNo((String) transactionResponse.getContentValues().get(TransactionCol.col_baPAN.name()))); //#5 Card No "MASKED"
-        bundle.putString("MID", activationViewModel.getMerchantId()); //#6 Merchant ID
-        bundle.putString("TID", activationViewModel.getTerminalId()); //#7 Terminal ID
-        bundle.putInt("TxnNo", batchViewModel.getGroupSN());
-        bundle.putInt("SlipType", slipType.value);
-        bundle.putBoolean("IsSlip", true);
-        bundle.putString("RefNo", transactionResponse.getOnlineTransactionResponse().getmHostLogKey());
-        bundle.putString("AuthNo", transactionResponse.getOnlineTransactionResponse().getmAuthCode());
-        bundle.putInt("PaymentType", 3);
-        SalePrintHelper salePrintHelper = new SalePrintHelper();
-        if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), SlipType.CARDHOLDER_SLIP, main, 1, 2));
-        }
-        if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME"), SlipType.MERCHANT_SLIP, main, 1, 2));
-        }
-        bundle.putString("ApprovalCode", getApprovalCode());
-        intent.putExtras(bundle);
-        main.setResult(Activity.RESULT_OK, intent);
-        main.finish();
+        transactionViewModel.prepareSlip(this, activationViewModel.getActivationRepository(),
+                batchViewModel.getBatchRepository(), mainActivity, transactionResponse);
+        transactionViewModel.getIntentLiveData().observe(getViewLifecycleOwner(), resultIntent -> {
+            mainActivity.setResult(Activity.RESULT_OK,resultIntent);
+            mainActivity.finish();
+        });
     }
 
-    private SampleReceipt getSampleReceipt(String cardNo, String ownerName) {
-        SampleReceipt receipt = new SampleReceipt();
-        receipt.setMerchantName("TOKEN FINTECH");
-        receipt.setMerchantID(activationViewModel.getMerchantId());
-        receipt.setPosID(activationViewModel.getTerminalId());
-        receipt.setCardNo(StringHelper.maskCardNumber(cardNo));
-        receipt.setFullName(ownerName);
-        receipt.setAmount(StringHelper.getAmount(amount));
-        receipt.setGroupNo(String.valueOf(batchViewModel.getBatchNo()));
-        receipt.setAid("A0000000000031010");
-        receipt.setSerialNo(String.valueOf(batchViewModel.getGroupSN()));
-        receipt.setApprovalCode(StringHelper.GenerateApprovalCode(String.valueOf(batchViewModel.getBatchNo()), String.valueOf(batchViewModel.getGroupSN()), String.valueOf(batchViewModel.getGroupSN()-1)));
-        return receipt;     //TODO barış abiyle bakılacak.
+    @Override
+    public void confirmed(int i) {
+
     }
 
-    private String getApprovalCode() {
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this.getContext());
-        int approvalCode = sharedPref.getInt("ApprovalCode", 0);
-        sharedPref.edit().putInt("ApprovalCode", ++approvalCode).apply();
-        return String.format(Locale.ENGLISH, "%06d", approvalCode);
+    @Override
+    public void canceled(int i) {
+
     }
+
+    /*public void QrSale(CardServiceBinding cardServiceBinding) {
+        InfoDialog dialog = main.showInfoDialog(InfoDialog.InfoType.Progress, "Please Wait", true);
+        // Request to Show a QR Code ->
+        cardViewModel.getCardServiceBinding().showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(amount), "QR Code Test"); // Shows QR on the back screen
+        dialog.setQr("QR Code Test", "Waiting For the QR Code to Read"); // Shows the same QR on Info Dialog
+        ContentValues contentValues =
+        // Request a QR Response ->
+        if (QRisSuccess) {
+            // Dummy Response
+            new Handler().postDelayed(() -> {
+                dialog.update(InfoDialog.InfoType.Confirmed,"QR " + getString(R.string.trans_successful));
+                new Handler().postDelayed(() -> {
+                    dialog.dismiss();
+                    main.finish();
+                }, 5000);
+            }, 3000);
+        }
+        else {
+            dialog.update(InfoDialog.InfoType.Declined, "Error");
+        }
+        dialog.setDismissedListener(() -> {
+            // You can call your QR Payment Cancel method here
+            main.setResult(Activity.RESULT_CANCELED);
+            main.finish();
+        });
+    }*/
 }
