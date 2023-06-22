@@ -2,6 +2,7 @@ package com.example.application_template_jmvvm.ui.transaction;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -13,7 +14,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
+import com.example.application_template_jmvvm.data.database.transaction.TransactionCols;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
@@ -28,7 +29,6 @@ import com.token.uicomponents.CustomInput.CustomInputFormat;
 
 import java.util.List;
 import dagger.hilt.android.lifecycle.HiltViewModel;
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
@@ -41,7 +41,7 @@ public class TransactionViewModel extends ViewModel{
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
     private MutableLiveData<TransactionResponse> transactionResponseLiveData  = new MutableLiveData<>();
     private MutableLiveData<String> showDialogLiveData = new MutableLiveData<>();
-
+    private MutableLiveData<Boolean> isButtonClickedLiveData = new MutableLiveData<>(false);
     @Inject
     public TransactionViewModel(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
@@ -52,7 +52,7 @@ public class TransactionViewModel extends ViewModel{
     }
 
     public void TransactionRoutine(ICCCard card, String uuid, MainActivity mainActivity, Fragment fragment, ContentValues extraContentValues,
-                                   TransactionCode transactionCode, ActivationRepository activationRepository, BatchRepository batchRepository){
+                                   Bundle bundle, TransactionCode transactionCode, ActivationRepository activationRepository, BatchRepository batchRepository){
         TransactionViewModel transactionViewModel = this;
         Handler mainHandler = new Handler(Looper.getMainLooper());
         setShowDialogLiveData("Progress");
@@ -94,7 +94,7 @@ public class TransactionViewModel extends ViewModel{
                 Log.i("Complete","Complete");
                 OnlineTransactionResponse onlineTransactionResponse = transactionRepository.parseResponse(transactionViewModel);
                 Intent resultIntent = finishTransaction(card, uuid, mainActivity, fragment, extraContentValues,
-                                                        transactionCode, onlineTransactionResponse, activationRepository, batchRepository);
+                                                        bundle, transactionCode, onlineTransactionResponse, activationRepository, batchRepository);
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -107,9 +107,9 @@ public class TransactionViewModel extends ViewModel{
     }
 
     private Intent finishTransaction(ICCCard card, String uuid, MainActivity mainActivity, Fragment fragment, ContentValues extraContentValues,
-                                                  TransactionCode transactionCode, OnlineTransactionResponse onlineTransactionResponse,
+                                                  Bundle bundle, TransactionCode transactionCode, OnlineTransactionResponse onlineTransactionResponse,
                                                   ActivationRepository activationRepository, BatchRepository batchRepository){
-        TransactionEntity transactionEntity = transactionRepository.entityCreator(card, uuid, extraContentValues, onlineTransactionResponse, transactionCode);
+        TransactionEntity transactionEntity = transactionRepository.entityCreator(card, uuid, extraContentValues, bundle, onlineTransactionResponse, transactionCode);
         transactionEntity.setBatchNo(batchRepository.getBatchNo());
         if (transactionCode != TransactionCode.VOID){
             transactionEntity.setUlGUP_SN(batchRepository.getGroupSN());
@@ -117,7 +117,7 @@ public class TransactionViewModel extends ViewModel{
             batchRepository.incrementGUPSN();
         }
         else {
-            transactionEntity.setUlGUP_SN(Integer.parseInt(extraContentValues.get(TransactionCol.col_ulGUP_SN.name()).toString()));
+            transactionEntity.setUlGUP_SN(Integer.parseInt(extraContentValues.get(TransactionCols.col_ulGUP_SN).toString()));
             transactionRepository.setVoid(transactionEntity.getUlGUP_SN(),transactionEntity.getBaDate(),transactionEntity.getSID());
         }
         return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, fragment, transactionEntity, onlineTransactionResponse.getmResponseCode());
@@ -161,6 +161,14 @@ public class TransactionViewModel extends ViewModel{
 
     public void setShowDialogLiveData(String text) {
         showDialogLiveData.postValue(text);
+    }
+
+    public MutableLiveData<Boolean> getIsButtonClickedLiveData() {
+        return isButtonClickedLiveData;
+    }
+
+    public void setIsButtonClickedLiveData(Boolean isClicked) {
+         isButtonClickedLiveData.postValue(isClicked);
     }
 
     public List<TransactionEntity> getAllTransactions() {

@@ -3,7 +3,7 @@ package com.example.application_template_jmvvm.data.repository;
 import android.content.ContentValues;
 import android.util.Log;
 
-import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
+import com.example.application_template_jmvvm.data.database.transaction.TransactionCols;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.card.MSRCard;
@@ -60,8 +60,8 @@ public class CardRepository implements CardServiceListener{
             int type = json.getInt("mCardReadType");
             if (type == CardReadType.QrPay.value) {
                 ContentValues values = new ContentValues();
-                values.put(TransactionCol.col_bCardReadType.name(), type);
-                values.put(TransactionCol.col_ulAmount.name(), json.getInt("mTranAmount1"));
+                values.put(TransactionCols.col_bCardReadType, type);
+                values.put(TransactionCols.col_ulAmount, json.getInt("mTranAmount1"));
                 cardViewModel.afterQrReceived(values);
                 return;
             }

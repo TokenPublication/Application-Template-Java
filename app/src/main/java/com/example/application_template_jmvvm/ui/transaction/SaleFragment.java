@@ -253,13 +253,13 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     }
 
     public void doSale(ICCCard card) {
-        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, this, null, TransactionCode.SALE, activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
+        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, this, null, null, TransactionCode.SALE, activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
         transactionViewModel.getShowDialogLiveData().observe(getViewLifecycleOwner(), text -> {
             if (text != null) {
                 if (Objects.equals(text, "Progress")) {
                     infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, text, false);
                 } else {
-                    infoDialog.update(InfoDialog.InfoType.Progress, text); //TODO onay kodu
+                    infoDialog.update(InfoDialog.InfoType.Progress, text);
                 }
                 if (text.contains("ONAY KODU")) {
                     infoDialog.update(InfoDialog.InfoType.Confirmed, text);

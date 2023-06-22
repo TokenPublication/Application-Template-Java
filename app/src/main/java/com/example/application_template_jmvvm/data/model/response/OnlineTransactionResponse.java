@@ -7,7 +7,7 @@ public class OnlineTransactionResponse {
     String mTextPrintCode1 = null;
     String mTextPrintCode2 = null;
     String mAuthCode = null;
-    String mHostLogKey = null;
+    String mRefNo = null;
     String mDisplayData = null;
     String mKeySequenceNumber = null;
     Integer insCount = null;
@@ -46,12 +46,12 @@ public class OnlineTransactionResponse {
         this.mAuthCode = mAuthCode;
     }
 
-    public String getmHostLogKey() {
-        return mHostLogKey;
+    public String getmRefNo() {
+        return mRefNo;
     }
 
-    public void setmHostLogKey(String mHostLogKey) {
-        this.mHostLogKey = mHostLogKey;
+    public void setmRefNo(String mRefNo) {
+        this.mRefNo = mRefNo;
     }
 
     public String getmDisplayData() {

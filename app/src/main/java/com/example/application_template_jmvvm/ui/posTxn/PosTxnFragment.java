@@ -21,6 +21,7 @@ import com.example.application_template_jmvvm.data.model.response.BatchCloseResp
 import com.example.application_template_jmvvm.domain.service.BatchCloseResponseListener;
 import com.example.application_template_jmvvm.domain.service.BatchCloseService;
 import com.example.application_template_jmvvm.data.model.code.BatchResult;
+import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
 import com.example.application_template_jmvvm.ui.transaction.CardViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.utils.MenuItem;
@@ -37,15 +38,18 @@ import java.util.List;
 
 public class PosTxnFragment extends Fragment {
 
+    private ActivationViewModel activationViewModel;
+    private BatchViewModel batchViewModel;
     private CardViewModel cardViewModel;
     private TransactionViewModel transactionViewModel;
     private BatchCloseService batchCloseService  = new BatchCloseService();
-    private BatchViewModel batchViewModel;
     ListMenuFragment mListMenuFragment;
     private MainActivity mainActivity;
 
-    public PosTxnFragment(MainActivity mainActivity, CardViewModel cardViewModel, TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
+    public PosTxnFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
+                          TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
         this.mainActivity = mainActivity;
+        this.activationViewModel = activationViewModel;
         this.cardViewModel = cardViewModel;
         this.transactionViewModel = transactionViewModel;
         this.batchViewModel = batchViewModel;
@@ -69,7 +73,7 @@ public class PosTxnFragment extends Fragment {
         menuItems.add(new MenuItem(getString(R.string.transactions), iListMenuItem -> {
         }));
         menuItems.add(new MenuItem(getString(R.string.refund), iListMenuItem -> {
-            RefundFragment RefundFragment = new RefundFragment(this.mainActivity, cardViewModel, transactionViewModel, batchViewModel);
+            RefundFragment RefundFragment = new RefundFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             mainActivity.replaceFragment(R.id.container,RefundFragment,true);
         }));
         menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {

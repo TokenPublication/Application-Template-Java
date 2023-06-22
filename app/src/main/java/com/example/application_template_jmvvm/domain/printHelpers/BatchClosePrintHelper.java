@@ -63,7 +63,7 @@ public class BatchClosePrintHelper extends BasePrintHelper {
             addText(styledText, transactionType + transaction.getUlGUP_SN(), PrinterDefinitions.Alignment.Right);
             addTextToNewLine(styledText, stringHelper.MaskTheCardNo(transaction.getBaPAN()), PrinterDefinitions.Alignment.Left);
             addText(styledText, transaction.getBaExpDate(), PrinterDefinitions.Alignment.Right);
-            addTextToNewLine(styledText, transaction.getBaHostLogKey(), PrinterDefinitions.Alignment.Left);
+            addTextToNewLine(styledText, transaction.getRefNo(), PrinterDefinitions.Alignment.Left);
 
             int amount = transaction.getUlAmount();
             totalAmount += amount;

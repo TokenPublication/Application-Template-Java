@@ -7,7 +7,7 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
+import com.example.application_template_jmvvm.data.database.transaction.TransactionCols;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionDao;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
@@ -16,9 +16,12 @@ import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.domain.SampleReceipt;
+import com.example.application_template_jmvvm.domain.extraContentInfo;
 import com.example.application_template_jmvvm.domain.printHelpers.StringHelper;
 import com.example.application_template_jmvvm.domain.printHelpers.SalePrintHelper;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
+import com.token.printerlib.PrinterService;
+import com.token.printerlib.StyledString;
 import com.token.uicomponents.CustomInput.CustomInputFormat;
 
 import org.json.JSONException;
@@ -72,39 +75,22 @@ public class TransactionRepository {
         onlineTransactionResponse.setmResponseCode(ResponseCode.SUCCESS);
         onlineTransactionResponse.setmTextPrintCode1("Test Print 1");
         onlineTransactionResponse.setmTextPrintCode2("Test Print 2");
-        onlineTransactionResponse.setmAuthCode(String.valueOf((int) (Math.random() * 90000) + 10000));
-        onlineTransactionResponse.setmHostLogKey(String.valueOf((int) (Math.random() * 90000000) + 10000000));
+        onlineTransactionResponse.setmAuthCode(String.valueOf((int) (Math.random() * 900000) + 100000));
+        onlineTransactionResponse.setmRefNo(String.valueOf((long) (Math.random() * 900000000) + (1000000000L * (int) (Math.random() * 9) + 1)));
         onlineTransactionResponse.setmDisplayData("Display Data");
         onlineTransactionResponse.setmKeySequenceNumber("3");
         onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS)  //Dummy Response, always success
-            transactionViewModel.setShowDialogLiveData("ONAY KODU: " + onlineTransactionResponse.getmAuthCode());
+            transactionViewModel.setShowDialogLiveData("ONAY KODU: " + onlineTransactionResponse.getmAuthCode()); //TODO liveData
         return onlineTransactionResponse;
     }
 
-    public TransactionEntity entityCreator(ICCCard card, String uuid, ContentValues extraContentValues,
+    public TransactionEntity entityCreator(ICCCard card, String uuid, ContentValues extraContentValues, Bundle bundle,
                                            OnlineTransactionResponse onlineTransactionResponse, TransactionCode transactionCode){
         TransactionEntity transactionEntity = new TransactionEntity();
         transactionEntity.setUuid(uuid);
         transactionEntity.setUlSTN("STN");
         transactionEntity.setUlAmount(card.getmTranAmount1());
-        switch (transactionCode) {
-            case MATCHED_REFUND:
-                transactionEntity.setUlAmount2(Integer.parseInt(extraContentValues.get(TransactionCol.col_ulAmount2.name()).toString()));
-                transactionEntity.setAuthCode(extraContentValues.get(TransactionCol.col_authCode.name()).toString());
-                transactionEntity.setBaTranDate2(extraContentValues.get(TransactionCol.col_baTranDate2.name()).toString());
-                break;
-            case CASH_REFUND:
-                transactionEntity.setUlAmount2(Integer.parseInt(extraContentValues.get(TransactionCol.col_ulAmount2.name()).toString()));
-                break;
-            case INSTALLMENT_REFUND:
-                transactionEntity.setbInstCnt(Integer.parseInt(extraContentValues.get(TransactionCol.col_bInstCnt.name()).toString()));
-                transactionEntity.setUlInstAmount(Integer.parseInt(extraContentValues.get(TransactionCol.col_ulInstAmount.name()).toString()));
-                break;
-            default:
-                // Handle other refund types or provide a default behavior
-                break;
-        }
         transactionEntity.setbCardReadType(card.getmCardReadType());
         transactionEntity.setbTransCode(transactionCode.getType());
         transactionEntity.setBaPAN(card.getmCardNumber());
@@ -115,7 +101,7 @@ public class TransactionRepository {
         transactionEntity.setBaRspCode(onlineTransactionResponse.getmResponseCode().toString());
         transactionEntity.setIsVoid(0);
         transactionEntity.setBaTranDate(card.getDateTime());
-        transactionEntity.setBaHostLogKey(onlineTransactionResponse.getmHostLogKey());
+        transactionEntity.setRefNo(onlineTransactionResponse.getmRefNo());
         transactionEntity.setIsSignature(0);
         transactionEntity.setStPrintData1(onlineTransactionResponse.getmTextPrintCode1());
         transactionEntity.setStPrintData2(onlineTransactionResponse.getmTextPrintCode2());
@@ -128,6 +114,29 @@ public class TransactionRepository {
         transactionEntity.setIsOffline(0);
         transactionEntity.setSID(card.getSID());
         transactionEntity.setIsOnlinePIN(0);
+        switch (transactionCode) {
+            case MATCHED_REFUND:
+                transactionEntity.setUlAmount(bundle.getInt(extraContentInfo.orgAmount));
+                transactionEntity.setUlAmount2(bundle.getInt(extraContentInfo.refAmount));
+                transactionEntity.setRefNo(bundle.getString(extraContentInfo.refNo));
+                transactionEntity.setAuthCode(bundle.getString(extraContentInfo.authCode));
+                transactionEntity.setBaTranDate2(bundle.getString(extraContentInfo.tranDate));
+                break;
+            case CASH_REFUND:
+                transactionEntity.setUlAmount2(bundle.getInt(extraContentInfo.refAmount));
+                break;
+            case INSTALLMENT_REFUND:
+                transactionEntity.setUlAmount(bundle.getInt(extraContentInfo.orgAmount));
+                transactionEntity.setUlAmount2(bundle.getInt(extraContentInfo.refAmount));
+                transactionEntity.setRefNo(bundle.getString(extraContentInfo.refNo));
+                transactionEntity.setAuthCode(bundle.getString(extraContentInfo.authCode));
+                transactionEntity.setBaTranDate2(bundle.getString(extraContentInfo.tranDate));
+                transactionEntity.setbInstCnt(bundle.getInt(extraContentInfo.instCount));
+                break;
+            default:
+                // Handle other refund types or provide a default behavior
+                break;
+        }
         return transactionEntity;
     }
 
@@ -150,7 +159,7 @@ public class TransactionRepository {
         bundle.putInt("TxnNo", transactionEntity.getUlGUP_SN());
         bundle.putInt("SlipType", slipType.value);
         bundle.putBoolean("IsSlip", true);
-        bundle.putString("RefNo", transactionEntity.getBaHostLogKey());
+        bundle.putString("RefNo", transactionEntity.getRefNo());
         bundle.putString("AuthNo", transactionEntity.getAuthCode());
         bundle.putInt("PaymentType", 3);
         SalePrintHelper salePrintHelper = new SalePrintHelper();
@@ -160,29 +169,41 @@ public class TransactionRepository {
         if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
             bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
         }
+        if (transactionEntity.getbTransCode() == TransactionCode.MATCHED_REFUND.getType() || transactionEntity.getbTransCode() == TransactionCode.CASH_REFUND.getType()
+        || transactionEntity.getbTransCode() == TransactionCode.INSTALLMENT_REFUND.getType() || transactionEntity.getbTransCode() == TransactionCode.VOID.getType()) {
+            printSlip(bundle.getString("customerSlipData"), mainActivity);
+            printSlip(bundle.getString("merchantSlipData"), mainActivity);
+        }
         intent.putExtras(bundle);
         return intent;
     }
 
+    public void printSlip(String printText, MainActivity mainActivity) {
+        StyledString styledText = new StyledString();
+        styledText.addStyledText(printText);
+        styledText.finishPrintingProcedure();
+        styledText.print(PrinterService.getService(mainActivity.getApplicationContext()));
+    }
+
     public ContentValues prepareContentValues(ICCCard card, String uuid, TransactionCode transactionCode) {
         ContentValues values = new ContentValues();
-        values.put(TransactionCol.col_uuid.name(), uuid);
-        values.put(TransactionCol.col_ulSTN.name(), "STN");
-        values.put(TransactionCol.col_bCardReadType.name(), card.getmCardReadType());
-        values.put(TransactionCol.col_bTransCode.name(), transactionCode.getType());
-        values.put(TransactionCol.col_ulAmount.name(), card.getmTranAmount1());
-        values.put(TransactionCol.col_baPAN.name(), card.getmCardNumber());
-        values.put(TransactionCol.col_baExpDate.name(), card.getmExpireDate());
-        values.put(TransactionCol.col_baDate.name(), card.getDateTime().substring(0, 8));
-        values.put(TransactionCol.col_baTime.name(), card.getDateTime().substring(8));
-        values.put(TransactionCol.col_baTrack2.name(), card.getmTrack2Data());
-        values.put(TransactionCol.col_baCustomName.name(), card.getmTrack1CustomerName());
-        values.put(TransactionCol.col_baRspCode.name(), 3);
-        values.put(TransactionCol.col_baTranDate.name(), card.getDateTime());
-        values.put(TransactionCol.col_aid.name(), card.getAID2());
-        values.put(TransactionCol.col_aidLabel.name(), card.getAIDLabel());
-        values.put(TransactionCol.col_baCVM.name(), card.getCVM());
-        values.put(TransactionCol.col_SID.name(), card.getSID());
+        values.put(TransactionCols.col_uuid, uuid);
+        values.put(TransactionCols.col_ulSTN, "STN");
+        values.put(TransactionCols.col_bCardReadType, card.getmCardReadType());
+        values.put(TransactionCols.col_bTransCode, transactionCode.getType());
+        values.put(TransactionCols.col_ulAmount, card.getmTranAmount1());
+        values.put(TransactionCols.col_baPAN, card.getmCardNumber());
+        values.put(TransactionCols.col_baExpDate, card.getmExpireDate());
+        values.put(TransactionCols.col_baDate, card.getDateTime().substring(0, 8));
+        values.put(TransactionCols.col_baTime, card.getDateTime().substring(8));
+        values.put(TransactionCols.col_baTrack2, card.getmTrack2Data());
+        values.put(TransactionCols.col_baCustomName, card.getmTrack1CustomerName());
+        values.put(TransactionCols.col_baRspCode, 3);
+        values.put(TransactionCols.col_baTranDate, card.getDateTime());
+        values.put(TransactionCols.col_aid, card.getAID2());
+        values.put(TransactionCols.col_aidLabel, card.getAIDLabel());
+        values.put(TransactionCols.col_baCVM, card.getCVM());
+        values.put(TransactionCols.col_SID, card.getSID());
         return values;
     }
 
@@ -190,13 +211,13 @@ public class TransactionRepository {
                                           List<CustomInputFormat> inputList) {
         switch (transactionCode) {
             case MATCHED_REFUND:
-                values.put(TransactionCol.col_ulAmount.name(),Integer.parseInt(inputList.get(0).getText()));
-                values.put(TransactionCol.col_ulAmount2.name(), Integer.parseInt(inputList.get(1).getText()));
-                values.put(TransactionCol.col_authCode.name(), inputList.get(3).getText());
-                values.put(TransactionCol.col_baTranDate2.name(), inputList.get(4).getText());
+                values.put(TransactionCols.col_ulAmount,Integer.parseInt(inputList.get(0).getText()));
+                values.put(TransactionCols.col_ulAmount2, Integer.parseInt(inputList.get(1).getText()));
+                values.put(TransactionCols.col_authCode, inputList.get(3).getText());
+                values.put(TransactionCols.col_baTranDate2, inputList.get(4).getText());
                 break;
             case CASH_REFUND:
-                values.put(TransactionCol.col_ulAmount2.name(), Integer.parseInt(inputList.get(0).getText()));
+                values.put(TransactionCols.col_ulAmount2, Integer.parseInt(inputList.get(0).getText()));
                 break;
             case INSTALLMENT_REFUND:
                 // Handle installment refund type
