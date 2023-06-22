@@ -2,6 +2,9 @@ package com.example.application_template_jmvvm.ui.transaction;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 
 import javax.inject.Inject;
 
@@ -10,7 +13,9 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
 import com.example.application_template_jmvvm.data.repository.TransactionRepository;
@@ -24,6 +29,9 @@ import com.token.uicomponents.CustomInput.CustomInputFormat;
 import java.util.List;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.Completable;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 @HiltViewModel
@@ -43,9 +51,76 @@ public class TransactionViewModel extends ViewModel{
         return transactionRepository;
     }
 
-    public void prepareSlip(Fragment fragment, ActivationRepository activationRepository,
-                            BatchRepository batchRepository, MainActivity mainActivity, TransactionResponse transactionResponse){
-        transactionRepository.prepareSlip(this, activationRepository, batchRepository, mainActivity, fragment, transactionResponse);
+    public void TransactionRoutine(ICCCard card, String uuid, MainActivity mainActivity, Fragment fragment, ContentValues extraContentValues,
+                                   TransactionCode transactionCode, ActivationRepository activationRepository, BatchRepository batchRepository){
+        TransactionViewModel transactionViewModel = this;
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+        setShowDialogLiveData("Progress");
+        Observable<ICCCard> observable = Observable.just(card)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io());
+        Observer<ICCCard> observer = new Observer<ICCCard>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.i("Disposed","Dispose");
+            }
+
+            @Override
+            public void onNext(ICCCard card) {
+                for (int i = 0; i <= 10; i++){
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    final String progressText = "Progress: " + (i * 10);
+
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            setShowDialogLiveData(progressText);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.i("Error","Error");
+            }
+
+            @Override
+            public void onComplete() {
+                Log.i("Complete","Complete");
+                OnlineTransactionResponse onlineTransactionResponse = transactionRepository.parseResponse(transactionViewModel);
+                Intent resultIntent = finishTransaction(card, uuid, mainActivity, fragment, extraContentValues,
+                                                        transactionCode, onlineTransactionResponse, activationRepository, batchRepository);
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        setIntentLiveData(resultIntent);
+                    }
+                });
+            }
+        };
+        observable.subscribe(observer);
+    }
+
+    private Intent finishTransaction(ICCCard card, String uuid, MainActivity mainActivity, Fragment fragment, ContentValues extraContentValues,
+                                                  TransactionCode transactionCode, OnlineTransactionResponse onlineTransactionResponse,
+                                                  ActivationRepository activationRepository, BatchRepository batchRepository){
+        TransactionEntity transactionEntity = transactionRepository.entityCreator(card, uuid, extraContentValues, onlineTransactionResponse, transactionCode);
+        transactionEntity.setBatchNo(batchRepository.getBatchNo());
+        if (transactionCode != TransactionCode.VOID){
+            transactionEntity.setUlGUP_SN(batchRepository.getGroupSN());
+            transactionRepository.insertTransaction(transactionEntity);
+            batchRepository.incrementGUPSN();
+        }
+        else {
+            transactionEntity.setUlGUP_SN(Integer.parseInt(extraContentValues.get(TransactionCol.col_ulGUP_SN.name()).toString()));
+            transactionRepository.setVoid(transactionEntity.getUlGUP_SN(),transactionEntity.getBaDate(),transactionEntity.getSID());
+        }
+        return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, fragment, transactionEntity, onlineTransactionResponse.getmResponseCode());
     }
 
     public ContentValues prepareContents(ICCCard card, String uuid, TransactionCode transactionCode){
@@ -86,12 +161,6 @@ public class TransactionViewModel extends ViewModel{
 
     public void setShowDialogLiveData(String text) {
         showDialogLiveData.postValue(text);
-    }
-
-    public void insertTransaction(TransactionEntity transaction) {
-        Completable.fromAction(() -> transactionRepository.insertTransaction(transaction))
-                .subscribeOn(Schedulers.io())
-                .subscribe();
     }
 
     public List<TransactionEntity> getAllTransactions() {

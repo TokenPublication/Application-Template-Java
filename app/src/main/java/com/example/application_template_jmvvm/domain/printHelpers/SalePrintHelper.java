@@ -3,26 +3,21 @@ package com.example.application_template_jmvvm.domain.printHelpers;
 import android.content.Context;
 
 import com.example.application_template_jmvvm.AppTemp;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionCol;
-import com.example.application_template_jmvvm.data.model.response.TransactionResponse;
+import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.domain.SampleReceipt;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
-import com.example.application_template_jmvvm.R;
 import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.PrinterDefinitions.Alignment;
 import com.token.printerlib.StyledString;
 import com.tokeninc.deviceinfo.DeviceInfo;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
 public class SalePrintHelper extends BasePrintHelper{
 
-    public String getFormattedText(SampleReceipt receipt, TransactionResponse transactionResponse, SlipType slipType, Context context, Integer ZNO, Integer ReceiptNo)
+    public String getFormattedText(SampleReceipt receipt, TransactionEntity transactionEntity, SlipType slipType, Context context, Integer ZNO, Integer ReceiptNo)
     {
         StyledString styledText = new StyledString();
         if(slipType == SlipType.CARDHOLDER_SLIP){
@@ -90,22 +85,28 @@ public class SalePrintHelper extends BasePrintHelper{
         styledText.setFontFace(PrinterDefinitions.Font_E.Sans_Bold);
         styledText.setFontSize(12);
         styledText.newLine();
-        styledText.addTextToLine("SN: " + receipt.getSerialNo());
-        styledText.addTextToLine("ONAY KODU: " + receipt.getApprovalCode(), Alignment.Right);
+        if (transactionEntity != null) {
+            styledText.addTextToLine("SN: " + transactionEntity.getUlGUP_SN());
+            styledText.addTextToLine("ONAY KODU: " + transactionEntity.getAuthCode(), Alignment.Right);
+        } else {
+            styledText.addTextToLine("SN: " + receipt.getSerialNo());
+            styledText.addTextToLine("ONAY KODU: " + ((int) (Math.random() * 90000) + 10000), Alignment.Right);
+        }
 
         styledText.setFontSize(8);
         styledText.setFontFace(PrinterDefinitions.Font_E.Sans_Semi_Bold);
         styledText.newLine();
-        if (transactionResponse != null){
-            styledText.addTextToLine("GRUP NO:" + transactionResponse.getContentValues().get(TransactionCol.col_batchNo.name()));
-            styledText.addTextToLine("REF NO: " + transactionResponse.getOnlineTransactionResponse().getmHostLogKey(), PrinterDefinitions.Alignment.Right);
+
+        if (transactionEntity != null) {
+            styledText.addTextToLine("GRUP NO:" + transactionEntity.getBatchNo());
+            styledText.addTextToLine("REF NO: " + transactionEntity.getBaHostLogKey(), PrinterDefinitions.Alignment.Right);
             styledText.newLine();
-            styledText.addTextToLine("AID: " + receipt.getAid());
-            styledText.addTextToLine(transactionResponse.getContentValues().get(TransactionCol.col_aidLabel.name()).toString(), PrinterDefinitions.Alignment.Right);
+            styledText.addTextToLine("AID: " + transactionEntity.getAid());
+            styledText.addTextToLine(transactionEntity.getAidLabel(), PrinterDefinitions.Alignment.Right);
         }
         else {
-            styledText.addTextToLine("GRUP NO:" + 1);
-            styledText.addTextToLine("REF NO: " + 66666666);
+            styledText.addTextToLine("GRUP NO:" + 3);
+            styledText.addTextToLine("REF NO: " + ((int) (Math.random() * 90000000) + 10000000), Alignment.Right);
             styledText.newLine();
             styledText.addTextToLine("AID: " + receipt.getAid());
             styledText.addTextToLine("54354353asd34234234", PrinterDefinitions.Alignment.Right);
@@ -127,7 +128,7 @@ public class SalePrintHelper extends BasePrintHelper{
             if(((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.ECR.name())
                     || ((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.VUK507.name())) {
 
-            addTextToNewLine(styledText, ((AppTemp) context.getApplicationContext()).getCurrentFiscalID(), Alignment.Center, 8);
+                addTextToNewLine(styledText, ((AppTemp) context.getApplicationContext()).getCurrentFiscalID(), Alignment.Center, 8);
 
             }
         }
@@ -141,39 +142,6 @@ public class SalePrintHelper extends BasePrintHelper{
         styledText.printLogo(context);
         styledText.addSpace(100);
         return styledText.toString();
-    }
-
-    public static byte[] getBitmap(Context context) {
-        return getBitmapReceiptArray(context, R.raw.ziraat_fis);
-    }
-
-    public static byte[] getBitmapReceiptArray(Context context, int resourceId) {
-
-        byte[] bitmap;
-        try
-        {
-            InputStream inStream = context.getResources().openRawResource(resourceId);
-            bitmap = new byte[inStream.available()];
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buff = new byte[10240];
-            int i = Integer.MAX_VALUE;
-
-            while ((i = inStream.read(buff, 0, buff.length)) > 0) {
-                baos.write(buff, 0, i);
-            }
-
-            bitmap = baos.toByteArray(); // be sure to close InputStream in calling function
-
-            inStream.close();
-        }
-        catch (IOException e)
-        {
-            bitmap = null;
-            e.printStackTrace();
-        }
-
-        return bitmap;
     }
 
 }

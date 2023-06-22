@@ -136,7 +136,7 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
 
     public void finishVoid(TransactionResponse response) {      //TODO Slip ayarlanacak.
         Log.d("RspCode:",response.getOnlineTransactionResponse().getmResponseCode().toString());
-        PrintHelper.PrintError();
+        PrintHelper.PrintError(mainActivity.getApplicationContext());
         mainActivity.setResult(Activity.RESULT_OK);
         mainActivity.finish();
     }

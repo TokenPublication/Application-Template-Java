@@ -2,9 +2,7 @@ package com.example.application_template_jmvvm.data.repository;
 
 import android.content.ContentValues;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 
 import androidx.fragment.app.Fragment;
 
@@ -15,7 +13,7 @@ import com.example.application_template_jmvvm.data.database.transaction.Transact
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
-import com.example.application_template_jmvvm.data.model.response.TransactionResponse;
+import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.domain.SampleReceipt;
 import com.example.application_template_jmvvm.domain.printHelpers.StringHelper;
@@ -26,8 +24,9 @@ import com.token.uicomponents.CustomInput.CustomInputFormat;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import javax.inject.Inject;
 
@@ -66,6 +65,103 @@ public class TransactionRepository {
 
     public void deleteAll() {
         transactionDao.deleteAll();
+    }
+
+    public OnlineTransactionResponse parseResponse(TransactionViewModel transactionViewModel) {
+        OnlineTransactionResponse onlineTransactionResponse = new OnlineTransactionResponse();
+        onlineTransactionResponse.setmResponseCode(ResponseCode.SUCCESS);
+        onlineTransactionResponse.setmTextPrintCode1("Test Print 1");
+        onlineTransactionResponse.setmTextPrintCode2("Test Print 2");
+        onlineTransactionResponse.setmAuthCode(String.valueOf((int) (Math.random() * 90000) + 10000));
+        onlineTransactionResponse.setmHostLogKey(String.valueOf((int) (Math.random() * 90000000) + 10000000));
+        onlineTransactionResponse.setmDisplayData("Display Data");
+        onlineTransactionResponse.setmKeySequenceNumber("3");
+        onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS)  //Dummy Response, always success
+            transactionViewModel.setShowDialogLiveData("ONAY KODU: " + onlineTransactionResponse.getmAuthCode());
+        return onlineTransactionResponse;
+    }
+
+    public TransactionEntity entityCreator(ICCCard card, String uuid, ContentValues extraContentValues,
+                                           OnlineTransactionResponse onlineTransactionResponse, TransactionCode transactionCode){
+        TransactionEntity transactionEntity = new TransactionEntity();
+        transactionEntity.setUuid(uuid);
+        transactionEntity.setUlSTN("STN");
+        transactionEntity.setUlAmount(card.getmTranAmount1());
+        switch (transactionCode) {
+            case MATCHED_REFUND:
+                transactionEntity.setUlAmount2(Integer.parseInt(extraContentValues.get(TransactionCol.col_ulAmount2.name()).toString()));
+                transactionEntity.setAuthCode(extraContentValues.get(TransactionCol.col_authCode.name()).toString());
+                transactionEntity.setBaTranDate2(extraContentValues.get(TransactionCol.col_baTranDate2.name()).toString());
+                break;
+            case CASH_REFUND:
+                transactionEntity.setUlAmount2(Integer.parseInt(extraContentValues.get(TransactionCol.col_ulAmount2.name()).toString()));
+                break;
+            case INSTALLMENT_REFUND:
+                transactionEntity.setbInstCnt(Integer.parseInt(extraContentValues.get(TransactionCol.col_bInstCnt.name()).toString()));
+                transactionEntity.setUlInstAmount(Integer.parseInt(extraContentValues.get(TransactionCol.col_ulInstAmount.name()).toString()));
+                break;
+            default:
+                // Handle other refund types or provide a default behavior
+                break;
+        }
+        transactionEntity.setbCardReadType(card.getmCardReadType());
+        transactionEntity.setbTransCode(transactionCode.getType());
+        transactionEntity.setBaPAN(card.getmCardNumber());
+        transactionEntity.setBaExpDate(card.getmExpireDate());
+        transactionEntity.setBaDate(card.getDateTime().substring(0, 8));
+        transactionEntity.setBaTime(card.getDateTime().substring(8));
+        transactionEntity.setBaTrack2(card.getmTrack2Data());
+        transactionEntity.setBaRspCode(onlineTransactionResponse.getmResponseCode().toString());
+        transactionEntity.setIsVoid(0);
+        transactionEntity.setBaTranDate(card.getDateTime());
+        transactionEntity.setBaHostLogKey(onlineTransactionResponse.getmHostLogKey());
+        transactionEntity.setIsSignature(0);
+        transactionEntity.setStPrintData1(onlineTransactionResponse.getmTextPrintCode1());
+        transactionEntity.setStPrintData2(onlineTransactionResponse.getmTextPrintCode2());
+        transactionEntity.setAuthCode(onlineTransactionResponse.getmAuthCode());
+        transactionEntity.setAid(card.getAID2());
+        transactionEntity.setAidLabel(card.getAIDLabel());
+        transactionEntity.setPinByPass(0);
+        transactionEntity.setDisplayData(onlineTransactionResponse.getmDisplayData());
+        transactionEntity.setBaCVM(card.getCVM());
+        transactionEntity.setIsOffline(0);
+        transactionEntity.setSID(card.getSID());
+        transactionEntity.setIsOnlinePIN(0);
+        return transactionEntity;
+    }
+
+    public Intent prepareIntent(ActivationRepository activationRepository, BatchRepository batchRepository,
+                            MainActivity mainActivity, Fragment fragment, TransactionEntity transactionEntity, ResponseCode responseCode){
+        Bundle bundle = new Bundle();
+        Intent intent = new Intent();
+        int amount = transactionEntity.getUlAmount();
+        SlipType slipType = SlipType.BOTH_SLIPS;
+        String cardNo = transactionEntity.getBaPAN();
+        bundle.putInt("ResponseCode", responseCode.ordinal()); // #1 Response Code
+        bundle.putString("CardOwner", "OWNER NAME"); // Optional
+        bundle.putString("CardNumber", cardNo); // Optional, Card No can be masked
+        bundle.putInt("PaymentStatus", 0); // #2 Payment Status
+        bundle.putInt("Amount", amount); // #3 Amount
+        bundle.putInt("BatchNo", transactionEntity.getBatchNo());
+        bundle.putString("CardNo", StringHelper.MaskTheCardNo(transactionEntity.getBaPAN())); //#5 Card No "MASKED"
+        bundle.putString("MID", activationRepository.getMerchantId()); //#6 Merchant ID
+        bundle.putString("TID", activationRepository.getTerminalId()); //#7 Terminal ID
+        bundle.putInt("TxnNo", transactionEntity.getUlGUP_SN());
+        bundle.putInt("SlipType", slipType.value);
+        bundle.putBoolean("IsSlip", true);
+        bundle.putString("RefNo", transactionEntity.getBaHostLogKey());
+        bundle.putString("AuthNo", transactionEntity.getAuthCode());
+        bundle.putInt("PaymentType", 3);
+        SalePrintHelper salePrintHelper = new SalePrintHelper();
+        if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
+            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
+        }
+        if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
+            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
+        }
+        intent.putExtras(bundle);
+        return intent;
     }
 
     public ContentValues prepareContentValues(ICCCard card, String uuid, TransactionCode transactionCode) {
@@ -112,40 +208,6 @@ public class TransactionRepository {
         return values;
     }
 
-    public void prepareSlip(TransactionViewModel transactionViewModel, ActivationRepository activationRepository, BatchRepository batchRepository,
-                            MainActivity mainActivity, Fragment fragment, TransactionResponse transactionResponse){
-        int amount = (Integer) transactionResponse.getContentValues().get(TransactionCol.col_ulAmount.name());
-        Bundle bundle = new Bundle();
-        Intent intent = new Intent();
-        SlipType slipType = SlipType.BOTH_SLIPS;
-        String cardNo = (String) transactionResponse.getContentValues().get(TransactionCol.col_baPAN.name());
-        bundle.putInt("ResponseCode", transactionResponse.getOnlineTransactionResponse().getmResponseCode().ordinal()); // #1 Response Code
-        bundle.putString("CardOwner", "OWNER NAME"); // Optional
-        bundle.putString("CardNumber", cardNo); // Optional, Card No can be masked
-        bundle.putInt("PaymentStatus", 0); // #2 Payment Status
-        bundle.putInt("Amount", amount); // #3 Amount
-        bundle.putInt("BatchNo", batchRepository.getBatchNo());
-        bundle.putString("CardNo", StringHelper.MaskTheCardNo((String) transactionResponse.getContentValues().get(TransactionCol.col_baPAN.name()))); //#5 Card No "MASKED"
-        bundle.putString("MID", activationRepository.getMerchantId()); //#6 Merchant ID
-        bundle.putString("TID", activationRepository.getTerminalId()); //#7 Terminal ID
-        bundle.putInt("TxnNo", batchRepository.getGroupSN());
-        bundle.putInt("SlipType", slipType.value);
-        bundle.putBoolean("IsSlip", true);
-        bundle.putString("RefNo", transactionResponse.getOnlineTransactionResponse().getmHostLogKey());
-        bundle.putString("AuthNo", transactionResponse.getOnlineTransactionResponse().getmAuthCode());
-        bundle.putInt("PaymentType", 3);
-        SalePrintHelper salePrintHelper = new SalePrintHelper();
-        if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionResponse, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
-        }
-        if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionResponse, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
-        }
-        bundle.putString("ApprovalCode", getApprovalCode(fragment));
-        intent.putExtras(bundle);
-        transactionViewModel.setIntentLiveData(intent);
-    }
-
     public void prepareDummyResponse(TransactionViewModel transactionViewModel, ActivationRepository activationRepository, BatchRepository batchRepository,
                                      MainActivity mainActivity, Fragment fragment, Integer price, ResponseCode code, Boolean hasSlip,
                                        SlipType slipType, String cardNo, String ownerName, int paymentType){
@@ -176,7 +238,6 @@ public class TransactionRepository {
         if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
             bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, ownerName, price, activationRepository, batchRepository), null, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
         }
-        bundle.putString("ApprovalCode", getApprovalCode(fragment));
         resultIntent.putExtras(bundle);
         transactionViewModel.setIntentLiveData(resultIntent);
     }
@@ -214,10 +275,4 @@ public class TransactionRepository {
         return receipt;
     }
 
-    private String getApprovalCode(Fragment fragment) {
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(fragment.getContext());
-        int approvalCode = sharedPref.getInt("ApprovalCode", 0);
-        sharedPref.edit().putInt("ApprovalCode", ++approvalCode).apply();
-        return String.format(Locale.ENGLISH, "%06d", approvalCode);
-    }
 }

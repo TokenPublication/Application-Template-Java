@@ -151,25 +151,25 @@ public class ExampleFragment extends Fragment {
 
         List<IListMenuItem> subListPrint = new ArrayList<>();
         subListPrint.add(new MenuItem("Print Load Success", (menuItem) -> {
-            PrintHelper.PrintSuccess(); // Message print: Load Success
+            PrintHelper.PrintSuccess(mainActivity.getApplicationContext()); // Message print: Load Success
 
         }, null));
 
         subListPrint.add(new MenuItem("Print Load Error", (menuItem) -> {
-            PrintHelper.PrintError(); // Message print: Load Error
+            PrintHelper.PrintError(mainActivity.getApplicationContext()); // Message print: Load Error
 
         }, null));
 
         subListPrint.add(new MenuItem("Print contactless32", (menuItem) -> {
-            PrintHelper.PrintContactless(true);
+            PrintHelper.PrintContactless(true, mainActivity.getApplicationContext());
         }, null));
 
         subListPrint.add(new MenuItem("Print  contactless64", (menuItem) -> {
-            PrintHelper.PrintContactless(false);
+            PrintHelper.PrintContactless(false, mainActivity.getApplicationContext());
         }, null));
 
         subListPrint.add(new MenuItem("Print Visa", (menuItem) -> {
-            PrintHelper.PrintVisa();
+            PrintHelper.PrintVisa(mainActivity.getApplicationContext());
         }, null));
 
         menuItems.add(new MenuItem("Print Functions", subListPrint, null));
