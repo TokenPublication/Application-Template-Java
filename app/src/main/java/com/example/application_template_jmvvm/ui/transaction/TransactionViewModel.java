@@ -186,6 +186,10 @@ public class TransactionViewModel extends ViewModel{
         transactionRepository.setVoid(gupSN, date, card_SID);
     }
 
+    public boolean isVoidListEmpty() {
+        return transactionRepository.isEmptyVoid();
+    }
+
     public boolean isTransactionListEmpty() {
         return transactionRepository.isEmpty();
     }

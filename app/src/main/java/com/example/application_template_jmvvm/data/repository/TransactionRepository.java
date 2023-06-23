@@ -62,6 +62,10 @@ public class TransactionRepository {
         transactionDao.setVoid(gupSN, date, card_SID);
     }
 
+    public boolean isEmptyVoid() {
+        return transactionDao.isEmptyVoid() == 0;
+    }
+
     public boolean isEmpty() {
         return transactionDao.isEmpty() == 0;
     }

@@ -27,6 +27,9 @@ public interface TransactionDao {
     @Query("UPDATE " + DatabaseInfo.TRANSACTIONTABLE + " SET " + TransactionCols.col_isVoid + " = 1, " + TransactionCols.col_baVoidDateTime + " = :date, " + TransactionCols.col_SID + " = :card_SID WHERE " + TransactionCols.col_ulGUP_SN + " = :gupSN")
     void setVoid(int gupSN, String date, String card_SID);
 
+    @Query("SELECT COUNT(*) FROM " + DatabaseInfo.TRANSACTIONTABLE + " WHERE " + TransactionCols.col_isVoid + " = 0 ")
+    int isEmptyVoid();
+
     @Query("SELECT COUNT(*) FROM " + DatabaseInfo.TRANSACTIONTABLE)
     int isEmpty();
 

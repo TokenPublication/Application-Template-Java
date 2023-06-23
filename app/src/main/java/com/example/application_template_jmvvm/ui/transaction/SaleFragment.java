@@ -1,11 +1,9 @@
 package com.example.application_template_jmvvm.ui.transaction;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import dagger.hilt.android.AndroidEntryPoint;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,15 +21,12 @@ import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.example.application_template_jmvvm.domain.service.TransactionResponseListener;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.type.PaymentTypes;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.data.model.response.TransactionResponse;
-import com.example.application_template_jmvvm.domain.service.TransactionService;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
@@ -42,7 +37,6 @@ import java.util.Objects;
 
 public class SaleFragment extends Fragment implements InfoDialogListener {
 
-    private TransactionService transactionService = new TransactionService();
     int amount;
     View view;
     String uuid;

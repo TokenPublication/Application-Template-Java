@@ -16,12 +16,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
-import com.example.application_template_jmvvm.data.model.response.TransactionResponse;
-import com.example.application_template_jmvvm.domain.service.TransactionService;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.domain.adapter.TransactionsRecycleAdapter;
-import com.example.application_template_jmvvm.domain.printHelpers.PrintHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
@@ -62,16 +59,15 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_void, container, false);
-        boolean empty = transactionViewModel.isTransactionListEmpty(); //TODO 1 işlem voidse hiç yoksa boş dönüyor
-        if(empty){
+        boolean empty = transactionViewModel.isVoidListEmpty();
+        if(empty) {
             infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Info, getString(R.string.no_trans_found), false);
             new Handler().postDelayed(() -> {
                 infoDialog.dismiss();
                 mainActivity.setResult(Activity.RESULT_CANCELED);
                 mainActivity.finish();
             }, 2000);
-        }
-        else{
+        } else {
             final boolean[] isCancelled = {false};
             infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Processing, "Processing", false);
             CountDownTimer timer = new CountDownTimer(10000, 1000) {
