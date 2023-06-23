@@ -7,6 +7,7 @@ import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.response.BatchCloseResponse;
 import com.example.application_template_jmvvm.data.model.code.BatchResult;
+import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.domain.printHelpers.BatchClosePrintHelper;
 import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
@@ -76,13 +77,11 @@ public class BatchCloseService implements InfoDialogListener {
                                                   BatchViewModel batchViewModel, BatchResult batchResult, InfoDialog dialog){
         List<TransactionEntity> transactionList = transactionViewModel.getAllTransactions();
         BatchClosePrintHelper batchClosePrintHelper = new BatchClosePrintHelper();
-        String slip = batchClosePrintHelper.batchText(String.valueOf(batchViewModel.getBatchNo()),transactionList,true);
+        /*String slip = batchClosePrintHelper.batchText(String.valueOf(batchViewModel.getBatchNo()),new ActivationRepository(), transactionList,true);
         print(slip, mainActivity);
         Log.d("Repetition",slip);
-        batchViewModel.updateBatchSlip(slip,batchViewModel.getBatchNo());
+        batchViewModel.updateBatchSlip(slip,batchViewModel.getBatchNo());*/
         dialog.update(InfoDialog.InfoType.Confirmed, "Grup Kapama Başarılı");
-        batchViewModel.updateBatchNo(batchViewModel.getBatchNo());
-        batchViewModel.updateGUPSN(0);
         transactionViewModel.deleteAllTransactions();
         return new BatchCloseResponse(batchResult,new SimpleDateFormat("dd-MM-yy HH:mm:ss", Locale.getDefault()));
     }

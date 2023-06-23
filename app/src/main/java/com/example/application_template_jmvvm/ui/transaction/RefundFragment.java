@@ -61,6 +61,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
     private CustomInputFormat inputAuthCode;
     private MainActivity mainActivity;
     private InfoDialog infoDialog;
+    private InputListFragment inputListFragment;
 
     public RefundFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
                           TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
@@ -147,26 +148,16 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         );
         inputList.add(inputTranDate);
 
-        InputListFragment fragment = InputListFragment.newInstance(inputList, getString(R.string.refund), list -> {
+        inputListFragment= InputListFragment.newInstance(inputList, getString(R.string.refund), list -> {
             amount = Integer.parseInt(list.get(1));
             if (transactionCode == TransactionCode.INSTALLMENT_REFUND) {
                 this.transactionCode = TransactionCode.INSTALLMENT_REFUND;
             } else {
                 this.transactionCode = transactionCode;
             }
-            transactionViewModel.setIsButtonClickedLiveData(true);
+            cardReader(inputListFragment, inputList);
         });
-
-        mainActivity.replaceFragment(R.id.container, fragment, true);
-        fragment.getViewLifecycleOwnerLiveData().observe(mainActivity, lifecycleOwner -> {
-            if (lifecycleOwner != null) {
-                transactionViewModel.getIsButtonClickedLiveData().observe(fragment.getViewLifecycleOwner(), isClicked -> {
-                    if (isClicked) {
-                        cardReader(fragment, inputList);
-                    }
-                });
-            }
-        });
+        mainActivity.replaceFragment(R.id.container, inputListFragment, true);
     }
 
     private void showReturnFragment(){
@@ -181,22 +172,13 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
             return ListAmount > 0;
         }));
 
-        InputListFragment fragment = InputListFragment.newInstance(inputList, getString(R.string.refund), list -> {
+        inputListFragment = InputListFragment.newInstance(inputList, getString(R.string.refund), list -> {
             amount = Integer.parseInt(list.get(0));
             transactionCode = TransactionCode.CASH_REFUND;
-            transactionViewModel.setIsButtonClickedLiveData(true);
+            cardReader(inputListFragment, inputList);
         });
 
-        mainActivity.replaceFragment(R.id.container, fragment, true);
-        fragment.getViewLifecycleOwnerLiveData().observe(mainActivity, lifecycleOwner -> {
-            if (lifecycleOwner != null) {
-                transactionViewModel.getIsButtonClickedLiveData().observe(fragment.getViewLifecycleOwner(), isClicked -> {
-                    if (isClicked) {
-                        cardReader(fragment, inputList);
-                    }
-                });
-            }
-        });
+        mainActivity.replaceFragment(R.id.container, inputListFragment, true);
     }
 
     private void showInstallmentRefundFragment() {
@@ -240,34 +222,26 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         timer.start();
         cardViewModel.initializeCardServiceBinding(mainActivity);
 
-        fragment.getViewLifecycleOwnerLiveData().observe(mainActivity, lifecycleOwner -> {
-            if (lifecycleOwner != null) {
-                cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
-                    if (isConnected && !isCancelled[0]) {
-                        timer.cancel();
-                        infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            cardViewModel.readCard(amount);
-                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                infoDialog.dismiss();
-                            }, 1000);
-                        }, 2000);
-                    }
-                });
+        cardViewModel.getIsCardServiceConnect().observe(fragment.getViewLifecycleOwner(), isConnected -> {
+            if (isConnected && !isCancelled[0]) {
+                timer.cancel();
+                infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    cardViewModel.readCard(amount);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        infoDialog.dismiss();
+                        }, 1000);
+                    }, 2000);
             }
         });
 
-        fragment.getViewLifecycleOwnerLiveData().observe(mainActivity, lifecycleOwner -> {
-            if (lifecycleOwner != null) {
-                cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
-                    if (card != null) {
-                        mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            doRefund(card, transactionCode, inputList, fragment);
-                            infoDialog.dismiss();
-                        }, 2000);
-                    }
-                });
+        cardViewModel.getCardLiveData().observe(fragment.getViewLifecycleOwner(), card -> {
+            if (card != null) {
+                mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    doRefund(card, transactionCode, inputList, fragment);
+                    infoDialog.dismiss();
+                    }, 2000);
             }
         });
     }

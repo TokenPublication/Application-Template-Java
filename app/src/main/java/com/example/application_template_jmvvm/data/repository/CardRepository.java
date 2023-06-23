@@ -77,7 +77,7 @@ public class CardRepository implements CardServiceListener{
                 this.msrCard = card;
                 cardServiceBinding.getOnlinePIN(amount, card.getCardNumber(), 0x0A01, 0, 4, 8, 30);
             }
-            cardViewModel.afterCardDataReceived(card);
+            cardViewModel.afterCardDataReceived(card);  //TODO livedata ile yukarıya ?
         } catch (Exception e) {
             e.printStackTrace();
         }
