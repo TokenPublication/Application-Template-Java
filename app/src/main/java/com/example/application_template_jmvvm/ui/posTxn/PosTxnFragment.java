@@ -1,7 +1,6 @@
 package com.example.application_template_jmvvm.ui.posTxn;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -10,17 +9,12 @@ import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.data.model.response.BatchCloseResponse;
-import com.example.application_template_jmvvm.domain.service.BatchCloseResponseListener;
-import com.example.application_template_jmvvm.domain.service.BatchCloseService;
-import com.example.application_template_jmvvm.data.model.code.BatchResult;
 import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
 import com.example.application_template_jmvvm.ui.transaction.CardViewModel;
 import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
@@ -35,16 +29,17 @@ import com.token.uicomponents.infodialog.InfoDialogListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class PosTxnFragment extends Fragment {
+public class PosTxnFragment extends Fragment implements InfoDialogListener{
 
     private ActivationViewModel activationViewModel;
     private BatchViewModel batchViewModel;
     private CardViewModel cardViewModel;
     private TransactionViewModel transactionViewModel;
-    private BatchCloseService batchCloseService  = new BatchCloseService();
-    ListMenuFragment mListMenuFragment;
     private MainActivity mainActivity;
+    private InfoDialog infoDialog;
+    private ListMenuFragment mListMenuFragment;
 
     public PosTxnFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
                           TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
@@ -96,7 +91,7 @@ public class PosTxnFragment extends Fragment {
                         new InfoDialogListener() {
                             @Override
                             public void confirmed(int i) {
-                                batchClose();
+                                batchClose(mListMenuFragment);
                             }
 
                             @Override
@@ -113,32 +108,34 @@ public class PosTxnFragment extends Fragment {
         mainActivity.replaceFragment(R.id.container,mListMenuFragment,false);
     }
 
-    private void batchClose() {
-        batchCloseService.doInBackground(mainActivity, getContext(), transactionViewModel, batchViewModel,
-                new BatchCloseResponseListener() {
-                    @Override
-                    public void onComplete(BatchCloseResponse response) {
-                        finishBatchClose(response);
-                    }
-                });
-    }
-
-    private void finishBatchClose(BatchCloseResponse batchCloseResponse) {
-        Log.d("finishBatch", "" + batchCloseResponse.getBatchResult());
-        BatchResult responseCode = batchCloseResponse.getBatchResult();
-        Intent intent = new Intent();
-        Bundle bundle = new Bundle();
-        bundle.putInt("ResponseCode", responseCode.ordinal());
-        intent.putExtras(bundle);
-        mainActivity.setResult(Activity.RESULT_OK,intent);
-        for (int i = 0; i <= 10; i++) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+    private void batchClose(ListMenuFragment listMenuFragment) {
+        batchViewModel.BatchCloseRoutine(mainActivity, activationViewModel.getActivationRepository(), transactionViewModel.getTransactionRepository());
+        batchViewModel.getShowDialogLiveData().observe(listMenuFragment.getViewLifecycleOwner(), text -> {
+            if (text != null) {
+                if (Objects.equals(text, "Progress")) {
+                    infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, text, false);
+                } else {
+                    infoDialog.update(InfoDialog.InfoType.Progress, text);
+                }
+                if (text.contains("Confirmed")) {
+                    infoDialog.update(InfoDialog.InfoType.Confirmed, text);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {}, 2000);
+                }
             }
-        }
-        mainActivity.finish();
+        });
+        batchViewModel.getIntentLiveData().observe(listMenuFragment.getViewLifecycleOwner(), resultIntent -> {
+            mainActivity.setResult(Activity.RESULT_OK,resultIntent);
+            mainActivity.finish();
+        });
     }
 
+    @Override
+    public void confirmed(int i) {
+
+    }
+
+    @Override
+    public void canceled(int i) {
+
+    }
 }

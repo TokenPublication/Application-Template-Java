@@ -11,15 +11,11 @@ import androidx.lifecycle.ViewModel;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.data.repository.CardRepository;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
-import com.tokeninc.cardservicebinding.CardServiceBinding;
 
 import javax.inject.Inject;
 
-import dagger.hilt.android.lifecycle.HiltViewModel;
-
 public class CardViewModel extends ViewModel{
     private CardRepository cardRepository;
-    private Boolean isCardServiceConnected = false;
     private MutableLiveData<ICCCard> cardLiveData = new MutableLiveData<>();
     private MutableLiveData<ContentValues> qrData = new MutableLiveData<>();
     private MutableLiveData<Boolean> isCardServiceConnect = new MutableLiveData<>(false);
@@ -35,21 +31,14 @@ public class CardViewModel extends ViewModel{
         isCardServiceConnect.postValue(isConnected);
     }
 
-    public void initializeCardServiceBinding(MainActivity main) {
+    public void initializeCardServiceBinding(MainActivity mainActivity) {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (cardRepository == null)
-                cardRepository = new CardRepository(this, main);
-            else
-                cardRepository.cardServiceBinder(main);
+            if (cardRepository == null) {
+                cardRepository = new CardRepository(this, mainActivity);
+            } else {
+                cardRepository.cardServiceBinder(mainActivity);
+            }
         }, 5);
-    }
-
-    public Boolean getIsCardServiceConnected() {
-        return isCardServiceConnected;
-    }
-
-    public void setIsCardServiceConnected(boolean isConnected) {
-        isCardServiceConnected = isConnected;
     }
 
     public void readCard(int amount) {

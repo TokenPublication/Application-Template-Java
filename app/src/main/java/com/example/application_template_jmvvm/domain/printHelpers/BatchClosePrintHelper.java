@@ -1,6 +1,7 @@
 package com.example.application_template_jmvvm.domain.printHelpers;
 
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.StyledString;
 import com.tokeninc.deviceinfo.DeviceInfo;
@@ -9,13 +10,12 @@ import java.util.List;
 
 public class BatchClosePrintHelper extends BasePrintHelper {
 
-    public String batchText(String batch_no, List<TransactionEntity> transactions, boolean isCopy) {
+    public String batchText(String batch_no, ActivationRepository activationRepository, List<TransactionEntity> transactions, boolean isCopy) {
         StyledString styledText = new StyledString();
-        StringHelper stringHelper = new StringHelper();
         PrintHelper printHelper = new PrintHelper();
         int totalAmount = 0;
-        String MID = "asd";     //TODO düzenlenecek.
-        String TID = "asd";
+        String MID = activationRepository.getMerchantId();
+        String TID = activationRepository.getTerminalId();
 
         addTextToNewLine(styledText, "TOKEN", PrinterDefinitions.Alignment.Center);
         addTextToNewLine(styledText, "FINTECH", PrinterDefinitions.Alignment.Center);
@@ -61,20 +61,20 @@ public class BatchClosePrintHelper extends BasePrintHelper {
             }
 
             addText(styledText, transactionType + transaction.getUlGUP_SN(), PrinterDefinitions.Alignment.Right);
-            addTextToNewLine(styledText, stringHelper.MaskTheCardNo(transaction.getBaPAN()), PrinterDefinitions.Alignment.Left);
+            addTextToNewLine(styledText, StringHelper.MaskTheCardNo(transaction.getBaPAN()), PrinterDefinitions.Alignment.Left);
             addText(styledText, transaction.getBaExpDate(), PrinterDefinitions.Alignment.Right);
             addTextToNewLine(styledText, transaction.getRefNo(), PrinterDefinitions.Alignment.Left);
 
             int amount = transaction.getUlAmount();
             totalAmount += amount;
-            addText(styledText, stringHelper.getAmount(amount), PrinterDefinitions.Alignment.Right);
+            addText(styledText, StringHelper.getAmount(amount), PrinterDefinitions.Alignment.Right);
             styledText.newLine();
         }
 
         addTextToNewLine(styledText, "İŞLEM SAYISI:", PrinterDefinitions.Alignment.Left);
         addText(styledText, String.valueOf(transactions.size()), PrinterDefinitions.Alignment.Right);
         addTextToNewLine(styledText, "TOPLAM:", PrinterDefinitions.Alignment.Left);
-        addText(styledText, stringHelper.getAmount(totalAmount), PrinterDefinitions.Alignment.Right);
+        addText(styledText, StringHelper.getAmount(totalAmount), PrinterDefinitions.Alignment.Right);
         styledText.newLine();
         addTextToNewLine(styledText, "===========================", PrinterDefinitions.Alignment.Center);
         styledText.newLine();

@@ -1,6 +1,5 @@
 package com.example.application_template_jmvvm.ui.transaction;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,18 +13,15 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionCols;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
 import com.example.application_template_jmvvm.data.repository.TransactionRepository;
-import com.example.application_template_jmvvm.data.model.response.TransactionResponse;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
-import com.token.uicomponents.CustomInput.CustomInputFormat;
 
 import java.util.List;
 import dagger.hilt.android.lifecycle.HiltViewModel;
@@ -39,9 +35,9 @@ public class TransactionViewModel extends ViewModel{
 
     private TransactionRepository transactionRepository;
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
-    private MutableLiveData<TransactionResponse> transactionResponseLiveData  = new MutableLiveData<>();
     private MutableLiveData<String> showDialogLiveData = new MutableLiveData<>();
     private MutableLiveData<Boolean> isButtonClickedLiveData = new MutableLiveData<>(false);
+
     @Inject
     public TransactionViewModel(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
@@ -114,21 +110,12 @@ public class TransactionViewModel extends ViewModel{
             transactionEntity.setBatchNo(batchRepository.getBatchNo());
             transactionEntity.setUlGUP_SN(batchRepository.getGroupSN());
             transactionRepository.insertTransaction(transactionEntity);
-            batchRepository.incrementGUPSN();
+            batchRepository.updateGUPSN();
         }
         else {
             transactionRepository.setVoid(transactionEntity.getUlGUP_SN(),transactionEntity.getBaDate(),transactionEntity.getSID());
         }
         return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, fragment, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
-    }
-
-    public ContentValues prepareContents(ICCCard card, String uuid, TransactionCode transactionCode){
-        return transactionRepository.prepareContentValues(card, uuid, transactionCode);
-    }
-
-    public ContentValues prepareExtraContents(ContentValues values, TransactionCode transactionCode,
-                                              List<CustomInputFormat> inputList){
-        return transactionRepository.putExtraContents(values, transactionCode, inputList);
     }
 
     public void prepareDummyResponse(ActivationRepository activationRepository, BatchRepository batchRepository, MainActivity mainActivity,
@@ -144,14 +131,6 @@ public class TransactionViewModel extends ViewModel{
 
     public void setIntentLiveData(Intent intent) {
         intentLiveData.postValue(intent);
-    }
-
-    public MutableLiveData<TransactionResponse> getTransactionResponseLiveData() {
-        return transactionResponseLiveData;
-    }
-
-    public void setTransactionResponseLiveData(TransactionResponse transactionResponse) {
-        transactionResponseLiveData.postValue(transactionResponse);
     }
 
     public MutableLiveData<String> getShowDialogLiveData() {
