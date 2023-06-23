@@ -43,6 +43,7 @@ public class CardRepository implements CardServiceListener{
             JSONObject obj = new JSONObject();
             obj.put("forceOnline", 1);
             obj.put("zeroAmount", 0);
+            obj.put("showAmount", (amount == 0) ? 0 : 1);
             obj.put("fallback", 1);
             obj.put("cardReadTypes", 6);
             obj.put("qrPay", 1);

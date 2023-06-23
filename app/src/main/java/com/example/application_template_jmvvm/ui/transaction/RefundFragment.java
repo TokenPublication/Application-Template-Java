@@ -54,14 +54,11 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
     private TransactionCode transactionCode;
     int amount;
     int instCount;
-    String uuid;
     private CustomInputFormat inputTranDate;
     private CustomInputFormat inputOrgAmount;
     private CustomInputFormat inputRetAmount;
     private CustomInputFormat inputRefNo;
     private CustomInputFormat inputAuthCode;
-    private Bundle bundle;
-    private Intent intent;
     private MainActivity mainActivity;
     private InfoDialog infoDialog;
 
@@ -76,7 +73,6 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        uuid = "4234324234";        //TODO düzenlenecek.
     }
 
     @Override
@@ -278,7 +274,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
 
     public void doRefund(ICCCard card, TransactionCode transactionCode, List<CustomInputFormat> inputList, Fragment fragment) {
         Bundle refundInfo = bundleCreator(transactionCode, inputList);
-        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, this, null, refundInfo, transactionCode,
+        transactionViewModel.TransactionRoutine(card, null, mainActivity, this, null, refundInfo, transactionCode,
                                                     activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
         transactionViewModel.getShowDialogLiveData().observe(fragment.getViewLifecycleOwner(), text -> {
             if (text != null) {
