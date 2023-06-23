@@ -36,7 +36,6 @@ public class TransactionViewModel extends ViewModel{
     private TransactionRepository transactionRepository;
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
     private MutableLiveData<String> showDialogLiveData = new MutableLiveData<>();
-    private MutableLiveData<Boolean> isButtonClickedLiveData = new MutableLiveData<>(false);
 
     @Inject
     public TransactionViewModel(TransactionRepository transactionRepository) {
@@ -139,14 +138,6 @@ public class TransactionViewModel extends ViewModel{
 
     public void setShowDialogLiveData(String text) {
         showDialogLiveData.postValue(text);
-    }
-
-    public MutableLiveData<Boolean> getIsButtonClickedLiveData() {
-        return isButtonClickedLiveData;
-    }
-
-    public void setIsButtonClickedLiveData(Boolean isClicked) {
-         isButtonClickedLiveData.postValue(isClicked);
     }
 
     public List<TransactionEntity> getAllTransactions() {
