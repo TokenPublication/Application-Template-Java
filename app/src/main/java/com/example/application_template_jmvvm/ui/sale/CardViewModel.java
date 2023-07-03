@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.ui.transaction;
+package com.example.application_template_jmvvm.ui.sale;
 
 import android.content.ContentValues;
 import android.os.Handler;
@@ -14,7 +14,7 @@ import com.example.application_template_jmvvm.data.model.card.ICCCard;
 
 import javax.inject.Inject;
 
-public class CardViewModel extends ViewModel{
+public class CardViewModel extends ViewModel {
     private CardRepository cardRepository;
     private MutableLiveData<ICCCard> cardLiveData = new MutableLiveData<>();
     private MutableLiveData<ContentValues> qrData = new MutableLiveData<>();

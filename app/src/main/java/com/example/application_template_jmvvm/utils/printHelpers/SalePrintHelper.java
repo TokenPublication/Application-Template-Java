@@ -1,11 +1,11 @@
-package com.example.application_template_jmvvm.domain.printHelpers;
+package com.example.application_template_jmvvm.utils.printHelpers;
 
 import android.content.Context;
 
 import com.example.application_template_jmvvm.AppTemp;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
-import com.example.application_template_jmvvm.domain.SampleReceipt;
+import com.example.application_template_jmvvm.utils.objects.SampleReceipt;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.PrinterDefinitions.Alignment;

@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.ui.settings;
+package com.example.application_template_jmvvm.ui.activation;
 
 import android.os.Bundle;
 
@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.ui.utils.MenuItem;
+import com.example.application_template_jmvvm.utils.objects.MenuItem;
 import com.token.uicomponents.CustomInput.CustomInputFormat;
 import com.token.uicomponents.CustomInput.EditTextInputType;
 import com.token.uicomponents.CustomInput.InputListFragment;

@@ -15,13 +15,14 @@ import android.view.ViewGroup;
 
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
-import com.example.application_template_jmvvm.ui.transaction.CardViewModel;
-import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
-import com.example.application_template_jmvvm.ui.utils.MenuItem;
+import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
+import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
+import com.example.application_template_jmvvm.ui.sale.CardViewModel;
+import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
+import com.example.application_template_jmvvm.utils.objects.MenuItem;
 import com.example.application_template_jmvvm.ui.example.ExampleFragment;
-import com.example.application_template_jmvvm.ui.transaction.RefundFragment;
-import com.example.application_template_jmvvm.ui.transaction.VoidFragment;
+import com.example.application_template_jmvvm.ui.posTxn.refund.RefundFragment;
+import com.example.application_template_jmvvm.ui.posTxn.voidOperation.VoidFragment;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 import com.token.uicomponents.infodialog.InfoDialog;
@@ -65,7 +66,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener{
         super.onViewCreated(view, savedInstanceState);
 
         List<IListMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(new MenuItem(getString(R.string.transactions), iListMenuItem -> {
+        menuItems.add(new MenuItem(getString(R.string.transactions), iListMenuItem -> { //TODO bakılacak.
         }));
         menuItems.add(new MenuItem(getString(R.string.refund), iListMenuItem -> {
             RefundFragment RefundFragment = new RefundFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
@@ -110,7 +111,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener{
 
     private void batchClose(ListMenuFragment listMenuFragment) {
         batchViewModel.BatchCloseRoutine(mainActivity, activationViewModel.getActivationRepository(), transactionViewModel.getTransactionRepository());
-        batchViewModel.getShowDialogLiveData().observe(listMenuFragment.getViewLifecycleOwner(), text -> {
+        batchViewModel.getShowDialogLiveData().observe(listMenuFragment.getViewLifecycleOwner(), text -> {  //TODO: object aç.
             if (text != null) {
                 if (Objects.equals(text, "Progress")) {
                     infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, text, false);

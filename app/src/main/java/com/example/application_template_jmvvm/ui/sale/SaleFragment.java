@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.ui.transaction;
+package com.example.application_template_jmvvm.ui.sale;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
@@ -28,8 +27,8 @@ import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
-import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
+import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
+import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 
@@ -73,43 +72,11 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         view.findViewById(R.id.btnSale).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final boolean[] isCancelled = {false};
-                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Processing, "Processing", false);
-                CountDownTimer timer = new CountDownTimer(10000, 1000) {
-                    @Override
-                    public void onTick(long millisUntilFinished) {}
-
-                    @Override
-                    public void onFinish() {
-                        isCancelled[0] = true;
-                        infoDialog.update(InfoDialog.InfoType.Declined, "Connect Failed");
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            if (infoDialog != null) {
-                                infoDialog.dismiss();
-                                mainActivity.finish();
-                            }
-                        }, 2000);
-                    }
-                };
-                timer.start();
-                cardViewModel.initializeCardServiceBinding(mainActivity);
-
-                cardViewModel.getIsCardServiceConnect().observe(getViewLifecycleOwner(), isConnected -> {
-                    if (isConnected && !isCancelled[0]) {
-                        timer.cancel();
-                        infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            cardViewModel.readCard(amount);
-                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                infoDialog.dismiss();
-                            }, 1000);
-                        }, 2000);
-                    }
-                });
+                mainActivity.readCard(getViewLifecycleOwner(), amount);
 
                 cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
                     if (card != null) {
-                        mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+                        infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
                             doSale(card);
                             infoDialog.dismiss();
@@ -247,16 +214,14 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     }
 
     public void doSale(ICCCard card) {
-        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, this, null, null, TransactionCode.SALE, activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
-        transactionViewModel.getShowDialogLiveData().observe(getViewLifecycleOwner(), text -> {
-            if (text != null) {
-                if (Objects.equals(text, "Progress")) {
-                    infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, text, false);
-                } else {
-                    infoDialog.update(InfoDialog.InfoType.Progress, text);
-                }
-                if (text.contains("ONAY KODU")) {
-                    infoDialog.update(InfoDialog.InfoType.Confirmed, text);
+        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, this, null, null, TransactionCode.SALE,
+                                                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
+        transactionViewModel.getInfoDialogLiveData().observe(getViewLifecycleOwner(), infoDialogData -> {
+            if (Objects.equals(infoDialogData.getText(), "Progress")) {
+                infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
+            } else {
+                infoDialog.update(infoDialogData.getType(), infoDialogData.getText());
+                if (infoDialogData.getType() == InfoDialog.InfoType.Confirmed) {
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {}, 2000);
                 }
             }

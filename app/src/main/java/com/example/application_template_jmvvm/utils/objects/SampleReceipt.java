@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.domain;
+package com.example.application_template_jmvvm.utils.objects;
 
 public class SampleReceipt {
     private String merchantName;

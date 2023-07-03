@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.ui.transaction;
+package com.example.application_template_jmvvm.ui.sale;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,6 +22,8 @@ import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
+import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
+import com.token.uicomponents.infodialog.InfoDialog;
 
 import java.util.List;
 import dagger.hilt.android.lifecycle.HiltViewModel;
@@ -35,7 +37,7 @@ public class TransactionViewModel extends ViewModel{
 
     private TransactionRepository transactionRepository;
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
-    private MutableLiveData<String> showDialogLiveData = new MutableLiveData<>();
+    private MutableLiveData<InfoDialogData> infoDialogLiveData = new MutableLiveData<>();
 
     @Inject
     public TransactionViewModel(TransactionRepository transactionRepository) {
@@ -50,7 +52,7 @@ public class TransactionViewModel extends ViewModel{
                                    Bundle bundle, TransactionCode transactionCode, ActivationRepository activationRepository, BatchRepository batchRepository){
         TransactionViewModel transactionViewModel = this;
         Handler mainHandler = new Handler(Looper.getMainLooper());
-        setShowDialogLiveData("Progress");
+        setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, "Progress"));
         Observable<Boolean> observable = Observable.just(true)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io());
@@ -73,7 +75,7 @@ public class TransactionViewModel extends ViewModel{
                     mainHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            setShowDialogLiveData(progressText);
+                            setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, progressText));
                         }
                     });
                 }
@@ -132,12 +134,12 @@ public class TransactionViewModel extends ViewModel{
         intentLiveData.postValue(intent);
     }
 
-    public MutableLiveData<String> getShowDialogLiveData() {
-        return showDialogLiveData;
+    public MutableLiveData<InfoDialogData> getInfoDialogLiveData() {
+        return infoDialogLiveData;
     }
 
-    public void setShowDialogLiveData(String text) {
-        showDialogLiveData.postValue(text);
+    public void setInfoDialogLiveData(InfoDialogData infoDialogData) {
+        infoDialogLiveData.postValue(infoDialogData);
     }
 
     public List<TransactionEntity> getAllTransactions() {

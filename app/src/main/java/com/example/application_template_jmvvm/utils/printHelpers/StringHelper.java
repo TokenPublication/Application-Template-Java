@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.domain.printHelpers;
+package com.example.application_template_jmvvm.utils.printHelpers;
 
 import java.util.Locale;
 

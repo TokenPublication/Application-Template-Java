@@ -3,16 +3,15 @@ package com.example.application_template_jmvvm.data.model.response;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 
 public class OnlineTransactionResponse {
-    ResponseCode mResponseCode = null;
-    String mTextPrintCode1 = null;
-    String mTextPrintCode2 = null;
-    String mAuthCode = null;
-    String mRefNo = null;
-    String mDisplayData = null;
-    String mKeySequenceNumber = null;
-    Integer insCount = null;
-    Integer instAmount = null;
-    String dateTime = null;
+    ResponseCode mResponseCode;
+    String mTextPrintCode1;
+    String mTextPrintCode2;
+    String mAuthCode;
+    String mRefNo;
+    String mDisplayData;
+    String mKeySequenceNumber;
+    Integer insCount;
+    String dateTime;
 
     public ResponseCode getmResponseCode() {
         return mResponseCode;
@@ -76,14 +75,6 @@ public class OnlineTransactionResponse {
 
     public void setInsCount(Integer insCount) {
         this.insCount = insCount;
-    }
-
-    public Integer getInstAmount() {
-        return instAmount;
-    }
-
-    public void setInstAmount(Integer instAmount) {
-        this.instAmount = instAmount;
     }
 
     public String getDateTime() {

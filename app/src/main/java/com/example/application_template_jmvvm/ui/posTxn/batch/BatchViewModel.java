@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.ui.posTxn;
+package com.example.application_template_jmvvm.ui.posTxn.batch;
 
 import android.content.Intent;
 import android.os.Handler;
@@ -12,12 +12,9 @@ import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.code.BatchResult;
 import com.example.application_template_jmvvm.data.model.response.BatchCloseResponse;
-import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
 import com.example.application_template_jmvvm.data.repository.TransactionRepository;
-import com.example.application_template_jmvvm.domain.printHelpers.BatchClosePrintHelper;
-import com.token.uicomponents.infodialog.InfoDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.List;

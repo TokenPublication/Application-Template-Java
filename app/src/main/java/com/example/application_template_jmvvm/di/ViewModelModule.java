@@ -1,11 +1,11 @@
-package com.example.application_template_jmvvm.ui.di;
+package com.example.application_template_jmvvm.di;
 
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
 import com.example.application_template_jmvvm.data.repository.TransactionRepository;
-import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
-import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
-import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
+import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
+import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
+import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 
 import dagger.Module;
 import dagger.Provides;

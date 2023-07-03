@@ -1,8 +1,7 @@
-package com.example.application_template_jmvvm.ui.transaction;
+package com.example.application_template_jmvvm.ui.posTxn.voidOperation;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -18,11 +17,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
-import com.example.application_template_jmvvm.domain.adapter.TransactionsRecycleAdapter;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
-import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
+import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
+import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
+import com.example.application_template_jmvvm.ui.sale.CardViewModel;
+import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 
@@ -38,7 +38,6 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     private CardViewModel cardViewModel;
     private TransactionViewModel transactionViewModel;
     private InfoDialog infoDialog;
-    int amount;
     private RecyclerView rvTransactions;
     private List<TransactionEntity> transactionList = new ArrayList<>();
 
@@ -68,39 +67,7 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
                 mainActivity.finish();
             }, 2000);
         } else {
-            final boolean[] isCancelled = {false};
-            infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Processing, "Processing", false);
-            CountDownTimer timer = new CountDownTimer(10000, 1000) {
-                @Override
-                public void onTick(long millisUntilFinished) {}
-
-                @Override
-                public void onFinish() {
-                    isCancelled[0] = true;
-                    infoDialog.update(InfoDialog.InfoType.Declined, "Connect Failed");
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        if (infoDialog != null) {
-                            infoDialog.dismiss();   //TODO Backpressed
-                            mainActivity.finish();
-                        }
-                    }, 2000);
-                }
-            };
-            timer.start();
-            cardViewModel.initializeCardServiceBinding(mainActivity);
-
-            cardViewModel.getIsCardServiceConnect().observe(getViewLifecycleOwner(), isConnected -> {
-                if (isConnected && !isCancelled[0]) {
-                    timer.cancel();
-                    infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        cardViewModel.readCard(amount);
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            infoDialog.dismiss();
-                        }, 1000);
-                    }, 2000);
-                }
-            });
+            mainActivity.readCard(getViewLifecycleOwner(), 0);
 
             cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
                 infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
@@ -124,16 +91,13 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
 
     public void startVoid(TransactionEntity transactionEntity) {
         transactionViewModel.TransactionRoutine(null, null, mainActivity, this, transactionEntity, null, TransactionCode.VOID,
-                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
-        transactionViewModel.getShowDialogLiveData().observe(getViewLifecycleOwner(), text -> {
-            if (text != null) {
-                if (Objects.equals(text, "Progress")) {
-                    infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, text, false);
-                } else {
-                    infoDialog.update(InfoDialog.InfoType.Progress, text);
-                }
-                if (text.contains("ONAY KODU")) {
-                    infoDialog.update(InfoDialog.InfoType.Confirmed, text);
+                                                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
+        transactionViewModel.getInfoDialogLiveData().observe(getViewLifecycleOwner(), infoDialogData -> {
+            if (Objects.equals(infoDialogData.getText(), "Progress")) {
+                infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
+            } else {
+                infoDialog.update(infoDialogData.getType(), infoDialogData.getText());
+                if (infoDialogData.getType() == InfoDialog.InfoType.Confirmed) {
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {}, 2000);
                 }
             }

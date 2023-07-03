@@ -1,13 +1,11 @@
 package com.example.application_template_jmvvm.data.repository;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionCols;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionDao;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
@@ -15,14 +13,15 @@ import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
-import com.example.application_template_jmvvm.domain.SampleReceipt;
-import com.example.application_template_jmvvm.domain.extraContentInfo;
-import com.example.application_template_jmvvm.domain.printHelpers.StringHelper;
-import com.example.application_template_jmvvm.domain.printHelpers.SalePrintHelper;
-import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
+import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
+import com.example.application_template_jmvvm.utils.objects.SampleReceipt;
+import com.example.application_template_jmvvm.utils.ExtraContentInfo;
+import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
+import com.example.application_template_jmvvm.utils.printHelpers.SalePrintHelper;
+import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 import com.token.printerlib.PrinterService;
 import com.token.printerlib.StyledString;
-import com.token.uicomponents.CustomInput.CustomInputFormat;
+import com.token.uicomponents.infodialog.InfoDialog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,7 +41,7 @@ public class TransactionRepository {
         this.transactionDao = transactionDao;
     }
 
-    public List<TransactionEntity> getAllTransactions(){
+    public List<TransactionEntity> getAllTransactions() {
         return transactionDao.getAllTransactions();
     }
 
@@ -84,8 +83,9 @@ public class TransactionRepository {
         onlineTransactionResponse.setmDisplayData("Display Data");
         onlineTransactionResponse.setmKeySequenceNumber("3");
         onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-        if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS)  //Dummy Response, always success
-            transactionViewModel.setShowDialogLiveData("ONAY KODU: " + onlineTransactionResponse.getmAuthCode()); //TODO liveData SORULACAK.
+        if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS) { //Dummy Response, always success
+            transactionViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, "ONAY KODU: " + onlineTransactionResponse.getmAuthCode())); //TODO liveData SORULACAK.
+        }
         return onlineTransactionResponse;
     }
 
@@ -120,22 +120,22 @@ public class TransactionRepository {
         transactionEntity.setIsOnlinePIN(0);
         switch (transactionCode) {
             case MATCHED_REFUND:
-                transactionEntity.setUlAmount(bundle.getInt(extraContentInfo.orgAmount));
-                transactionEntity.setUlAmount2(bundle.getInt(extraContentInfo.refAmount));
-                transactionEntity.setRefNo(bundle.getString(extraContentInfo.refNo));
-                transactionEntity.setAuthCode(bundle.getString(extraContentInfo.authCode));
-                transactionEntity.setBaTranDate2(bundle.getString(extraContentInfo.tranDate));
+                transactionEntity.setUlAmount(bundle.getInt(ExtraContentInfo.orgAmount));
+                transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
+                transactionEntity.setRefNo(bundle.getString(ExtraContentInfo.refNo));
+                transactionEntity.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
+                transactionEntity.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
                 break;
             case CASH_REFUND:
-                transactionEntity.setUlAmount2(bundle.getInt(extraContentInfo.refAmount));
+                transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
                 break;
             case INSTALLMENT_REFUND:
-                transactionEntity.setUlAmount(bundle.getInt(extraContentInfo.orgAmount));
-                transactionEntity.setUlAmount2(bundle.getInt(extraContentInfo.refAmount));
-                transactionEntity.setRefNo(bundle.getString(extraContentInfo.refNo));
-                transactionEntity.setAuthCode(bundle.getString(extraContentInfo.authCode));
-                transactionEntity.setBaTranDate2(bundle.getString(extraContentInfo.tranDate));
-                transactionEntity.setbInstCnt(bundle.getInt(extraContentInfo.instCount));
+                transactionEntity.setUlAmount(bundle.getInt(ExtraContentInfo.orgAmount));
+                transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
+                transactionEntity.setRefNo(bundle.getString(ExtraContentInfo.refNo));
+                transactionEntity.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
+                transactionEntity.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
+                transactionEntity.setbInstCnt(bundle.getInt(ExtraContentInfo.instCount));
                 break;
             default:
                 // Handle other refund types or provide a default behavior
@@ -146,7 +146,7 @@ public class TransactionRepository {
 
     public Intent prepareIntent(ActivationRepository activationRepository, BatchRepository batchRepository,
                             MainActivity mainActivity, Fragment fragment, TransactionEntity transactionEntity,
-                                TransactionCode transactionCode, ResponseCode responseCode){
+                                TransactionCode transactionCode, ResponseCode responseCode) {
         Bundle bundle = new Bundle();
         Intent intent = new Intent();
         int amount = transactionEntity.getUlAmount();
@@ -187,50 +187,6 @@ public class TransactionRepository {
         styledText.addStyledText(printText);
         styledText.finishPrintingProcedure();
         styledText.print(PrinterService.getService(mainActivity.getApplicationContext()));
-    }
-
-    public ContentValues prepareContentValues(ICCCard card, String uuid, TransactionCode transactionCode) {
-        ContentValues values = new ContentValues();
-        values.put(TransactionCols.col_uuid, uuid);
-        values.put(TransactionCols.col_ulSTN, "STN");
-        values.put(TransactionCols.col_bCardReadType, card.getmCardReadType());
-        values.put(TransactionCols.col_bTransCode, transactionCode.getType());
-        values.put(TransactionCols.col_ulAmount, card.getmTranAmount1());
-        values.put(TransactionCols.col_baPAN, card.getmCardNumber());
-        values.put(TransactionCols.col_baExpDate, card.getmExpireDate());
-        values.put(TransactionCols.col_baDate, card.getDateTime().substring(0, 8));
-        values.put(TransactionCols.col_baTime, card.getDateTime().substring(8));
-        values.put(TransactionCols.col_baTrack2, card.getmTrack2Data());
-        values.put(TransactionCols.col_baCustomName, card.getmTrack1CustomerName());
-        values.put(TransactionCols.col_baRspCode, 3);
-        values.put(TransactionCols.col_baTranDate, card.getDateTime());
-        values.put(TransactionCols.col_aid, card.getAID2());
-        values.put(TransactionCols.col_aidLabel, card.getAIDLabel());
-        values.put(TransactionCols.col_baCVM, card.getCVM());
-        values.put(TransactionCols.col_SID, card.getSID());
-        return values;
-    }
-
-    public ContentValues putExtraContents(ContentValues values, TransactionCode transactionCode,
-                                          List<CustomInputFormat> inputList) {
-        switch (transactionCode) {
-            case MATCHED_REFUND:
-                values.put(TransactionCols.col_ulAmount,Integer.parseInt(inputList.get(0).getText()));
-                values.put(TransactionCols.col_ulAmount2, Integer.parseInt(inputList.get(1).getText()));
-                values.put(TransactionCols.col_authCode, inputList.get(3).getText());
-                values.put(TransactionCols.col_baTranDate2, inputList.get(4).getText());
-                break;
-            case CASH_REFUND:
-                values.put(TransactionCols.col_ulAmount2, Integer.parseInt(inputList.get(0).getText()));
-                break;
-            case INSTALLMENT_REFUND:
-                // Handle installment refund type
-                break;
-            default:
-                // Default
-                break;
-        }
-        return values;
     }
 
     public void prepareDummyResponse(TransactionViewModel transactionViewModel, ActivationRepository activationRepository, BatchRepository batchRepository,

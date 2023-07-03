@@ -1,14 +1,11 @@
-package com.example.application_template_jmvvm.ui.transaction;
+package com.example.application_template_jmvvm.ui.posTxn.refund;
 
 import static com.token.uicomponents.CustomInput.EditTextInputType.Amount;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,17 +14,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.application_template_jmvvm.domain.extraContentInfo;
+import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
-import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
-import com.example.application_template_jmvvm.domain.printHelpers.PrintHelper;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.data.model.response.TransactionResponse;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
-import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
-import com.example.application_template_jmvvm.ui.utils.MenuItem;
+import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
+import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
+import com.example.application_template_jmvvm.ui.sale.CardViewModel;
+import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
+import com.example.application_template_jmvvm.utils.objects.MenuItem;
 
 import com.token.uicomponents.CustomInput.CustomInputFormat;
 import com.token.uicomponents.CustomInput.EditTextInputType;
@@ -99,7 +95,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         menuItems.add(new MenuItem(getString(R.string.cash_refund), iListMenuItem -> {
             showReturnFragment();
         }));
-        menuItems.add(new MenuItem(getString(R.string.loyalty_refund), iListMenuItem -> {
+        menuItems.add(new MenuItem(getString(R.string.loyalty_refund), iListMenuItem -> {       //TODO: Bakılacak.
 
         }));
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.refund), true, R.drawable.token_logo_png);
@@ -148,13 +144,9 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         );
         inputList.add(inputTranDate);
 
-        inputListFragment= InputListFragment.newInstance(inputList, getString(R.string.refund), list -> {
+        inputListFragment = InputListFragment.newInstance(inputList, getString(R.string.refund), list -> {
             amount = Integer.parseInt(list.get(1));
-            if (transactionCode == TransactionCode.INSTALLMENT_REFUND) {
-                this.transactionCode = TransactionCode.INSTALLMENT_REFUND;
-            } else {
-                this.transactionCode = transactionCode;
-            }
+            this.transactionCode = transactionCode;
             cardReader(inputListFragment, inputList);
         });
         mainActivity.replaceFragment(R.id.container, inputListFragment, true);
@@ -201,43 +193,11 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
     }
 
     private void cardReader(InputListFragment fragment, List<CustomInputFormat> inputList) {
-        final boolean[] isCancelled = {false};
-        infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Processing, "Processing", false);
-        CountDownTimer timer = new CountDownTimer(10000, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {}
-
-            @Override
-            public void onFinish() {
-                isCancelled[0] = true;
-                infoDialog.update(InfoDialog.InfoType.Declined, "Connect Failed");
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    if (infoDialog != null) {
-                        infoDialog.dismiss();
-                        mainActivity.finish();
-                    }
-                }, 2000);
-            }
-        };
-        timer.start();
-        cardViewModel.initializeCardServiceBinding(mainActivity);
-
-        cardViewModel.getIsCardServiceConnect().observe(fragment.getViewLifecycleOwner(), isConnected -> {
-            if (isConnected && !isCancelled[0]) {
-                timer.cancel();
-                infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    cardViewModel.readCard(amount);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        infoDialog.dismiss();
-                        }, 1000);
-                    }, 2000);
-            }
-        });
+        mainActivity.readCard(fragment.getViewLifecycleOwner(), amount);
 
         cardViewModel.getCardLiveData().observe(fragment.getViewLifecycleOwner(), card -> {
             if (card != null) {
-                mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     doRefund(card, transactionCode, inputList, fragment);
                     infoDialog.dismiss();
@@ -249,16 +209,13 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
     public void doRefund(ICCCard card, TransactionCode transactionCode, List<CustomInputFormat> inputList, Fragment fragment) {
         Bundle refundInfo = bundleCreator(transactionCode, inputList);
         transactionViewModel.TransactionRoutine(card, null, mainActivity, this, null, refundInfo, transactionCode,
-                                                    activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
-        transactionViewModel.getShowDialogLiveData().observe(fragment.getViewLifecycleOwner(), text -> {
-            if (text != null) {
-                if (Objects.equals(text, "Progress")) {
-                    infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, text, false);
-                } else {
-                    infoDialog.update(InfoDialog.InfoType.Progress, text);
-                }
-                if (text.contains("ONAY KODU")) {
-                    infoDialog.update(InfoDialog.InfoType.Confirmed, text);
+                                                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
+        transactionViewModel.getInfoDialogLiveData().observe(fragment.getViewLifecycleOwner(), infoDialogData -> {
+            if (Objects.equals(infoDialogData.getText(), "Progress")) {
+                infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
+            } else {
+                infoDialog.update(infoDialogData.getType(), infoDialogData.getText());
+                if (infoDialogData.getType() == InfoDialog.InfoType.Confirmed) {
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {}, 2000);
                 }
             }
@@ -273,22 +230,22 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         Bundle bundle = new Bundle();
         switch (transactionCode) {
             case MATCHED_REFUND:
-                bundle.putInt(extraContentInfo.orgAmount, Integer.parseInt(inputList.get(0).getText()));
-                bundle.putInt(extraContentInfo.refAmount, Integer.parseInt(inputList.get(1).getText()));
-                bundle.putString(extraContentInfo.refNo, inputList.get(2).getText());
-                bundle.putString(extraContentInfo.authCode, inputList.get(3).getText());
-                bundle.putString(extraContentInfo.tranDate, inputList.get(4).getText());
+                bundle.putInt(ExtraContentInfo.orgAmount, Integer.parseInt(inputList.get(0).getText()));
+                bundle.putInt(ExtraContentInfo.refAmount, Integer.parseInt(inputList.get(1).getText()));
+                bundle.putString(ExtraContentInfo.refNo, inputList.get(2).getText());
+                bundle.putString(ExtraContentInfo.authCode, inputList.get(3).getText());
+                bundle.putString(ExtraContentInfo.tranDate, inputList.get(4).getText());
                 break;
             case CASH_REFUND:
-                bundle.putInt(extraContentInfo.refAmount, Integer.parseInt(inputList.get(0).getText()));
+                bundle.putInt(ExtraContentInfo.refAmount, Integer.parseInt(inputList.get(0).getText()));
                 break;
             case INSTALLMENT_REFUND:
-                bundle.putInt(extraContentInfo.orgAmount, Integer.parseInt(inputList.get(0).getText()));
-                bundle.putInt(extraContentInfo.refAmount, Integer.parseInt(inputList.get(1).getText()));
-                bundle.putString(extraContentInfo.refNo, inputList.get(2).getText());
-                bundle.putString(extraContentInfo.authCode, inputList.get(3).getText());
-                bundle.putString(extraContentInfo.tranDate, inputList.get(4).getText());
-                bundle.putInt(extraContentInfo.instCount, instCount);
+                bundle.putInt(ExtraContentInfo.orgAmount, Integer.parseInt(inputList.get(0).getText()));
+                bundle.putInt(ExtraContentInfo.refAmount, Integer.parseInt(inputList.get(1).getText()));
+                bundle.putString(ExtraContentInfo.refNo, inputList.get(2).getText());
+                bundle.putString(ExtraContentInfo.authCode, inputList.get(3).getText());
+                bundle.putString(ExtraContentInfo.tranDate, inputList.get(4).getText());
+                bundle.putInt(ExtraContentInfo.instCount, instCount);
                 break;
             default:
                 break;

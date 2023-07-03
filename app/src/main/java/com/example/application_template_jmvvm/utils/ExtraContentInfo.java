@@ -1,6 +1,6 @@
-package com.example.application_template_jmvvm.domain;
+package com.example.application_template_jmvvm.utils;
 
-public class extraContentInfo {
+public class ExtraContentInfo {
     public static final String orgAmount = "orgAmount";
     public static final String refAmount = "refAmount";
     public static final String refNo = "refNo";

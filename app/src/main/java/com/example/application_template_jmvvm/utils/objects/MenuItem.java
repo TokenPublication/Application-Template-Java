@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.ui.utils;
+package com.example.application_template_jmvvm.utils.objects;
 
 import androidx.annotation.Nullable;
 

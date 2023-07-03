@@ -6,21 +6,23 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
-import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
-import com.example.application_template_jmvvm.ui.settings.ActivationViewModel;
-import com.example.application_template_jmvvm.ui.settings.SettingsFragment;
-import com.example.application_template_jmvvm.ui.transaction.CardViewModel;
-import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
-import com.example.application_template_jmvvm.ui.transaction.SaleFragment;
-import com.token.printerlib.PrinterService;
-import com.token.printerlib.StyledString;
+import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
+import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
+import com.example.application_template_jmvvm.ui.activation.SettingsFragment;
+import com.example.application_template_jmvvm.ui.sale.CardViewModel;
+import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
+import com.example.application_template_jmvvm.ui.sale.SaleFragment;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
@@ -33,7 +35,7 @@ import java.util.Objects;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity implements InfoDialogListener {
 
     public CardServiceBinding cardServiceBinding;
     private FragmentManager fragmentManager;
@@ -41,6 +43,7 @@ public class MainActivity extends AppCompatActivity{
     private CardViewModel cardViewModel;
     public BatchViewModel batchViewModel;
     private TransactionViewModel transactionViewModel;
+    private InfoDialog infoDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,36 +70,6 @@ public class MainActivity extends AppCompatActivity{
         actionControl(getIntent().getAction());
     }
 
-    public InfoDialog showConfirmationDialog(InfoDialog.InfoType type, String title, String info, InfoDialog.InfoDialogButtons buttons, int arg, InfoDialogListener listener) {
-        InfoDialog dialog = InfoDialog.newInstance(type, title, info, buttons, arg, listener);
-        dialog.show(getSupportFragmentManager(), "");
-        return dialog;
-    }
-
-    public InfoDialog showInfoDialog(InfoDialog.InfoType type, String text, boolean isCancelable) {
-        InfoDialog fragment = InfoDialog.newInstance(type, text, isCancelable);
-        fragment.show(getSupportFragmentManager(), "");
-        return fragment;
-    }
-
-    protected void addFragment(@IdRes Integer resourceId, Fragment fragment, Boolean addToBackStack) {
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(resourceId, fragment);
-        if (addToBackStack) {
-            ft.addToBackStack(null);
-        }
-        ft.commit();
-    }
-
-    public void replaceFragment(@IdRes Integer resourceId, Fragment fragment, Boolean addToBackStack) {
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(resourceId, fragment);
-        if (addToBackStack) {
-            ft.addToBackStack(null);
-        }
-        ft.commit();
-    }
-
     private void actionControl(@Nullable String action){
         if (Objects.equals(action, getString(R.string.Sale_Action))){
             SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
@@ -117,6 +90,63 @@ public class MainActivity extends AppCompatActivity{
             PosTxnFragment posTxnFragment = new PosTxnFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
+    }
+
+    public void readCard(LifecycleOwner lifecycleOwner, int amount) {
+        final boolean[] isCancelled = {false};
+        infoDialog = showInfoDialog(InfoDialog.InfoType.Processing, "Processing", false);
+        CountDownTimer timer = new CountDownTimer(10000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {}
+
+            @Override
+            public void onFinish() {
+                isCancelled[0] = true;
+                infoDialog.update(InfoDialog.InfoType.Declined, "Connect Failed");
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    if (infoDialog != null) {
+                        infoDialog.dismiss();
+                        finish();
+                    }
+                }, 2000);
+            }
+        };
+        timer.start();
+        cardViewModel.initializeCardServiceBinding(this);
+
+        cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
+            if (isConnected && !isCancelled[0]) {
+                timer.cancel();
+                infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        cardViewModel.readCard(amount);
+                        infoDialog.dismiss();
+                    }, 1000);
+                }, 2000);
+            }
+        });
+    }
+
+    public InfoDialog showConfirmationDialog(InfoDialog.InfoType type, String title, String info, InfoDialog.InfoDialogButtons buttons, int arg, InfoDialogListener listener) {
+        InfoDialog dialog = InfoDialog.newInstance(type, title, info, buttons, arg, listener);
+        dialog.show(getSupportFragmentManager(), "");
+        return dialog;
+    }
+
+    public InfoDialog showInfoDialog(InfoDialog.InfoType type, String text, boolean isCancelable) {
+        InfoDialog fragment = InfoDialog.newInstance(type, text, isCancelable);
+        fragment.show(getSupportFragmentManager(), "");
+        return fragment;
+    }
+
+    public void replaceFragment(@IdRes Integer resourceId, Fragment fragment, Boolean addToBackStack) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(resourceId, fragment);
+        if (addToBackStack) {
+            ft.addToBackStack(null);
+        }
+        ft.commit();
     }
 
     @Override
@@ -164,4 +194,13 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
+    @Override
+    public void confirmed(int i) {
+
+    }
+
+    @Override
+    public void canceled(int i) {
+
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.domain.adapter;
+package com.example.application_template_jmvvm.ui.posTxn.voidOperation;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,10 +9,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
-import com.example.application_template_jmvvm.domain.printHelpers.StringHelper;
+import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.ui.transaction.TransactionViewModel;
-import com.example.application_template_jmvvm.ui.transaction.VoidFragment;
+import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 
 import java.util.List;
 
@@ -38,8 +37,7 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
 
     @Override
     public void onBindViewHolder(@NonNull MyHolder holder, int position) {
-        int reversePosition = transactionList.size() - 1 - position;
-        TransactionEntity transaction = transactionList.get(reversePosition);
+        TransactionEntity transaction = transactionList.get(position);
         holder.card_no.setText(StringHelper.MaskTheCardNo(transaction.getBaPAN()));
         holder.process_time.setText(transaction.getBaTranDate());
         holder.sale_amount.setText(StringHelper.getAmount(transaction.getUlAmount()));
@@ -58,7 +56,7 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         return transactionList.size();
     }
 
-    class MyHolder extends RecyclerView.ViewHolder{
+    class MyHolder extends RecyclerView.ViewHolder {
         TextView card_no, process_time, sale_amount, approval_code, serial_no;
 
         public MyHolder(View itemView) {

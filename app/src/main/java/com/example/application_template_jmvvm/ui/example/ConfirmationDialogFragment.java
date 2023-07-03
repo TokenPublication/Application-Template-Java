@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.ui.utils.MenuItem;
+import com.example.application_template_jmvvm.utils.objects.MenuItem;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 import com.token.uicomponents.infodialog.InfoDialog;
