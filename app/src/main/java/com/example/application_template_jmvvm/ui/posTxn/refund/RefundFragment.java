@@ -194,15 +194,11 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
 
     private void cardReader(InputListFragment fragment, List<CustomInputFormat> inputList) {
         mainActivity.readCard(fragment.getViewLifecycleOwner(), amount);
-
         cardViewModel.getCardLiveData().observe(fragment.getViewLifecycleOwner(), card -> {
-            if (card != null) {
-                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    doRefund(card, transactionCode, inputList, fragment);
-                    infoDialog.dismiss();
-                    }, 2000);
-            }
+            mainActivity.getInfoDialog().update(InfoDialog.InfoType.Confirmed, "Read Successful");
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                doRefund(card, transactionCode, inputList, fragment);
+                }, 2000);
         });
     }
 

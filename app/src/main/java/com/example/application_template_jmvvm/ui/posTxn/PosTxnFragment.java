@@ -73,7 +73,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
             mainActivity.replaceFragment(R.id.container,RefundFragment,true);
         }));
         menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {
-            VoidFragment VoidFragment = new VoidFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);    //TODO backstack ayarlanacak.
+            VoidFragment VoidFragment = new VoidFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             mainActivity.replaceFragment(R.id.container,VoidFragment,false);
         }));
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {

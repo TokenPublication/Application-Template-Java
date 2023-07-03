@@ -16,6 +16,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
@@ -119,10 +120,19 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 timer.cancel();
                 infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        cardViewModel.readCard(amount);
-                        infoDialog.dismiss();
-                    }, 1000);
+                    cardViewModel.readCard(amount);
+                    cardViewModel.getCardServiceResultLiveData().observe(lifecycleOwner, cardServiceResult -> {
+                        if (cardServiceResult.resultCode() == CardServiceResult.USER_CANCELLED.resultCode()) {
+                            Toast.makeText(this,"Cancelled", Toast.LENGTH_LONG).show();
+                        }
+                        if (cardServiceResult.resultCode() == CardServiceResult.ERROR_TIMEOUT.resultCode()) {
+                            Toast.makeText(this,"Error Timeout", Toast.LENGTH_LONG).show();
+                        }
+                        if (cardServiceResult.resultCode() == CardServiceResult.ERROR.resultCode()) {
+                            Toast.makeText(this,"Error", Toast.LENGTH_LONG).show();
+                        }
+                        finish();
+                    });
                 }, 2000);
             }
         });
@@ -138,6 +148,10 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         InfoDialog fragment = InfoDialog.newInstance(type, text, isCancelable);
         fragment.show(getSupportFragmentManager(), "");
         return fragment;
+    }
+
+    public InfoDialog getInfoDialog() {
+        return infoDialog;
     }
 
     public void replaceFragment(@IdRes Integer resourceId, Fragment fragment, Boolean addToBackStack) {

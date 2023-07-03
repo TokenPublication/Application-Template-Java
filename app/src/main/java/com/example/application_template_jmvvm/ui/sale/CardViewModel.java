@@ -9,35 +9,31 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.repository.CardRepository;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 
 import javax.inject.Inject;
 
-public class CardViewModel extends ViewModel {
+import dagger.hilt.android.lifecycle.HiltViewModel;
+
+@HiltViewModel
+public class CardViewModel extends ViewModel implements CardRepository.RepositoryCallback {
     private CardRepository cardRepository;
     private MutableLiveData<ICCCard> cardLiveData = new MutableLiveData<>();
-    private MutableLiveData<ContentValues> qrData = new MutableLiveData<>();
+    private MutableLiveData<ContentValues> qrLiveData = new MutableLiveData<>();
     private MutableLiveData<Boolean> isCardServiceConnect = new MutableLiveData<>(false);
+    private MutableLiveData<CardServiceResult> cardServiceResultLiveData = new MutableLiveData<>();
 
     @Inject
-    public CardViewModel() {}
-
-    public MutableLiveData<Boolean> getIsCardServiceConnect() {
-        return isCardServiceConnect;
-    }
-
-    public void setIsCardServiceConnect(boolean isConnected) {
-        isCardServiceConnect.postValue(isConnected);
+    public CardViewModel(CardRepository cardRepository) {
+        this.cardRepository = cardRepository;
+        cardRepository.callbackInitializer(this);
     }
 
     public void initializeCardServiceBinding(MainActivity mainActivity) {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (cardRepository == null) {
-                cardRepository = new CardRepository(this, mainActivity);
-            } else {
-                cardRepository.cardServiceBinder(mainActivity);
-            }
+            cardRepository.cardServiceBinder(mainActivity);
         }, 5);
     }
 
@@ -45,19 +41,35 @@ public class CardViewModel extends ViewModel {
         cardRepository.readCard(amount);
     }
 
-    public LiveData<ICCCard> getCardLiveData() {
-        return cardLiveData;
+    @Override
+    public void afterCardServiceConnected(Boolean isConnected) {
+        isCardServiceConnect.postValue(isConnected);
     }
 
+    public MutableLiveData<Boolean> getIsCardServiceConnect() {
+        return isCardServiceConnect;
+    }
+
+    @Override
+    public void setCallBackMessage(CardServiceResult cardServiceResult) {
+        cardServiceResultLiveData.postValue(cardServiceResult);
+    }
+
+    public MutableLiveData<CardServiceResult> getCardServiceResultLiveData() {
+        return cardServiceResultLiveData;
+    }
+
+    @Override
     public void afterCardDataReceived(ICCCard card) {
         cardLiveData.postValue(card);
     }
 
-    public CardRepository getCardRepository() {
-        return cardRepository;
+    public LiveData<ICCCard> getCardLiveData() {
+        return cardLiveData;
     }
 
     public ContentValues afterQrReceived(ContentValues values) {
         return values;
     }
+
 }

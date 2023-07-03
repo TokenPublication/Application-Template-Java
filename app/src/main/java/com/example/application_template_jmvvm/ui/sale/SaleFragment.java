@@ -73,15 +73,11 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
             @Override
             public void onClick(View v) {
                 mainActivity.readCard(getViewLifecycleOwner(), amount);
-
                 cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
-                    if (card != null) {
-                        infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            doSale(card);
-                            infoDialog.dismiss();
+                    mainActivity.getInfoDialog().update(InfoDialog.InfoType.Confirmed, "Read Successful");
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        doSale(card);
                         }, 2000);
-                    }
                 });
             }
         });

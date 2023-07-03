@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.util.Log;
 
 import com.example.application_template_jmvvm.data.database.transaction.TransactionCols;
+import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.card.MSRCard;
@@ -15,27 +16,38 @@ import com.tokeninc.cardservicebinding.CardServiceListener;
 
 import org.json.JSONObject;
 
+import javax.inject.Inject;
+
 public class CardRepository implements CardServiceListener{
 
+    public interface RepositoryCallback {
+        void afterCardDataReceived(ICCCard card);
+        void afterCardServiceConnected(Boolean isConnected);
+        void setCallBackMessage(CardServiceResult cardServiceResult);
+    }
+
+    private RepositoryCallback repositoryCallback;
     private ICCCard card;
     private MSRCard msrCard;
     private CardServiceBinding cardServiceBinding;
     private CardServiceListener cardServiceListener;
     private int amount;
-    private CardViewModel cardViewModel;
 
-    public CardRepository(CardViewModel cardViewModel, MainActivity mainActivity) {
-        this.cardViewModel = cardViewModel;
+    @Inject
+    public CardRepository() {
         this.cardServiceListener = this;
+    }
+
+    public void callbackInitializer(RepositoryCallback repositoryCallback) {
+        this.repositoryCallback = repositoryCallback;
+    }
+
+    public void cardServiceBinder(MainActivity mainActivity) {
         this.cardServiceBinding = new CardServiceBinding(mainActivity, cardServiceListener);
     }
 
     public CardServiceBinding getCardServiceBinding() {
         return cardServiceBinding;
-    }
-
-    public void cardServiceBinder(MainActivity mainActivity) {
-        this.cardServiceBinding = new CardServiceBinding(mainActivity, cardServiceListener);
     }
 
     public void readCard(int amount) {
@@ -58,35 +70,55 @@ public class CardRepository implements CardServiceListener{
         Log.d("Card Data", cardData);
         try {
             JSONObject json = new JSONObject(cardData);
-            int type = json.getInt("mCardReadType");        //TODO: resultCode
-            if (type == CardReadType.QrPay.value) {
-                ContentValues values = new ContentValues();
-                values.put(TransactionCols.col_bCardReadType, type);
-                values.put(TransactionCols.col_ulAmount, json.getInt("mTranAmount1"));
-                cardViewModel.afterQrReceived(values);
-                return;
+            int resultCode = json.getInt("resultCode");
+
+            if (resultCode == CardServiceResult.USER_CANCELLED.resultCode()) {
+                Log.d("CardDataReceived","Card Result Code: User Cancelled");
+                repositoryCallback.setCallBackMessage(CardServiceResult.USER_CANCELLED);
             }
-            if (type == CardReadType.CLCard.value) {
-                ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
-                this.card = card;
-            } else if (type == CardReadType.ICC.value) {
-                ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
-                this.card = card;
-            } else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
-                MSRCard card = new Gson().fromJson(cardData, MSRCard.class);
-                this.msrCard = card;
-                cardServiceBinding.getOnlinePIN(amount, card.getCardNumber(), 0x0A01, 0, 4, 8, 30);
+
+            if (resultCode == CardServiceResult.ERROR_TIMEOUT.resultCode()) {
+                Log.d("CardDataReceived","Card Result Code: TIMEOUT");
+                repositoryCallback.setCallBackMessage(CardServiceResult.ERROR_TIMEOUT);
             }
-            cardViewModel.afterCardDataReceived(card);  //TODO livedata ile yukarıya ?
-        } catch (Exception e) {         //TODO: handle
+
+            if (resultCode == CardServiceResult.ERROR.resultCode()) {
+                Log.d("CardDataReceived","Card Result Code: ERROR");
+                repositoryCallback.setCallBackMessage(CardServiceResult.ERROR);
+            }
+
+            if (resultCode == CardServiceResult.SUCCESS.resultCode()) {
+                int type = json.getInt("mCardReadType");
+                if (type == CardReadType.QrPay.value) {
+                    ContentValues values = new ContentValues();
+                    values.put(TransactionCols.col_bCardReadType, type);
+                    values.put(TransactionCols.col_ulAmount, json.getInt("mTranAmount1"));
+                    //cardViewModel.afterQrReceived(values);
+                    return;
+                }
+                if (type == CardReadType.CLCard.value) {
+                    ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
+                    this.card = card;
+                } else if (type == CardReadType.ICC.value) {
+                    ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
+                    this.card = card;
+                } else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
+                    MSRCard card = new Gson().fromJson(cardData, MSRCard.class);
+                    this.msrCard = card;
+                    cardServiceBinding.getOnlinePIN(amount, card.getCardNumber(), 0x0A01, 0, 4, 8, 30);
+                }
+                cardServiceBinding.unBind();
+                repositoryCallback.afterCardDataReceived(card);
+            }
+        } catch (Exception e) {
+            repositoryCallback.setCallBackMessage(CardServiceResult.ERROR);
             e.printStackTrace();
         }
     }
 
-
     @Override
     public void onCardServiceConnected() {
-        cardViewModel.setIsCardServiceConnect(true);
+        repositoryCallback.afterCardServiceConnected(true);
     }
 
     @Override
