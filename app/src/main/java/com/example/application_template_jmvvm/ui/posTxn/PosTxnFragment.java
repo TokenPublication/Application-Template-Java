@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class PosTxnFragment extends Fragment implements InfoDialogListener{
+public class PosTxnFragment extends Fragment implements InfoDialogListener {
 
     private ActivationViewModel activationViewModel;
     private BatchViewModel batchViewModel;
@@ -111,15 +111,12 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener{
 
     private void batchClose(ListMenuFragment listMenuFragment) {
         batchViewModel.BatchCloseRoutine(mainActivity, activationViewModel.getActivationRepository(), transactionViewModel.getTransactionRepository());
-        batchViewModel.getShowDialogLiveData().observe(listMenuFragment.getViewLifecycleOwner(), text -> {  //TODO: object aç.
-            if (text != null) {
-                if (Objects.equals(text, "Progress")) {
-                    infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, text, false);
-                } else {
-                    infoDialog.update(InfoDialog.InfoType.Progress, text);
-                }
-                if (text.contains("Confirmed")) {
-                    infoDialog.update(InfoDialog.InfoType.Confirmed, text);
+        batchViewModel.getInfoDialogLiveData().observe(listMenuFragment.getViewLifecycleOwner(), infoDialogData -> {
+            if (Objects.equals(infoDialogData.getText(), "Progress")) {
+                infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
+            } else {
+                infoDialog.update(infoDialogData.getType(), infoDialogData.getText());
+                if (infoDialogData.getType() == InfoDialog.InfoType.Confirmed) {
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {}, 2000);
                 }
             }
