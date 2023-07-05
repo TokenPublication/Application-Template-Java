@@ -87,8 +87,7 @@ public class TransactionRepository {
         return onlineTransactionResponse;
     }
 
-    public TransactionEntity entityCreator(ICCCard card, String uuid, Bundle bundle, OnlineTransactionResponse onlineTransactionResponse,
-                                           TransactionCode transactionCode){
+    public TransactionEntity entityCreator(ICCCard card, String uuid, Bundle bundle, OnlineTransactionResponse onlineTransactionResponse, TransactionCode transactionCode) {
         TransactionEntity transactionEntity = new TransactionEntity();
         transactionEntity.setUuid(uuid);
         transactionEntity.setUlSTN("STN");
@@ -189,7 +188,7 @@ public class TransactionRepository {
 
     public void prepareDummyResponse(TransactionViewModel transactionViewModel, ActivationRepository activationRepository, BatchRepository batchRepository,
                                      MainActivity mainActivity, Integer price, ResponseCode code, Boolean hasSlip,
-                                     SlipType slipType, String cardNo, String ownerName, int paymentType){
+                                     SlipType slipType, String cardNo, String ownerName, int paymentType) {
         Intent resultIntent = new Intent();
         Bundle bundle = new Bundle();
         bundle.putInt("ResponseCode", code.ordinal()); // #1 Response Code
@@ -238,8 +237,7 @@ public class TransactionRepository {
         return json.toString();
     }
 
-    private SampleReceipt getSampleReceipt(String cardNo, String ownerName, int amount,
-                                           ActivationRepository activationRepository, BatchRepository batchRepository) {
+    private SampleReceipt getSampleReceipt(String cardNo, String ownerName, int amount, ActivationRepository activationRepository, BatchRepository batchRepository) {
         SampleReceipt receipt = new SampleReceipt();
         receipt.setMerchantName("TOKEN FINTECH");
         receipt.setMerchantID(activationRepository.getMerchantId());

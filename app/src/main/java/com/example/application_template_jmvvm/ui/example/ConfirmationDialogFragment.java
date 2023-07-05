@@ -76,7 +76,7 @@ public class ConfirmationDialogFragment extends Fragment implements InfoDialogLi
                 mainActivity.showConfirmationDialog(InfoDialog.InfoType.None,"None", "Confirmation: None", InfoDialog.InfoDialogButtons.Both, 89, this)));
 
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, "Confirmation Dialog", true, R.drawable.token_logo_png);
-        mainActivity.replaceFragment(R.id.container,mListMenuFragment,false);
+        mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);
     }
 
     public void confirmed(int arg) {

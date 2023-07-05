@@ -8,8 +8,7 @@ import com.token.printerlib.StyledString;
 
 public class PrintHelper extends BasePrintHelper {
 
-    public static void PrintSuccess(Context context)
-    {   // Print the success message
+    public static void PrintSuccess(Context context) {   // Print the success message
         StyledString styledText = new StyledString();
 
         // Strings must be max 29 digits
@@ -37,8 +36,7 @@ public class PrintHelper extends BasePrintHelper {
         styledText.print(PrinterService.getService(context));
     }
 
-    public static void PrintError(Context context)
-    {   // Print the error message if necessary
+    public static void PrintError(Context context) {   // Print the error message if necessary
         StyledString styledText = new StyledString();
 
         addTextToNewLine(styledText, "Uygulama kurulumunda hata", PrinterDefinitions.Alignment.Center);
@@ -93,8 +91,7 @@ public class PrintHelper extends BasePrintHelper {
         return styledText.toString();
     }
 
-    public static void PrintContactless(boolean is32, Context context)
-    {
+    public static void PrintContactless(boolean is32, Context context) {
         StyledString styledText = new StyledString();
         styledText.printBitmap(is32 ? "contactless32" : "contactless64", 0);
         styledText.newLine();
@@ -102,8 +99,7 @@ public class PrintHelper extends BasePrintHelper {
         styledText.print(PrinterService.getService(context));
     }
 
-    public static void PrintVisa(Context context)
-    {
+    public static void PrintVisa(Context context) {
         StyledString styledText = new StyledString();
         styledText.printBitmap("visa-contactless", 0);
         styledText.newLine();

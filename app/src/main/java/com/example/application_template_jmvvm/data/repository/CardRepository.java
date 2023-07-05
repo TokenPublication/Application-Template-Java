@@ -17,7 +17,7 @@ import org.json.JSONObject;
 
 import javax.inject.Inject;
 
-public class CardRepository implements CardServiceListener{
+public class CardRepository implements CardServiceListener {
 
     public interface RepositoryCallback {
         void afterCardDataReceived(ICCCard card);
@@ -120,12 +120,8 @@ public class CardRepository implements CardServiceListener{
     }
 
     @Override
-    public void onPinReceived(String s) {
-
-    }
+    public void onPinReceived(String s) {}
 
     @Override
-    public void onICCTakeOut() {
-
-    }
+    public void onICCTakeOut() {}
 }

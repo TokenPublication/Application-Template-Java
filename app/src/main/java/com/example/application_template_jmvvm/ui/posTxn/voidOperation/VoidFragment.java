@@ -105,12 +105,8 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     }
 
     @Override
-    public void confirmed(int i) {
-
-    }
+    public void confirmed(int i) {}
 
     @Override
-    public void canceled(int i) {
-
-    }
+    public void canceled(int i) {}
 }

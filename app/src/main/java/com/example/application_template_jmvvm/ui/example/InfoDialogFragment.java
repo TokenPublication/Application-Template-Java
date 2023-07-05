@@ -100,7 +100,7 @@ public class InfoDialogFragment extends Fragment {
         mainActivity.replaceFragment(R.id.container,mListMenuFragment,false);
     }
 
-    private void showPopup(InfoDialogItem item){
+    private void showPopup(InfoDialogItem item) {
         InfoDialog dialog = mainActivity.showInfoDialog(item.mType, item.mText, true);
         //Dismiss dialog by calling dialog.dismiss() when needed.
     }

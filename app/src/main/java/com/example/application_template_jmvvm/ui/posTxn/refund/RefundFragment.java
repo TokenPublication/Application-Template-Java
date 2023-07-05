@@ -82,7 +82,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         super.onViewCreated(view, savedInstanceState);
     }
 
-    private void showMenu(){
+    private void showMenu() {
         List<IListMenuItem> menuItems = new ArrayList<>();
         menuItems.add(new MenuItem(getString(R.string.matched_refund), iListMenuItem -> showMatchedReturnFragment(TransactionCode.MATCHED_REFUND)));
         menuItems.add(new MenuItem(getString(R.string.installment_refund), iListMenuItem -> showInstallmentRefundFragment()));
@@ -128,8 +128,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
                         Date now = Calendar.getInstance().getTime();
                         SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd");
                         return Integer.parseInt(sdf.format(now)) >= Integer.parseInt(date);
-                    } catch (Exception e) {
-                    }
+                    } catch (Exception e) {}
                     return false;
                 }
         );
@@ -143,7 +142,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         mainActivity.replaceFragment(R.id.container, inputListFragment, true);
     }
 
-    private void showReturnFragment(){
+    private void showReturnFragment() {
         List<CustomInputFormat> inputList = new ArrayList<>();
         inputList.add(new CustomInputFormat(getString(R.string.refund_amount), Amount, null, getString(R.string.invalid_amount), input -> {
             int ListAmount = input.getText().isEmpty() ? 0 : Integer.parseInt(input.getText());
@@ -240,12 +239,8 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
     }
 
     @Override
-    public void confirmed(int i) {
-
-    }
+    public void confirmed(int i) {}
 
     @Override
-    public void canceled(int i) {
-
-    }
+    public void canceled(int i) {}
 }

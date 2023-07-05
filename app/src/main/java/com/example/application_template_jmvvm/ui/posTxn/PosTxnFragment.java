@@ -70,12 +70,12 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
 
         menuItems.add(new MenuItem(getString(R.string.refund), iListMenuItem -> {
             RefundFragment RefundFragment = new RefundFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
-            mainActivity.replaceFragment(R.id.container,RefundFragment,true);
+            mainActivity.replaceFragment(R.id.container, RefundFragment, true);
         }));
 
         menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {
             VoidFragment VoidFragment = new VoidFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
-            mainActivity.replaceFragment(R.id.container,VoidFragment,false);
+            mainActivity.replaceFragment(R.id.container, VoidFragment, false);
         }));
 
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {
@@ -104,7 +104,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
 
         menuItems.add(new MenuItem(getString(R.string.examples), iListMenuItem -> {
             ExampleFragment ExampleFragment = new ExampleFragment(this.mainActivity);
-            mainActivity.replaceFragment(R.id.container,ExampleFragment,true);
+            mainActivity.replaceFragment(R.id.container, ExampleFragment, true);
         }));
 
         menuItems.add(new MenuItem("Slip Tekrarı", iListMenuItem -> {
@@ -113,7 +113,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
         }));
 
         mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.pos_operations), true, R.drawable.token_logo_png);
-        mainActivity.replaceFragment(R.id.container,mListMenuFragment,false);
+        mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);
     }
 
     private void batchClose(ListMenuFragment listMenuFragment) {
@@ -135,12 +135,8 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
     }
 
     @Override
-    public void confirmed(int i) {
-
-    }
+    public void confirmed(int i) {}
 
     @Override
-    public void canceled(int i) {
-
-    }
+    public void canceled(int i) {}
 }

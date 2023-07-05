@@ -76,18 +76,18 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
     }
 
-    private void actionControl(@Nullable String action){
-        if (Objects.equals(action, getString(R.string.Sale_Action))){
+    private void actionControl(@Nullable String action) {
+        if (Objects.equals(action, getString(R.string.Sale_Action))) {
             SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, saleTxnFragment, false);
         }
 
-        else if (Objects.equals(action, getString(R.string.PosTxn_Action))){
+        else if (Objects.equals(action, getString(R.string.PosTxn_Action))) {
             PosTxnFragment posTxnFragment = new PosTxnFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
 
-        else if (Objects.equals(action, getString(R.string.Settings_Action))){
+        else if (Objects.equals(action, getString(R.string.Settings_Action))) {
             SettingsFragment settingsFragment = new SettingsFragment(this, activationViewModel);
             replaceFragment(R.id.container, settingsFragment, false);
         }
@@ -189,8 +189,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             int setConfigResult = cardServiceBinding.setEMVConfiguration(total.toString());
             Toast.makeText(getApplicationContext(), "setEMVConfiguration res=" + setConfigResult, Toast.LENGTH_SHORT).show();
             Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -207,19 +206,14 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             int setCLConfigResult = cardServiceBinding.setEMVCLConfiguration(totalCL.toString());
             Toast.makeText(getApplicationContext(), "setEMVCLConfiguration res=" + setCLConfigResult, Toast.LENGTH_SHORT).show();
             Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void confirmed(int i) {
-
-    }
+    public void confirmed(int i) {}
 
     @Override
-    public void canceled(int i) {
-
-    }
+    public void canceled(int i) {}
 }

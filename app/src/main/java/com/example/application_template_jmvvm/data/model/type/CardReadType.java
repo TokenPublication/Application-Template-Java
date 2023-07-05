@@ -10,7 +10,12 @@ public enum CardReadType {
     QrPay(6);
 
     public final int value;
+
     CardReadType(int value) {
         this.value = value;
+    }
+
+    public int getType() {
+        return value;
     }
 }

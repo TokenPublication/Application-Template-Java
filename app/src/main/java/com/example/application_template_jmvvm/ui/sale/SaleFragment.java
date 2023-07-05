@@ -83,16 +83,12 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         });
 
         view.findViewById(R.id.btnSuccess).setOnClickListener(v -> prepareDummyResponse(ResponseCode.SUCCESS));
-
         view.findViewById(R.id.btnError).setOnClickListener(v -> prepareDummyResponse(ResponseCode.ERROR));
-
         view.findViewById(R.id.btnCancel).setOnClickListener(v -> prepareDummyResponse(ResponseCode.CANCELLED));
-
         view.findViewById(R.id.btnOffline_decline).setOnClickListener(v -> prepareDummyResponse(ResponseCode.OFFLINE_DECLINE));
-
         view.findViewById(R.id.btnUnable_decline).setOnClickListener(v -> prepareDummyResponse(ResponseCode.UNABLE_DECLINE));
-
         view.findViewById(R.id.btnOnline_decline).setOnClickListener(v -> prepareDummyResponse(ResponseCode.ONLINE_DECLINE));
+
         prepareSpinner(view);
     }
 
@@ -199,14 +195,10 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     }
 
     @Override
-    public void confirmed(int i) {
-
-    }
+    public void confirmed(int i) {}
 
     @Override
-    public void canceled(int i) {
-
-    }
+    public void canceled(int i) {}
 
     public void QrSale(ContentValues contentValues) {
         InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, "Please Wait", true);

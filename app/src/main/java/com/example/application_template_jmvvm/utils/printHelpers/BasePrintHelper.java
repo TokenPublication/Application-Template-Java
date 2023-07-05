@@ -27,7 +27,7 @@ public class BasePrintHelper {
         addText(styledText, text, alignment, fontSize, 0);
     }
 
-    static void printSlipHeader(StyledString styledText, SampleReceipt receipt){
+    static void printSlipHeader(StyledString styledText, SampleReceipt receipt) {
         styledText.setLineSpacing(0.5f);
         styledText.setFontSize(12);
         styledText.setFontFace(PrinterDefinitions.Font_E.SourceSansPro);

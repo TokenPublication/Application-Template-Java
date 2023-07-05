@@ -32,7 +32,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 @HiltViewModel
-public class TransactionViewModel extends ViewModel{
+public class TransactionViewModel extends ViewModel {
 
     private TransactionRepository transactionRepository;
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
@@ -48,7 +48,7 @@ public class TransactionViewModel extends ViewModel{
     }
 
     public void TransactionRoutine(ICCCard card, String uuid, MainActivity mainActivity, TransactionEntity transactionEntity,
-                                   Bundle bundle, TransactionCode transactionCode, ActivationRepository activationRepository, BatchRepository batchRepository){
+                                   Bundle bundle, TransactionCode transactionCode, ActivationRepository activationRepository, BatchRepository batchRepository) {
         TransactionViewModel transactionViewModel = this;
         Handler mainHandler = new Handler(Looper.getMainLooper());
         setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, "Progress"));
@@ -94,7 +94,7 @@ public class TransactionViewModel extends ViewModel{
 
     private Intent finishTransaction(ICCCard card, String uuid, MainActivity mainActivity, TransactionEntity transactionEntity,
                                      Bundle bundle, TransactionCode transactionCode, OnlineTransactionResponse onlineTransactionResponse,
-                                     ActivationRepository activationRepository, BatchRepository batchRepository){
+                                     ActivationRepository activationRepository, BatchRepository batchRepository) {
         if (transactionCode != TransactionCode.VOID){
             transactionEntity = transactionRepository.entityCreator(card, uuid, bundle, onlineTransactionResponse, transactionCode);
             transactionEntity.setBatchNo(batchRepository.getBatchNo());
@@ -103,16 +103,15 @@ public class TransactionViewModel extends ViewModel{
             batchRepository.updateGUPSN();
         }
         else {
-            transactionRepository.setVoid(transactionEntity.getUlGUP_SN(),transactionEntity.getBaDate(),transactionEntity.getSID());
+            transactionRepository.setVoid(transactionEntity.getUlGUP_SN(), transactionEntity.getBaDate(), transactionEntity.getSID());
         }
         return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
     }
 
     public void prepareDummyResponse(ActivationRepository activationRepository, BatchRepository batchRepository, MainActivity mainActivity,
-                                     Integer price, ResponseCode code, Boolean hasSlip,
-                                       SlipType slipType, String cardNo, String ownerName, int paymentType){
+                                     Integer price, ResponseCode code, Boolean hasSlip, SlipType slipType, String cardNo, String ownerName, int paymentType) {
         transactionRepository.prepareDummyResponse(this, activationRepository, batchRepository, mainActivity,
-                price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
+                                                    price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
     }
 
     public MutableLiveData<Intent> getIntentLiveData() {

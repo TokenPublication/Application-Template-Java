@@ -14,7 +14,7 @@ public class ActivationRepository {
         initializeActivation();
     }
 
-    public void initializeActivation(){
+    public void initializeActivation() {
         if (isTableEmpty()) {
             ActivationEntity activationEntity = new ActivationEntity();
             activationEntity.setColIP("195.87.189.169");
