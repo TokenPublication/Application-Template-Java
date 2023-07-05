@@ -53,11 +53,11 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         public MyHolder(View itemView) {
             super(itemView);
 
-            card_no = (TextView) itemView.findViewById(R.id.textCardNo);
-            process_time = (TextView) itemView.findViewById(R.id.textDate);
-            sale_amount = (TextView) itemView.findViewById(R.id.textAmount);
-            approval_code = (TextView) itemView.findViewById(R.id.textApprovalCode);
-            serial_no = (TextView) itemView.findViewById(R.id.tvSN);
+            card_no = itemView.findViewById(R.id.textCardNo);
+            process_time = itemView.findViewById(R.id.textDate);
+            sale_amount = itemView.findViewById(R.id.textAmount);
+            approval_code = itemView.findViewById(R.id.textApprovalCode);
+            serial_no = itemView.findViewById(R.id.tvSN);
         }
     }
 

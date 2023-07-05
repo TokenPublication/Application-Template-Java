@@ -3,8 +3,6 @@ package com.example.application_template_jmvvm.data.repository;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.fragment.app.Fragment;
-
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionDao;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;

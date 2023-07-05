@@ -20,7 +20,7 @@ public class StringHelper {
     }
 
     public static String GenerateApprovalCode(String BatchNo, String TransactionNo, String SaleID){
-        String approvalCode = "0";
+        String approvalCode;
         approvalCode = BatchNo + TransactionNo + SaleID;
         return approvalCode;
     }

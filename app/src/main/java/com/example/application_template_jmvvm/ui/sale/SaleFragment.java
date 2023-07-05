@@ -42,8 +42,6 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     int amount;
     View view;
     String uuid;
-    private Bundle bundle;
-    private Intent intent;
     private ActivationViewModel activationViewModel;
     private TransactionViewModel transactionViewModel;
     private BatchViewModel batchViewModel;
@@ -63,8 +61,8 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        intent = mainActivity.getIntent();
-        bundle = intent.getExtras();
+        Intent intent = mainActivity.getIntent();
+        Bundle bundle = intent.getExtras();
         amount = bundle.getInt("Amount");
         uuid = intent.getExtras().getString("UUID");
     }

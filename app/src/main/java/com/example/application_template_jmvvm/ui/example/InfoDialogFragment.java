@@ -24,7 +24,7 @@ import java.util.List;
 
 public class InfoDialogFragment extends Fragment {
 
-    class InfoDialogItem implements IListMenuItem {
+    static class InfoDialogItem implements IListMenuItem {
 
         private InfoDialog.InfoType mType;
         private String mText;
@@ -87,9 +87,9 @@ public class InfoDialogFragment extends Fragment {
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Confirmed, "Confirmed", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Warning, "Warning", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Error, "Error", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Info,"Info", listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Info, "Info", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Declined, "Declined", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Connecting,"Connecting", listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Connecting, "Connecting", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Downloading, "Downloading", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Uploading, "Uploading", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Processing, "Processing", listener, null));

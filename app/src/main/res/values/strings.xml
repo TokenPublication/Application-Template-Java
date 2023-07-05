@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="Sale_Action" translatable="false">Sale_Action</string>
     <string name="Settings_Action" translatable="false">Settings_Action</string>
     <string name="Refund_Action" translatable="false">Refund_Action</string>
