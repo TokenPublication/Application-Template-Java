@@ -50,17 +50,8 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        /*
-        Firstly, added TR1000 and TR400 configurations to build.gradle file. After that,
-        related to Build Variant (400TRDebug or 1000TRDebug) the manifest file created with apk
-        and the appname in manifest file will be 1000TR or 400TR.
-        */
-        if (BuildConfig.FLAVOR.equals("TR1000")) {
-            Log.v("TR1000 APP","Application Template for 1000TR");
-        }
-        if(BuildConfig.FLAVOR.equals("TR400")) {
-            Log.v("TR400 APP","Application Template for  400TR");
-        }
+
+        buildConfigs();
         fragmentManager = getSupportFragmentManager();
 
         activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);
@@ -69,6 +60,20 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         transactionViewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
 
         actionControl(getIntent().getAction());
+    }
+
+    /**
+     * Firstly, added TR1000 and TR400 configurations to build.gradle file. After that,
+     * related to Build Variant (400TRDebug or 1000TRDebug) the manifest file created with apk
+     * and the appname in manifest file will be 1000TR or 400TR.
+    */
+    private void buildConfigs() {
+        if (BuildConfig.FLAVOR.equals("TR1000")) {
+            Log.v("TR1000 APP","Application Template for 1000TR");
+        }
+        if(BuildConfig.FLAVOR.equals("TR400")) {
+            Log.v("TR400 APP","Application Template for  400TR");
+        }
     }
 
     private void actionControl(@Nullable String action){

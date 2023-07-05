@@ -63,9 +63,7 @@ public class InfoDialogFragment extends Fragment {
     }
 
     List<IListMenuItem> menuItems = new ArrayList<>();
-
     private MainActivity mainActivity;
-
 
     public InfoDialogFragment(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -78,8 +76,7 @@ public class InfoDialogFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_info_dialog, container, false);
-        return view;
+        return inflater.inflate(R.layout.fragment_info_dialog, container, false);
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -116,6 +113,5 @@ public class InfoDialogFragment extends Fragment {
         mainActivity.setResult(Activity.RESULT_OK, resultIntent);//PosTxn_Request_Code:13
         mainActivity.finish();
     }
-
 
 }

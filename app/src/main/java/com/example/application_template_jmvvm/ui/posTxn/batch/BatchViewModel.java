@@ -64,12 +64,7 @@ public class BatchViewModel extends ViewModel {
                     }
                     final String progressText = "Progress: " + (i * 10);
 
-                    mainHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, progressText));
-                        }
-                    });
+                    mainHandler.post(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, progressText)));
                 }
             }
 
@@ -82,12 +77,7 @@ public class BatchViewModel extends ViewModel {
             public void onComplete() {
                 Log.i("Complete","Complete");
                 Intent resultIntent = finishBatchClose(mainActivity, activationRepository, transactionRepository);
-                mainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        setIntentLiveData(resultIntent);
-                    }
-                });
+                mainHandler.post(() -> setIntentLiveData(resultIntent));
             }
         };
         observable.subscribe(observer);
@@ -123,24 +113,8 @@ public class BatchViewModel extends ViewModel {
         infoDialogLiveData.postValue(infoDialogData);
     }
 
-    public int getBatchNo() {
-        return batchRepository.getBatchNo();
-    }
-
-    public int getGroupSN() {
-        return batchRepository.getGroupSN();
-    }
-
     public String getPreviousBatchSlip() {
         return batchRepository.getPreviousBatchSlip();
-    }
-
-    public void updateBatchNo() {
-        batchRepository.updateBatchNo();
-    }
-
-    public void updateBatchSlip(String batchSlip, Integer batchNo) {
-        batchRepository.updateBatchSlip(batchSlip, batchNo);
     }
 
     public void deleteAll() {

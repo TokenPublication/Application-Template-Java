@@ -9,7 +9,6 @@ import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.card.MSRCard;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.ui.sale.CardViewModel;
 import com.google.gson.Gson;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
@@ -24,6 +23,7 @@ public class CardRepository implements CardServiceListener{
         void afterCardDataReceived(ICCCard card);
         void afterCardServiceConnected(Boolean isConnected);
         void setCallBackMessage(CardServiceResult cardServiceResult);
+        void afterQrDataReceived(ContentValues contentValues);
     }
 
     private RepositoryCallback repositoryCallback;
@@ -93,15 +93,13 @@ public class CardRepository implements CardServiceListener{
                     ContentValues values = new ContentValues();
                     values.put(TransactionCols.col_bCardReadType, type);
                     values.put(TransactionCols.col_ulAmount, json.getInt("mTranAmount1"));
-                    //cardViewModel.afterQrReceived(values);
+                    repositoryCallback.afterQrDataReceived(values);
                     return;
                 }
                 if (type == CardReadType.CLCard.value) {
-                    ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
-                    this.card = card;
+                    this.card = new Gson().fromJson(cardData, ICCCard.class);
                 } else if (type == CardReadType.ICC.value) {
-                    ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
-                    this.card = card;
+                    this.card = new Gson().fromJson(cardData, ICCCard.class);
                 } else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
                     MSRCard card = new Gson().fromJson(cardData, MSRCard.class);
                     this.msrCard = card;

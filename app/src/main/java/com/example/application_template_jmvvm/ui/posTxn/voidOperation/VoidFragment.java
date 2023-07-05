@@ -26,7 +26,6 @@ import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,7 +38,6 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     private TransactionViewModel transactionViewModel;
     private InfoDialog infoDialog;
     private RecyclerView rvTransactions;
-    private List<TransactionEntity> transactionList = new ArrayList<>();
 
     public VoidFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
                         TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
@@ -55,8 +53,7 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_void, container, false);
         boolean empty = transactionViewModel.isVoidListEmpty();
         if(empty) {
@@ -82,14 +79,14 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
 
     public void setView(ICCCard card) {
         Log.d("Card Data", card.getCardNumber());
-        transactionList = transactionViewModel.getTransactionsByCardNo(card.getCardNumber());
-        TransactionsRecycleAdapter adapter = new TransactionsRecycleAdapter(transactionList, transactionViewModel, this);
+        List<TransactionEntity> transactionList = transactionViewModel.getTransactionsByCardNo(card.getCardNumber());
+        TransactionsRecycleAdapter adapter = new TransactionsRecycleAdapter(transactionList, this);
         rvTransactions.setAdapter(adapter);
         rvTransactions.setLayoutManager(new LinearLayoutManager(mainActivity));
     }
 
     public void startVoid(TransactionEntity transactionEntity) {
-        transactionViewModel.TransactionRoutine(null, null, mainActivity, this, transactionEntity, null, TransactionCode.VOID,
+        transactionViewModel.TransactionRoutine(null, null, mainActivity, transactionEntity, null, TransactionCode.VOID,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
         transactionViewModel.getInfoDialogLiveData().observe(getViewLifecycleOwner(), infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), "Progress")) {

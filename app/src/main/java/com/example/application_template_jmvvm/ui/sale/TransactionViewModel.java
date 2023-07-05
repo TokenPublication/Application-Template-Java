@@ -8,7 +8,6 @@ import android.util.Log;
 
 import javax.inject.Inject;
 
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -48,7 +47,7 @@ public class TransactionViewModel extends ViewModel{
         return transactionRepository;
     }
 
-    public void TransactionRoutine(ICCCard card, String uuid, MainActivity mainActivity, Fragment fragment, TransactionEntity transactionEntity,
+    public void TransactionRoutine(ICCCard card, String uuid, MainActivity mainActivity, TransactionEntity transactionEntity,
                                    Bundle bundle, TransactionCode transactionCode, ActivationRepository activationRepository, BatchRepository batchRepository){
         TransactionViewModel transactionViewModel = this;
         Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -72,12 +71,7 @@ public class TransactionViewModel extends ViewModel{
                     }
                     final String progressText = "Progress: " + (i * 10);
 
-                    mainHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, progressText));
-                        }
-                    });
+                    mainHandler.post(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, progressText)));
                 }
             }
 
@@ -90,22 +84,17 @@ public class TransactionViewModel extends ViewModel{
             public void onComplete() {
                 Log.i("Complete","Complete");
                 OnlineTransactionResponse onlineTransactionResponse = transactionRepository.parseResponse(transactionViewModel);
-                Intent resultIntent = finishTransaction(card, uuid, mainActivity, fragment, transactionEntity,
+                Intent resultIntent = finishTransaction(card, uuid, mainActivity, transactionEntity,
                                                         bundle, transactionCode, onlineTransactionResponse, activationRepository, batchRepository);
-                mainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        setIntentLiveData(resultIntent);
-                    }
-                });
+                mainHandler.post(() -> setIntentLiveData(resultIntent));
             }
         };
         observable.subscribe(observer);
     }
 
-    private Intent finishTransaction(ICCCard card, String uuid, MainActivity mainActivity, Fragment fragment, TransactionEntity transactionEntity,
-                                                  Bundle bundle, TransactionCode transactionCode, OnlineTransactionResponse onlineTransactionResponse,
-                                                  ActivationRepository activationRepository, BatchRepository batchRepository){
+    private Intent finishTransaction(ICCCard card, String uuid, MainActivity mainActivity, TransactionEntity transactionEntity,
+                                     Bundle bundle, TransactionCode transactionCode, OnlineTransactionResponse onlineTransactionResponse,
+                                     ActivationRepository activationRepository, BatchRepository batchRepository){
         if (transactionCode != TransactionCode.VOID){
             transactionEntity = transactionRepository.entityCreator(card, uuid, bundle, onlineTransactionResponse, transactionCode);
             transactionEntity.setBatchNo(batchRepository.getBatchNo());
@@ -116,14 +105,14 @@ public class TransactionViewModel extends ViewModel{
         else {
             transactionRepository.setVoid(transactionEntity.getUlGUP_SN(),transactionEntity.getBaDate(),transactionEntity.getSID());
         }
-        return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, fragment, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
+        return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
     }
 
     public void prepareDummyResponse(ActivationRepository activationRepository, BatchRepository batchRepository, MainActivity mainActivity,
-                                     Fragment fragment, Integer price, ResponseCode code, Boolean hasSlip,
+                                     Integer price, ResponseCode code, Boolean hasSlip,
                                        SlipType slipType, String cardNo, String ownerName, int paymentType){
         transactionRepository.prepareDummyResponse(this, activationRepository, batchRepository, mainActivity,
-                                                    fragment, price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
+                price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
     }
 
     public MutableLiveData<Intent> getIntentLiveData() {
@@ -142,20 +131,8 @@ public class TransactionViewModel extends ViewModel{
         infoDialogLiveData.postValue(infoDialogData);
     }
 
-    public List<TransactionEntity> getAllTransactions() {
-        return transactionRepository.getAllTransactions();
-    }
-
-    public List<TransactionEntity> getTransactionsByRefNo(String refNo) {
-        return transactionRepository.getTransactionsByRefNo(refNo);
-    }
-
     public List<TransactionEntity> getTransactionsByCardNo(String cardNo) {
         return transactionRepository.getTransactionsByCardNo(cardNo);
-    }
-
-    public void setVoid(int gupSN, String date, String card_SID) {
-        transactionRepository.setVoid(gupSN, date, card_SID);
     }
 
     public boolean isVoidListEmpty() {
@@ -164,10 +141,6 @@ public class TransactionViewModel extends ViewModel{
 
     public boolean isTransactionListEmpty() {
         return transactionRepository.isEmpty();
-    }
-
-    public void deleteAllTransactions() {
-        transactionRepository.deleteAll();
     }
 
 }

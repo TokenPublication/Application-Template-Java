@@ -145,7 +145,7 @@ public class TransactionRepository {
     }
 
     public Intent prepareIntent(ActivationRepository activationRepository, BatchRepository batchRepository,
-                            MainActivity mainActivity, Fragment fragment, TransactionEntity transactionEntity,
+                                MainActivity mainActivity, TransactionEntity transactionEntity,
                                 TransactionCode transactionCode, ResponseCode responseCode) {
         Bundle bundle = new Bundle();
         Intent intent = new Intent();
@@ -190,8 +190,8 @@ public class TransactionRepository {
     }
 
     public void prepareDummyResponse(TransactionViewModel transactionViewModel, ActivationRepository activationRepository, BatchRepository batchRepository,
-                                     MainActivity mainActivity, Fragment fragment, Integer price, ResponseCode code, Boolean hasSlip,
-                                       SlipType slipType, String cardNo, String ownerName, int paymentType){
+                                     MainActivity mainActivity, Integer price, ResponseCode code, Boolean hasSlip,
+                                     SlipType slipType, String cardNo, String ownerName, int paymentType){
         Intent resultIntent = new Intent();
         Bundle bundle = new Bundle();
         bundle.putInt("ResponseCode", code.ordinal()); // #1 Response Code

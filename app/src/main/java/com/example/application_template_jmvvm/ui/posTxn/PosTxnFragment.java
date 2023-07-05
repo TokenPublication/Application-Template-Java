@@ -58,8 +58,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_postxn, container, false);
-        return view;
+        return inflater.inflate(R.layout.fragment_postxn, container, false);
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -68,14 +67,17 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
         List<IListMenuItem> menuItems = new ArrayList<>();
         menuItems.add(new MenuItem(getString(R.string.transactions), iListMenuItem -> { //TODO bakılacak.
         }));
+
         menuItems.add(new MenuItem(getString(R.string.refund), iListMenuItem -> {
             RefundFragment RefundFragment = new RefundFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             mainActivity.replaceFragment(R.id.container,RefundFragment,true);
         }));
+
         menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {
             VoidFragment VoidFragment = new VoidFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             mainActivity.replaceFragment(R.id.container,VoidFragment,false);
         }));
+
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {
             if (transactionViewModel.isTransactionListEmpty()) {
                 InfoDialog infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Warning,
@@ -85,8 +87,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
                         infoDialog.dismiss();
                     }
                 }, 2000);
-            }
-            else {
+            } else {
                 mainActivity.showConfirmationDialog(InfoDialog.InfoType.Info, "Batch Close",
                         "Implement Batch Close ?", InfoDialog.InfoDialogButtons.Both, 1,
                         new InfoDialogListener() {
@@ -100,9 +101,15 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
                     });
             }
         }));
+
         menuItems.add(new MenuItem(getString(R.string.examples), iListMenuItem -> {
             ExampleFragment ExampleFragment = new ExampleFragment(this.mainActivity);
             mainActivity.replaceFragment(R.id.container,ExampleFragment,true);
+        }));
+
+        menuItems.add(new MenuItem("Slip Tekrarı", iListMenuItem -> {
+            batchViewModel.getBatchRepository().printSlip(batchViewModel.getPreviousBatchSlip(), mainActivity);
+            mainActivity.finish();
         }));
 
         mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.pos_operations), true, R.drawable.token_logo_png);

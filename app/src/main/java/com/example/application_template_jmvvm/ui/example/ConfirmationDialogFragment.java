@@ -23,7 +23,6 @@ import java.util.List;
 public class ConfirmationDialogFragment extends Fragment implements InfoDialogListener {
 
     List<IListMenuItem> menuItems = new ArrayList<>();
-
     private MainActivity mainActivity;
 
     public ConfirmationDialogFragment(MainActivity mainActivity) {
@@ -37,8 +36,7 @@ public class ConfirmationDialogFragment extends Fragment implements InfoDialogLi
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_confirmation_dialog, container, false);
-        return view;
+        return inflater.inflate(R.layout.fragment_confirmation_dialog, container, false);
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {

@@ -12,6 +12,7 @@ import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.repository.CardRepository;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
+import com.tokeninc.cardservicebinding.CardServiceBinding;
 
 import javax.inject.Inject;
 
@@ -32,9 +33,7 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
     }
 
     public void initializeCardServiceBinding(MainActivity mainActivity) {
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            cardRepository.cardServiceBinder(mainActivity);
-        }, 5);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> cardRepository.cardServiceBinder(mainActivity), 5);
     }
 
     public void readCard(int amount) {
@@ -68,8 +67,16 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
         return cardLiveData;
     }
 
-    public ContentValues afterQrReceived(ContentValues values) {
-        return values;
+    @Override
+    public void afterQrDataReceived(ContentValues contentValues) {
+        qrLiveData.postValue(contentValues);
     }
 
+    public MutableLiveData<ContentValues> getQrLiveData() {
+        return qrLiveData;
+    }
+
+    public CardServiceBinding getCardServiceBinding() {
+        return cardRepository.getCardServiceBinding();
+    }
 }
