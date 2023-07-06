@@ -66,10 +66,10 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
         } else {
             mainActivity.readCard(getViewLifecycleOwner(), 0);
             cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
-                mainActivity.getInfoDialog().update(InfoDialog.InfoType.Confirmed, "Read Successful");
+                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     setView(card);
-                    mainActivity.getInfoDialog().dismiss();
+                    infoDialog.dismiss();
                 }, 2000);
             });
         }

@@ -79,4 +79,9 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
     public CardServiceBinding getCardServiceBinding() {
         return cardRepository.getCardServiceBinding();
     }
+
+    public void setGIB(boolean GIB) {
+        cardRepository.setGIB(GIB);
+    }
+
 }
