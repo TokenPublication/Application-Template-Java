@@ -86,15 +86,15 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
         rvTransactions.setLayoutManager(new LinearLayoutManager(mainActivity));
     }
 
-    public void gibVoid(LifecycleOwner lifecycleOwner, String refNo) {
-        cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
+    public void gibVoid(String refNo) {
+        cardViewModel.getCardLiveData().observe(mainActivity, card -> {
             infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 List<TransactionEntity> transactionList = transactionViewModel.getTransactionRepository().getTransactionsByRefNo(refNo);
                 TransactionEntity transaction = transactionList.get(0);
                 if (transaction != null) {
                     if (Objects.equals(card.getCardNumber(), transaction.getBaPAN())) {
-                        startVoid(lifecycleOwner, transaction);
+                        startVoid(mainActivity, transaction);
                     }
                 }
                 infoDialog.dismiss();
