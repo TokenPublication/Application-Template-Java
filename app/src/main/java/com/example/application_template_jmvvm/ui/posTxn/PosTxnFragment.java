@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LifecycleOwner;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -93,7 +94,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
                         new InfoDialogListener() {
                             @Override
                             public void confirmed(int i) {
-                                batchClose(mListMenuFragment);
+                                batchClose(mListMenuFragment.getViewLifecycleOwner());
                             }
 
                             @Override
@@ -116,9 +117,9 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
         mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);
     }
 
-    private void batchClose(ListMenuFragment listMenuFragment) {
+    public void batchClose(LifecycleOwner lifecycleOwner) {
         batchViewModel.BatchCloseRoutine(mainActivity, activationViewModel.getActivationRepository(), transactionViewModel.getTransactionRepository());
-        batchViewModel.getInfoDialogLiveData().observe(listMenuFragment.getViewLifecycleOwner(), infoDialogData -> {
+        batchViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), "Progress")) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
             } else {
@@ -128,7 +129,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
                 }
             }
         });
-        batchViewModel.getIntentLiveData().observe(listMenuFragment.getViewLifecycleOwner(), resultIntent -> {
+        batchViewModel.getIntentLiveData().observe(lifecycleOwner, resultIntent -> {
             mainActivity.setResult(Activity.RESULT_OK,resultIntent);
             mainActivity.finish();
         });

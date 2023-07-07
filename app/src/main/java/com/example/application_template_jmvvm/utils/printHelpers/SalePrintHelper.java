@@ -1,10 +1,12 @@
 package com.example.application_template_jmvvm.utils.printHelpers;
 
 import android.content.Context;
+import android.text.method.ArrowKeyMovementMethod;
 
 import com.example.application_template_jmvvm.AppTemp;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
+import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.utils.objects.SampleReceipt;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.token.printerlib.PrinterDefinitions;
@@ -168,6 +170,12 @@ public class SalePrintHelper extends BasePrintHelper{
                 styledText.newLine();
                 styledText.addTextToLine("İMZAYA GEREK YOKTUR", Alignment.Center);
             }
+            if (transactionEntity.getbCardReadType() == CardReadType.QrPay.getType()) {
+                styledText.newLine();
+                styledText.addTextToLine("Bu işlem TR Karekod", Alignment.Center);
+                styledText.newLine();
+                styledText.addTextToLine("ile yapılmıştır", Alignment.Center);
+            }
         }
 
         styledText.setFontFace(PrinterDefinitions.Font_E.Sans_Bold);
@@ -188,9 +196,11 @@ public class SalePrintHelper extends BasePrintHelper{
         if (transactionEntity != null) {
             styledText.addTextToLine("GRUP NO:" + transactionEntity.getBatchNo());
             styledText.addTextToLine("REF NO: " + transactionEntity.getRefNo(), PrinterDefinitions.Alignment.Right);
-            styledText.newLine();
-            styledText.addTextToLine("AID: " + transactionEntity.getAid());
-            styledText.addTextToLine(transactionEntity.getAidLabel(), PrinterDefinitions.Alignment.Right);
+            if (transactionEntity.getbCardReadType() != CardReadType.QrPay.getType()) {
+                styledText.newLine();
+                styledText.addTextToLine("AID: " + transactionEntity.getAid());
+                styledText.addTextToLine(transactionEntity.getAidLabel(), PrinterDefinitions.Alignment.Right);
+            }
         }
         else {
             styledText.addTextToLine("GRUP NO:" + 3);

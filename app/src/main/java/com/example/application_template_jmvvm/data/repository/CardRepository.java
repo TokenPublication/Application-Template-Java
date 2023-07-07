@@ -23,7 +23,6 @@ public class CardRepository implements CardServiceListener {
         void afterCardDataReceived(ICCCard card);
         void afterCardServiceConnected(Boolean isConnected);
         void setCallBackMessage(CardServiceResult cardServiceResult);
-        void afterQrDataReceived(ContentValues contentValues);
     }
 
     private RepositoryCallback repositoryCallback;
@@ -102,11 +101,7 @@ public class CardRepository implements CardServiceListener {
             if (resultCode == CardServiceResult.SUCCESS.resultCode()) {
                 int type = json.getInt("mCardReadType");
                 if (type == CardReadType.QrPay.value) {
-                    ContentValues values = new ContentValues();
-                    values.put(TransactionCols.col_bCardReadType, type);
-                    values.put(TransactionCols.col_ulAmount, json.getInt("mTranAmount1"));
-                    repositoryCallback.afterQrDataReceived(values);
-                    return;
+                    this.card = new Gson().fromJson(cardData, ICCCard.class);
                 }
                 if (type == CardReadType.CLCard.value) {
                     this.card = new Gson().fromJson(cardData, ICCCard.class);

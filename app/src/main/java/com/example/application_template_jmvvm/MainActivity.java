@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -87,9 +88,21 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     }
 
     private void actionControl(@Nullable String action) {
-        Log.d("egecan", action);
         if (Objects.equals(action, getString(R.string.Sale_Action))) {
             saleActionReceived();
+        }
+
+        else if (Objects.equals(action, getString(R.string.BatchClose_Action))) {
+            if (transactionViewModel.isTransactionListEmpty()) {
+                showInfoDialog(InfoDialog.InfoType.Warning, "No Transaction", false);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    setResult(Activity.RESULT_CANCELED);
+                    callbackMessage(CardServiceResult.ERROR);
+                }, 2000);
+            } else {
+                PosTxnFragment posTxnFragment = new PosTxnFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
+                posTxnFragment.batchClose(this);
+            }
         }
 
         else if (Objects.equals(action, getString(R.string.PosTxn_Action))) {

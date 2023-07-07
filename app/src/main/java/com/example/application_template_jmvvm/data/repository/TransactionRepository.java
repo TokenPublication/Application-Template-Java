@@ -10,6 +10,7 @@ import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
+import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.type.PaymentTypes;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
@@ -98,7 +99,7 @@ public class TransactionRepository {
         transactionEntity.setBaPAN(card.getmCardNumber());
         transactionEntity.setBaExpDate(card.getmExpireDate());
         transactionEntity.setBaCustomName(card.getmTrack1CustomerName());
-        if (card.getmCardReadType() != 1) {
+        if (card.getmCardReadType() != CardReadType.ICC.getType() && card.getmCardReadType() != CardReadType.QrPay.getType()) {
             transactionEntity.setBaDate(card.getDateTime().substring(0, 8));
             transactionEntity.setBaTime(card.getDateTime().substring(8));
             transactionEntity.setBaTranDate(card.getDateTime());
@@ -161,7 +162,11 @@ public class TransactionRepository {
         bundle.putInt("PaymentStatus", 0); // #2 Payment Status
         bundle.putInt("Amount", amount); // #3 Amount
         bundle.putInt("BatchNo", transactionEntity.getBatchNo());
-        bundle.putString("CardNo", StringHelper.MaskTheCardNo(transactionEntity.getBaPAN())); //#5 Card No "MASKED"
+        if (transactionEntity.getbCardReadType() != CardReadType.QrPay.getType()) {
+            bundle.putString("CardNo", StringHelper.MaskTheCardNo(transactionEntity.getBaPAN())); //#5 Card No "MASKED"
+        } else {
+            cardNo = "5209305830592013";  //Dummy for QR sale
+        }
         bundle.putString("MID", activationRepository.getMerchantId()); //#6 Merchant ID
         bundle.putString("TID", activationRepository.getTerminalId()); //#7 Terminal ID
         bundle.putInt("TxnNo", transactionEntity.getUlGUP_SN());

@@ -23,7 +23,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
+import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.type.PaymentTypes;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
@@ -50,6 +52,8 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     private MainActivity mainActivity;
     Spinner spinner;
     InfoDialog infoDialog;
+    private boolean QRisSuccess = true;
+    private boolean isCancelable = true;
 
     public SaleFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
                         TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
@@ -73,12 +77,12 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         view.findViewById(R.id.btnSale).setOnClickListener(v -> {
             mainActivity.readCard(getViewLifecycleOwner(), amount);
             cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
-                mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> doSale(card, this.getViewLifecycleOwner()), 2000);
-            });
-            cardViewModel.getQrLiveData().observe(getViewLifecycleOwner(), qrData -> {
-                mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> QrSale(qrData), 2000);
+                if (card.getmCardReadType() != CardReadType.QrPay.getType()) {
+                    mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> doSale(card, this.getViewLifecycleOwner()), 2000);
+                } else {
+                    QrSale(card);
+                }
             });
         });
 
@@ -202,35 +206,33 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         });
     }
 
+    public void QrSale(ICCCard card) {
+        InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, "Please Wait", true);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            cardViewModel.getCardServiceBinding().showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(amount), "QR Code Test"); // Shows QR on the back screen
+            dialog.setQr("QR Code Test", "Waiting For the QR Code to Read"); // Shows the same QR on Info Dialog
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                if (QRisSuccess) {
+                    mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed,"QR " +getString(R.string.trans_successful), false);
+                    isCancelable = false;
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        doSale(card, this.getViewLifecycleOwner());
+                    }, 3000);
+                }
+            },5000);
+        },2000);
+        dialog.setDismissedListener(() -> {
+            if (isCancelable) {
+                QRisSuccess = false;
+                mainActivity.setResult(Activity.RESULT_CANCELED);
+                mainActivity.callbackMessage(CardServiceResult.USER_CANCELLED);
+            }
+        });
+    }
+
     @Override
     public void confirmed(int i) {}
 
     @Override
     public void canceled(int i) {}
-
-    public void QrSale(ContentValues contentValues) {
-        InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, "Please Wait", true);
-        // Request to Show a QR Code ->
-        cardViewModel.getCardServiceBinding().showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(amount), "QR Code Test"); // Shows QR on the back screen
-        dialog.setQr("QR Code Test", "Waiting For the QR Code to Read"); // Shows the same QR on Info Dialog
-        // Request a QR Response ->
-        if (true) {
-            // Dummy Response
-            new Handler().postDelayed(() -> {
-                dialog.update(InfoDialog.InfoType.Confirmed,"QR " + getString(R.string.trans_successful));
-                new Handler().postDelayed(() -> {
-                    dialog.dismiss();
-                    mainActivity.finish();
-                }, 5000);
-            }, 3000);
-        }
-        else {
-            dialog.update(InfoDialog.InfoType.Declined, "Error");
-        }
-        dialog.setDismissedListener(() -> {
-            Toast.makeText(mainActivity, "Cancelled", Toast.LENGTH_LONG).show();
-            mainActivity.setResult(Activity.RESULT_CANCELED);
-            mainActivity.finish();
-        });
-    }
 }
