@@ -10,6 +10,7 @@ import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
+import com.example.application_template_jmvvm.data.model.type.PaymentTypes;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
 import com.example.application_template_jmvvm.utils.objects.SampleReceipt;
@@ -101,6 +102,8 @@ public class TransactionRepository {
             transactionEntity.setBaDate(card.getDateTime().substring(0, 8));
             transactionEntity.setBaTime(card.getDateTime().substring(8));
             transactionEntity.setBaTranDate(card.getDateTime());
+        } else {
+            transactionEntity.setBaTranDate(new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss").format(new Date()));
         }
         transactionEntity.setBaTrack2(card.getmTrack2Data());
         transactionEntity.setBaRspCode(onlineTransactionResponse.getmResponseCode().toString());
@@ -166,18 +169,24 @@ public class TransactionRepository {
         bundle.putBoolean("IsSlip", true);
         bundle.putString("RefNo", transactionEntity.getRefNo());
         bundle.putString("AuthNo", transactionEntity.getAuthCode());
-        bundle.putInt("PaymentType", 3);
+        bundle.putInt("PaymentType", PaymentTypes.CREDITCARD.getType());
         SalePrintHelper salePrintHelper = new SalePrintHelper();
-        if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
+        if (responseCode == ResponseCode.CANCELLED || responseCode == ResponseCode.UNABLE_DECLINE || responseCode == ResponseCode.OFFLINE_DECLINE) {
+            slipType = SlipType.NO_SLIP;
+        } else {
+            if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
+                bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
+            }
+            if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
+                bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
+            }
+            bundle.putString("RefundInfo", getRefundInfo(transactionEntity, cardNo, amount, activationRepository, batchRepository));
+            if (transactionCode == TransactionCode.MATCHED_REFUND || transactionCode == TransactionCode.CASH_REFUND || transactionCode == TransactionCode.INSTALLMENT_REFUND || transactionCode == TransactionCode.VOID) {
+                printSlip(bundle.getString("customerSlipData"), mainActivity);
+                printSlip(bundle.getString("merchantSlipData"), mainActivity);
+            }
         }
-        if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
-        }
-        if (transactionCode == TransactionCode.MATCHED_REFUND || transactionCode == TransactionCode.CASH_REFUND || transactionCode == TransactionCode.INSTALLMENT_REFUND || transactionCode == TransactionCode.VOID) {
-            printSlip(bundle.getString("customerSlipData"), mainActivity);
-            printSlip(bundle.getString("merchantSlipData"), mainActivity);
-        }
+
         intent.putExtras(bundle);
         return intent;
     }
@@ -209,7 +218,7 @@ public class TransactionRepository {
         bundle.putInt("TxnNo", batchRepository.getGroupSN());
         bundle.putInt("SlipType", slipType.value);
 
-        bundle.putString("RefundInfo", getRefundInfo(ResponseCode.SUCCESS, cardNo, price, activationRepository, batchRepository));
+        bundle.putString("RefundInfo", getRefundInfo(null, cardNo, price, activationRepository, batchRepository));
         bundle.putString("RefNo", String.valueOf(32134323));
         bundle.putInt("PaymentType", paymentType);
         SalePrintHelper salePrintHelper = new SalePrintHelper();
@@ -223,17 +232,28 @@ public class TransactionRepository {
         transactionViewModel.setIntentLiveData(resultIntent);
     }
 
-    private String getRefundInfo(ResponseCode response, String cardNumber, int amount,
+    private String getRefundInfo(TransactionEntity transactionEntity, String cardNumber, int amount,
                                  ActivationRepository activationRepository, BatchRepository batchRepository) {
         JSONObject json = new JSONObject();
         try {
             json.put("BatchNo", batchRepository.getBatchNo());
             json.put("TxnNo", batchRepository.getGroupSN());
             json.put("Amount", amount);
-            json.put("RefNo", String.valueOf(batchRepository.getGroupSN()));
             json.put("MID", activationRepository.getMerchantId());
             json.put("TID", activationRepository.getTerminalId());
             json.put("CardNo", StringHelper.MaskTheCardNo(cardNumber));
+            if (transactionEntity != null) {
+                json.put("RefNo", transactionEntity.getRefNo());
+                json.put("AuthCode", transactionEntity.getAuthCode());
+                json.put("TranDate", transactionEntity.getBaTranDate());
+                if (transactionEntity.getbInstCnt() > 0) {
+                    json.put("InstCount", transactionEntity.getbInstCnt());
+                    json.put("InstAmount", transactionEntity.getUlAmount2()/transactionEntity.getbInstCnt());
+                } else {
+                    json.put("InstCount", 0);
+                    json.put("InstAmount", 0);
+                }
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

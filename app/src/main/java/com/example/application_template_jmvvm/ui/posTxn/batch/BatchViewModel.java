@@ -97,6 +97,10 @@ public class BatchViewModel extends ViewModel {
         return batchRepository;
     }
 
+    public int getBatchNo() {
+        return batchRepository.getBatchNo();
+    }
+
     public MutableLiveData<Intent> getIntentLiveData() {
         return intentLiveData;
     }

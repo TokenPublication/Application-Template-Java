@@ -22,17 +22,24 @@ import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
 import com.example.application_template_jmvvm.ui.activation.SettingsFragment;
+import com.example.application_template_jmvvm.ui.posTxn.refund.RefundFragment;
+import com.example.application_template_jmvvm.ui.posTxn.voidOperation.VoidFragment;
 import com.example.application_template_jmvvm.ui.sale.CardViewModel;
 import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.sale.SaleFragment;
+import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.deviceinfo.DeviceInfo;
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.Objects;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -79,28 +86,9 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     }
 
     private void actionControl(@Nullable String action) {
+        Log.d("egecan", action);
         if (Objects.equals(action, getString(R.string.Sale_Action))) {
-            SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
-            Bundle bundle = getIntent().getExtras();
-            String cardData = bundle != null ? bundle.getString("CardData") : null;
-            int amount = getIntent().getExtras().getInt("Amount");
-
-            if (cardData != null && !cardData.equals(" ")) {
-                replaceFragment(R.id.container, saleTxnFragment, false);
-            }
-
-            if (getIntent().getExtras() != null) {
-                int cardReadType = getIntent().getExtras().getInt("CardReadType");
-                if (cardReadType == CardReadType.ICC.getType()) {
-                    cardViewModel.setGIB(true);
-                    readCard(this, amount);
-                    saleTxnFragment.cardReaderGIB();
-                } else {
-                    replaceFragment(R.id.container, saleTxnFragment, false);
-                }
-            } else {
-                replaceFragment(R.id.container, saleTxnFragment, false);
-            }
+            saleActionReceived();
         }
 
         else if (Objects.equals(action, getString(R.string.PosTxn_Action))) {
@@ -111,6 +99,10 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         else if (Objects.equals(action, getString(R.string.Settings_Action))) {
             SettingsFragment settingsFragment = new SettingsFragment(this, activationViewModel);
             replaceFragment(R.id.container, settingsFragment, false);
+        }
+
+        else if (Objects.equals(action, getString(R.string.Refund_Action))) {
+            refundActionReceived();
         }
 
         else {
@@ -150,21 +142,74 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
                         infoDialog.dismiss();
                     },1000);
-                    cardViewModel.getCardServiceResultLiveData().observe(lifecycleOwner, cardServiceResult -> {
-                        if (cardServiceResult.resultCode() == CardServiceResult.USER_CANCELLED.resultCode()) {
-                            Toast.makeText(this,"Cancelled", Toast.LENGTH_LONG).show();
-                        }
-                        if (cardServiceResult.resultCode() == CardServiceResult.ERROR_TIMEOUT.resultCode()) {
-                            Toast.makeText(this,"Error Timeout", Toast.LENGTH_LONG).show();
-                        }
-                        if (cardServiceResult.resultCode() == CardServiceResult.ERROR.resultCode()) {
-                            Toast.makeText(this,"Error", Toast.LENGTH_LONG).show();
-                        }
-                        finish();
-                    });
+                    cardViewModel.getCardServiceResultLiveData().observe(lifecycleOwner, this::callbackMessage);
                 }, 2000);
             }
         });
+    }
+
+    private void saleActionReceived() {
+        SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
+        Bundle bundle = getIntent().getExtras();
+        String cardData = bundle != null ? bundle.getString("CardData") : null;
+        int amount = getIntent().getExtras().getInt("Amount");
+
+        if (cardData != null && !cardData.equals(" ")) {
+            replaceFragment(R.id.container, saleTxnFragment, false);
+        }
+
+        if (getIntent().getExtras() != null) {
+            int cardReadType = getIntent().getExtras().getInt("CardReadType");
+            if (cardReadType == CardReadType.ICC.getType()) {
+                cardViewModel.setGIB(true);
+                readCard(this, amount);
+                saleTxnFragment.cardReaderGIB();
+            } else {
+                replaceFragment(R.id.container, saleTxnFragment, false);
+            }
+        } else {
+            replaceFragment(R.id.container, saleTxnFragment, false);
+        }
+    }
+
+    private void refundActionReceived() {
+        if (getIntent().getExtras() == null || getIntent().getExtras().getString("RefundInfo") == null) {
+            callbackMessage(CardServiceResult.ERROR);
+        } else {
+            try {
+                String refundData = new JSONObject(getIntent().getExtras().getString("RefundInfo")).toString();
+                String refNo = new JSONObject(refundData).getString("RefNo");
+                if (new JSONObject(refundData).getInt("BatchNo") == batchViewModel.getBatchNo()) { //void
+                    readCard(this, 0);
+                    VoidFragment voidFragment = new VoidFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
+                    voidFragment.gibVoid(this, refNo);
+                } else {
+                    Bundle refundBundle = new Bundle();
+                    refundBundle.putString("RefundInfo", refundData);
+                    int amount = Integer.parseInt(new JSONObject(refundData).getString("Amount"));
+                    readCard(this, amount);
+                    RefundFragment refundFragment = new RefundFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
+                    refundFragment.gibRefund(refundBundle);
+                }
+            } catch (Exception e) {
+                callbackMessage(CardServiceResult.ERROR);
+            }
+        }
+    }
+
+    public void callbackMessage(CardServiceResult cardServiceResult) {
+        switch (cardServiceResult) {
+            case USER_CANCELLED:
+                Toast.makeText(this,"Cancelled", Toast.LENGTH_LONG).show();
+                break;
+            case ERROR_TIMEOUT:
+                Toast.makeText(this,"Error Timeout", Toast.LENGTH_LONG).show();
+                break;
+            case ERROR:
+                Toast.makeText(this,"Error", Toast.LENGTH_LONG).show();
+                break;
+        }
+        finish();
     }
 
     public InfoDialog showConfirmationDialog(InfoDialog.InfoType type, String title, String info, InfoDialog.InfoDialogButtons buttons, int arg, InfoDialogListener listener) {

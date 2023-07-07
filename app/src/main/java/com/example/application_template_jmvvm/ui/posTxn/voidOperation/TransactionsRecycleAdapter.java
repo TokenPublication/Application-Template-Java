@@ -43,7 +43,7 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         }
         holder.approval_code.setText(transaction.getAuthCode());
         holder.serial_no.setText(String.valueOf(transaction.getUlGUP_SN()));
-        holder.itemView.setOnClickListener(v -> voidFragment.startVoid(transaction));
+        holder.itemView.setOnClickListener(v -> voidFragment.startVoid(voidFragment.getViewLifecycleOwner(), transaction));
     }
 
     @Override

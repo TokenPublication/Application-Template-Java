@@ -191,6 +191,9 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         });
     }
 
+    public void gibRefund(Bundle refundBundle) {
+    }
+
     public void doRefund(ICCCard card, TransactionCode transactionCode, List<CustomInputFormat> inputList, Fragment fragment) {
         Bundle refundInfo = bundleCreator(transactionCode, inputList);
         transactionViewModel.TransactionRoutine(card, null, mainActivity, null, refundInfo, transactionCode,
@@ -243,4 +246,5 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
 
     @Override
     public void canceled(int i) {}
+
 }
