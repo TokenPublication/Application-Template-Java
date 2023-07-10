@@ -29,6 +29,7 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import javax.inject.Inject;
 
@@ -82,7 +83,7 @@ public class TransactionRepository {
         onlineTransactionResponse.setmRefNo(String.valueOf((long) (Math.random() * 900000000) + (1000000000L * (int) (Math.random() * 9) + 1)));
         onlineTransactionResponse.setmDisplayData("Display Data");
         onlineTransactionResponse.setmKeySequenceNumber("3");
-        onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
         if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS) { //Dummy Response, always success
             transactionViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, "ONAY KODU: " + onlineTransactionResponse.getmAuthCode())); //TODO liveData SORULACAK.
         }
@@ -104,7 +105,7 @@ public class TransactionRepository {
             transactionEntity.setBaTime(card.getDateTime().substring(8));
             transactionEntity.setBaTranDate(card.getDateTime());
         } else {
-            transactionEntity.setBaTranDate(new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss").format(new Date()));
+            transactionEntity.setBaTranDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date()));
         }
         transactionEntity.setBaTrack2(card.getmTrack2Data());
         transactionEntity.setBaRspCode(onlineTransactionResponse.getmResponseCode().toString());

@@ -11,7 +11,7 @@ import java.util.List;
 public interface BatchDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    long insertBatch(BatchDB batch);
+    void insertBatch(BatchDB batch);
 
     @Query("UPDATE " + DatabaseInfo.BATCHTABLE + " SET " + BatchCol.col_ulGUP_SN + " = " + BatchCol.col_ulGUP_SN + " + 1 WHERE ROWID = (SELECT ROWID FROM " + DatabaseInfo.BATCHTABLE + " LIMIT 1)")
     void updateGUPSN();

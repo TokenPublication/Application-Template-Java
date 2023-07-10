@@ -39,11 +39,12 @@ public class ActivationEntity {
         this.colMerchantId = colMerchantId;
     }
 
+    @NonNull
     public String getColIP() {
         return colIP;
     }
 
-    public void setColIP(String colIP) {
+    public void setColIP(@NonNull String colIP) {
         this.colIP = colIP;
     }
 

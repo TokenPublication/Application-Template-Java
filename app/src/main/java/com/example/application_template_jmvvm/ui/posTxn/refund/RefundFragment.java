@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -41,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 public class RefundFragment extends Fragment implements InfoDialogListener {
@@ -127,9 +129,11 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
                         String[] array = customInputFormat.getText().split("/");
                         String date = array[2].substring(2) + array[1] + array[0];
                         Date now = Calendar.getInstance().getTime();
-                        SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd");
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd", Locale.US);
                         return Integer.parseInt(sdf.format(now)) >= Integer.parseInt(date);
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                        Toast.makeText(mainActivity, "Transaction Date Error", Toast.LENGTH_LONG).show();
+                    }
                     return false;
                 }
         );

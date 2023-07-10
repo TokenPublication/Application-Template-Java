@@ -1,7 +1,6 @@
 package com.example.application_template_jmvvm.utils.printHelpers;
 
 import android.content.Context;
-import android.text.method.ArrowKeyMovementMethod;
 
 import com.example.application_template_jmvvm.AppTemp;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
@@ -117,8 +116,10 @@ public class SalePrintHelper extends BasePrintHelper{
         if (transactionCode == TransactionCode.MATCHED_REFUND || transactionCode == TransactionCode.INSTALLMENT_REFUND || transactionCode == TransactionCode.CASH_REFUND) {
             styledText.addTextToLine(StringHelper.getAmount(transactionEntity.getUlAmount2()), PrinterDefinitions.Alignment.Right);
         }
-        else {
+        else if (transactionEntity != null) {
             styledText.addTextToLine(StringHelper.getAmount(transactionEntity.getUlAmount()), PrinterDefinitions.Alignment.Right);
+        } else {
+            styledText.addTextToLine(receipt.getAmount(), PrinterDefinitions.Alignment.Right);
         }
 
         styledText.setLineSpacing(0.5f);
@@ -164,13 +165,12 @@ public class SalePrintHelper extends BasePrintHelper{
         if (transactionCode == TransactionCode.SALE) {
             if (slipType == SlipType.CARDHOLDER_SLIP) {
                 styledText.addTextToLine("KARŞILIĞI MAL/HİZM ALDIM", Alignment.Center);
-            }
-            else {
+            } else {
                 styledText.addTextToLine("İşlem Şifre Girilerek Yapılmıştır", Alignment.Center);
                 styledText.newLine();
                 styledText.addTextToLine("İMZAYA GEREK YOKTUR", Alignment.Center);
             }
-            if (transactionEntity.getbCardReadType() == CardReadType.QrPay.getType()) {
+            if (transactionEntity != null && transactionEntity.getbCardReadType() == CardReadType.QrPay.getType()) {
                 styledText.newLine();
                 styledText.addTextToLine("Bu işlem TR Karekod", Alignment.Center);
                 styledText.newLine();
@@ -201,8 +201,7 @@ public class SalePrintHelper extends BasePrintHelper{
                 styledText.addTextToLine("AID: " + transactionEntity.getAid());
                 styledText.addTextToLine(transactionEntity.getAidLabel(), PrinterDefinitions.Alignment.Right);
             }
-        }
-        else {
+        } else {
             styledText.addTextToLine("GRUP NO:" + 3);
             styledText.addTextToLine("REF NO: " + ((int) (Math.random() * 90000000) + 10000000), Alignment.Right);
             styledText.newLine();

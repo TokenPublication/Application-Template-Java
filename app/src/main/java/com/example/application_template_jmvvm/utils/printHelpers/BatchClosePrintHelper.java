@@ -1,9 +1,10 @@
 package com.example.application_template_jmvvm.utils.printHelpers;
 
+import android.content.Context;
+
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
-import com.example.application_template_jmvvm.data.repository.CardRepository;
 import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.StyledString;
 import com.tokeninc.deviceinfo.DeviceInfo;
@@ -12,7 +13,7 @@ import java.util.List;
 
 public class BatchClosePrintHelper extends BasePrintHelper {
 
-    public String batchText(String batch_no, ActivationRepository activationRepository, List<TransactionEntity> transactions, boolean isCopy) {
+    public String batchText(Context context, String batch_no, ActivationRepository activationRepository, List<TransactionEntity> transactions, boolean isCopy) {
         StyledString styledText = new StyledString();
         PrintHelper printHelper = new PrintHelper();
         int totalAmount = 0;
@@ -85,14 +86,14 @@ public class BatchClosePrintHelper extends BasePrintHelper {
         styledText.newLine();
         addTextToNewLine(styledText, "===========================", PrinterDefinitions.Alignment.Center);
         styledText.newLine();
-        styledText.printBitmap("ykb", 20);
+        styledText.printLogo(context);
         styledText.addSpace(50);
 
         printHelper.PrintBatchClose(styledText, batch_no, String.valueOf(transactions.size()), totalAmount, MID, TID);
 
         addTextToNewLine(styledText, "BU BELGEYİ SAKLAYINIZ", PrinterDefinitions.Alignment.Center, 8);
         styledText.newLine();
-        styledText.printBitmap("ykb", 20);
+        styledText.printLogo(context);
         styledText.addSpace(50);
 
         return styledText.toString();

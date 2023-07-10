@@ -1,6 +1,5 @@
 package com.example.application_template_jmvvm.ui.sale;
 
-import android.content.ContentValues;
 import android.os.Handler;
 import android.os.Looper;
 

@@ -27,6 +27,8 @@ import com.token.uicomponents.infodialog.InfoDialog;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
@@ -105,7 +107,7 @@ public class TransactionViewModel extends ViewModel {
             batchRepository.updateGUPSN();
         }
         else {
-            String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss").format(new Date());
+            String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
             transactionRepository.setVoid(transactionEntity.getUlGUP_SN(), date, transactionEntity.getSID());
         }
         return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());

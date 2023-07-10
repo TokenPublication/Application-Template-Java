@@ -85,7 +85,7 @@ public class BatchViewModel extends ViewModel {
 
     private Intent finishBatchClose(MainActivity mainActivity, ActivationRepository activationRepository, TransactionRepository transactionRepository) {
         List<TransactionEntity> transactionList = transactionRepository.getAllTransactions();
-        String slip = batchRepository.prepareSlip(activationRepository, batchRepository, transactionList);
+        String slip = batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList);
         batchRepository.updateBatchSlip(slip, batchRepository.getBatchNo());
         batchRepository.updateBatchNo();
         transactionRepository.deleteAll();
