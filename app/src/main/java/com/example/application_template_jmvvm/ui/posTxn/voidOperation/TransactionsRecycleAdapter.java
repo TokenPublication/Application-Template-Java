@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
 import com.example.application_template_jmvvm.R;
 
@@ -27,7 +28,7 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
     @NonNull
     @Override
     public MyHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_transaction,parent,false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_transaction, parent, false);
         return new MyHolder(view);
     }
 
@@ -36,7 +37,7 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         TransactionEntity transaction = transactionList.get(position);
         holder.card_no.setText(StringHelper.MaskTheCardNo(transaction.getBaPAN()));
         holder.process_time.setText(transaction.getBaTranDate());
-        if (transaction.getbTransCode() != 1) {
+        if (transaction.getbTransCode() != TransactionCode.SALE.getType()) {
             holder.sale_amount.setText(StringHelper.getAmount(transaction.getUlAmount2()));
         } else {
             holder.sale_amount.setText(StringHelper.getAmount(transaction.getUlAmount()));

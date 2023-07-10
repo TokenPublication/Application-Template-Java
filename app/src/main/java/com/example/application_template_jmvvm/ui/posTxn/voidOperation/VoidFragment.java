@@ -57,30 +57,37 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_void, container, false);
         boolean empty = transactionViewModel.isVoidListEmpty();
-        if(empty) {
-            infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Info, getString(R.string.no_trans_found), false);
-            new Handler().postDelayed(() -> {
-                infoDialog.dismiss();
-                mainActivity.setResult(Activity.RESULT_CANCELED);
-                mainActivity.finish();
-            }, 2000);
+        if (empty) {
+            showNoTransaction();
         } else {
             mainActivity.readCard(getViewLifecycleOwner(), 0);
             cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
-                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    setView(card);
-                    infoDialog.dismiss();
-                }, 2000);
+                List<TransactionEntity> transactionList = transactionViewModel.getTransactionsByCardNo(card.getCardNumber());
+                if (transactionList.size() == 0) {
+                    showNoTransaction();
+                } else {
+                    infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        setView(transactionList);
+                        infoDialog.dismiss();
+                    }, 2000);
+                }
             });
         }
         rvTransactions = view.findViewById(R.id.rvTransactions);
         return view;
     }
 
-    public void setView(ICCCard card) {
-        Log.d("Card Data", card.getCardNumber());
-        List<TransactionEntity> transactionList = transactionViewModel.getTransactionsByCardNo(card.getCardNumber());
+    public void showNoTransaction() {
+        infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Info, getString(R.string.no_trans_found), false);
+        new Handler().postDelayed(() -> {
+            infoDialog.dismiss();
+            mainActivity.setResult(Activity.RESULT_CANCELED);
+            mainActivity.finish();
+        }, 2000);
+    }
+
+    public void setView(List<TransactionEntity> transactionList) {
         TransactionsRecycleAdapter adapter = new TransactionsRecycleAdapter(transactionList, this);
         rvTransactions.setAdapter(adapter);
         rvTransactions.setLayoutManager(new LinearLayoutManager(mainActivity));
