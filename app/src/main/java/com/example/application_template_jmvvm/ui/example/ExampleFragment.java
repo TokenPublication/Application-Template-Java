@@ -6,16 +6,20 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.application_template_jmvvm.ui.sale.CardViewModel;
 import com.example.application_template_jmvvm.utils.printHelpers.PrintHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.utils.objects.MenuItem;
+import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 import com.token.uicomponents.ListMenuFragment.MenuItemClickListener;
@@ -30,12 +34,15 @@ import java.util.List;
 public class ExampleFragment extends Fragment {
 
     private MainActivity mainActivity;
+    private ListMenuFragment listMenuFragment;
+    private CardViewModel cardViewModel;
     List<IListMenuItem> menuItems = new ArrayList<>();
     protected int qrAmount = 100;
     protected String qrString = "QR Code Test";
 
-    public ExampleFragment(MainActivity mainActivity) {
+    public ExampleFragment(MainActivity mainActivity, CardViewModel cardViewModel) {
         this.mainActivity = mainActivity;
+        this.cardViewModel = cardViewModel;
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,25 +59,25 @@ public class ExampleFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         List<IListMenuItem> subList1 = new ArrayList<>();
-        subList1.add(new MenuItem("Menu Item 1", (menuItem) -> Toast.makeText(this.mainActivity,"Sub Menu 1", Toast.LENGTH_LONG).show(), null));
-        subList1.add(new MenuItem("Menu Item 2", (menuItem) -> Toast.makeText(this.mainActivity,"Sub Menu 2", Toast.LENGTH_LONG).show(), null));
-        subList1.add(new MenuItem("Menu Item 3", (menuItem) -> Toast.makeText(this.mainActivity,"Sub Menu 3", Toast.LENGTH_LONG).show(), null));
+        subList1.add(new MenuItem("Menu Item 1", (menuItem) -> Toast.makeText(this.mainActivity, "Sub Menu 1", Toast.LENGTH_LONG).show(), null));
+        subList1.add(new MenuItem("Menu Item 2", (menuItem) -> Toast.makeText(this.mainActivity, "Sub Menu 2", Toast.LENGTH_LONG).show(), null));
+        subList1.add(new MenuItem("Menu Item 3", (menuItem) -> Toast.makeText(this.mainActivity, "Sub Menu 3", Toast.LENGTH_LONG).show(), null));
 
         menuItems.add(new MenuItem("Sub Menu", subList1, null));
 
         menuItems.add(new MenuItem("Custom Input List", (MenuItemClickListener<MenuItem>) menuItem -> {
             CustomInputListFragment CustomInputListFragment = new CustomInputListFragment(this.mainActivity);
-            mainActivity.replaceFragment(R.id.container,CustomInputListFragment,true);
+            mainActivity.replaceFragment(R.id.container, CustomInputListFragment, true);
         }));
 
         menuItems.add(new MenuItem("Info Dialog", (menuItem) -> {
             InfoDialogFragment InfoDialogFragment = new InfoDialogFragment(this.mainActivity);
-            mainActivity.replaceFragment(R.id.container,InfoDialogFragment,true);
+            mainActivity.replaceFragment(R.id.container, InfoDialogFragment, true);
         }));
 
         menuItems.add(new MenuItem("Confirmation Dialog", (menuItem) -> {
             ConfirmationDialogFragment ConfirmationDialogFragment = new ConfirmationDialogFragment(this.mainActivity);
-            mainActivity.replaceFragment(R.id.container,ConfirmationDialogFragment,true);
+            mainActivity.replaceFragment(R.id.container, ConfirmationDialogFragment, true);
         }));
 
         menuItems.add(new MenuItem("Device Info", (menuItem) -> {
@@ -110,9 +117,7 @@ public class ExampleFragment extends Fragment {
         menuItems.add(new MenuItem("Num Pad", (menuItem) -> {
             NumPadDialog dialog = NumPadDialog.newInstance(new NumPadListener(){
                 @Override
-                public void enter(String pin) {
-
-                }
+                public void enter(String pin) {}
                 @Override
                 public void onCanceled() {
                     //Num pad canceled callback
@@ -121,11 +126,13 @@ public class ExampleFragment extends Fragment {
             dialog.show(mainActivity.getSupportFragmentManager(), "Num Pad");
         }));
 
-        //TODO: Card Service Binding
         menuItems.add(new MenuItem("Show QR", (menuItem) -> {
             InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, "QR Loading", true);
-            //mainActivity.cardServiceBinding.showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(qrAmount), qrString); // Shows QR on the back screen
-            dialog.setQr(qrString, "WAITING FOR THE QR CODE");
+            cardViewModel.initializeCardServiceBinding(mainActivity);
+            cardViewModel.getIsCardServiceConnect().observe(listMenuFragment.getViewLifecycleOwner(), isConnected -> new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                cardViewModel.getCardServiceBinding().showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(qrAmount), qrString); // Shows QR on the back screen
+                dialog.setQr(qrString, "WAITING FOR THE QR CODE");
+            }, 2000));
         }));
 
         List<IListMenuItem> subListPrint = new ArrayList<>();
@@ -145,7 +152,7 @@ public class ExampleFragment extends Fragment {
 
         menuItems.add(new MenuItem("Print Functions", subListPrint, null));
 
-        ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.examples), true, R.drawable.token_logo_png);
-        mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);
+        listMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.examples), true, R.drawable.token_logo_png);
+        mainActivity.replaceFragment(R.id.container, listMenuFragment, false);
     }
 }

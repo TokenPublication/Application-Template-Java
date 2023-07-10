@@ -41,7 +41,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
     private TransactionViewModel transactionViewModel;
     private MainActivity mainActivity;
     private InfoDialog infoDialog;
-    private ListMenuFragment mListMenuFragment;
+    private ListMenuFragment listMenuFragment;
 
     public PosTxnFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
                           TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
@@ -94,7 +94,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
                         new InfoDialogListener() {
                             @Override
                             public void confirmed(int i) {
-                                batchClose(mListMenuFragment.getViewLifecycleOwner());
+                                batchClose(listMenuFragment.getViewLifecycleOwner());
                             }
 
                             @Override
@@ -104,7 +104,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
         }));
 
         menuItems.add(new MenuItem(getString(R.string.examples), iListMenuItem -> {
-            ExampleFragment ExampleFragment = new ExampleFragment(this.mainActivity);
+            ExampleFragment ExampleFragment = new ExampleFragment(this.mainActivity, cardViewModel);
             mainActivity.replaceFragment(R.id.container, ExampleFragment, true);
         }));
 
@@ -113,8 +113,8 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
             mainActivity.finish();
         }));
 
-        mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.pos_operations), true, R.drawable.token_logo_png);
-        mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);
+        listMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.pos_operations), true, R.drawable.token_logo_png);
+        mainActivity.replaceFragment(R.id.container, listMenuFragment, false);
     }
 
     public void batchClose(LifecycleOwner lifecycleOwner) {

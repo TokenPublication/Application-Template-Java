@@ -43,37 +43,37 @@ public class ConfirmationDialogFragment extends Fragment implements InfoDialogLi
         super.onViewCreated(view, savedInstanceState);
 
         menuItems.add(new MenuItem("Confirmed", (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Confirmed,"Confirmed", "Confirmation: Confirmed", InfoDialog.InfoDialogButtons.Both, 99, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Confirmed, "Confirmed", "Confirmation: Confirmed", InfoDialog.InfoDialogButtons.Both, 99, this)));
 
         menuItems.add(new MenuItem("Warning", (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Warning,"Warning", "Confirmation: Warning", InfoDialog.InfoDialogButtons.Both, 98, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Warning, "Warning", "Confirmation: Warning", InfoDialog.InfoDialogButtons.Both, 98, this)));
 
         menuItems.add(new MenuItem("Error", (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Error,"Error", "Confirmation: Error", InfoDialog.InfoDialogButtons.Both, 97, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Error, "Error", "Confirmation: Error", InfoDialog.InfoDialogButtons.Both, 97, this)));
 
         menuItems.add(new MenuItem("Info", (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Info,"Info", "Confirmation: Info", InfoDialog.InfoDialogButtons.Both, 96, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Info, "Info", "Confirmation: Info", InfoDialog.InfoDialogButtons.Both, 96, this)));
 
         menuItems.add(new MenuItem("Declined", (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Declined,"Declined", "Confirmation: Declined", InfoDialog.InfoDialogButtons.Both, 95, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Declined, "Declined", "Confirmation: Declined", InfoDialog.InfoDialogButtons.Both, 95, this)));
 
         menuItems.add(new MenuItem("Connecting", (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Connecting,"Connecting", "Confirmation: Connecting", InfoDialog.InfoDialogButtons.Both, 94, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Connecting, "Connecting", "Confirmation: Connecting", InfoDialog.InfoDialogButtons.Both, 94, this)));
 
         menuItems.add(new MenuItem("Downloading", (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Downloading,"Downloading", "Confirmation: Downloading", InfoDialog.InfoDialogButtons.Both, 93, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Downloading, "Downloading", "Confirmation: Downloading", InfoDialog.InfoDialogButtons.Both, 93, this)));
 
         menuItems.add(new MenuItem("Uploading", (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Uploading,"Uploading", "Confirmation: Uploading", InfoDialog.InfoDialogButtons.Both, 92, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Uploading, "Uploading", "Confirmation: Uploading", InfoDialog.InfoDialogButtons.Both, 92, this)));
 
         menuItems.add(new MenuItem("Processing", (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Processing,"Processing", "Confirmation: Processing", InfoDialog.InfoDialogButtons.Both, 91, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Processing, "Processing", "Confirmation: Processing", InfoDialog.InfoDialogButtons.Both, 91, this)));
 
         menuItems.add(new MenuItem("Progress", (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Progress,"Progress", "Confirmation: Progress", InfoDialog.InfoDialogButtons.Both, 90, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Progress, "Progress", "Confirmation: Progress", InfoDialog.InfoDialogButtons.Both, 90, this)));
 
         menuItems.add(new MenuItem("None", (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.None,"None", "Confirmation: None", InfoDialog.InfoDialogButtons.Both, 89, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.None, "None", "Confirmation: None", InfoDialog.InfoDialogButtons.Both, 89, this)));
 
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, "Confirmation Dialog", true, R.drawable.token_logo_png);
         mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);

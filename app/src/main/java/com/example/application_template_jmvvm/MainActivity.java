@@ -32,7 +32,6 @@ import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
-import com.tokeninc.deviceinfo.DeviceInfo;
 
 import org.json.JSONObject;
 
@@ -41,7 +40,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Objects;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -49,7 +47,6 @@ import dagger.hilt.android.AndroidEntryPoint;
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity implements InfoDialogListener {
 
-    public CardServiceBinding cardServiceBinding;
     private FragmentManager fragmentManager;
     public ActivationViewModel activationViewModel;
     private CardViewModel cardViewModel;
@@ -291,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 Log.d("emv_config", "conf line: " + line);
                 totalCL.append(line).append('\n');
             }
-            int setCLConfigResult = cardServiceBinding.setEMVCLConfiguration(totalCL.toString());
+            int setCLConfigResult = cardViewModel.getCardServiceBinding().setEMVCLConfiguration(totalCL.toString());
             Toast.makeText(getApplicationContext(), "setEMVCLConfiguration res=" + setCLConfigResult, Toast.LENGTH_SHORT).show();
             Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
         } catch (Exception e) {

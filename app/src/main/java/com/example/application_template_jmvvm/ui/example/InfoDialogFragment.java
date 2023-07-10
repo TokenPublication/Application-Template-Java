@@ -96,8 +96,8 @@ public class InfoDialogFragment extends Fragment {
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Progress, "Progress", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.None, "None", listener, null));
 
-        ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems,"Info Dialog" , true, R.drawable.token_logo_png);
-        mainActivity.replaceFragment(R.id.container,mListMenuFragment,false);
+        ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, "Info Dialog" , true, R.drawable.token_logo_png);
+        mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);
     }
 
     private void showPopup(InfoDialogItem item) {
