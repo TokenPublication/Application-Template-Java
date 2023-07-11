@@ -1,6 +1,5 @@
-package com.example.application_template_jmvvm.domain.printHelpers;
+package com.example.application_template_jmvvm.utils.printHelpers;
 
-import android.content.ContentValues;
 import android.content.Context;
 
 import com.token.printerlib.PrinterDefinitions;

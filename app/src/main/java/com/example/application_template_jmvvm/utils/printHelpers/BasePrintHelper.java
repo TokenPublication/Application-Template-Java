@@ -1,6 +1,6 @@
-package com.example.application_template_jmvvm.domain.printHelpers;
+package com.example.application_template_jmvvm.utils.printHelpers;
 
-import com.example.application_template_jmvvm.domain.SampleReceipt;
+import com.example.application_template_jmvvm.utils.objects.SampleReceipt;
 import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.StyledString;
 

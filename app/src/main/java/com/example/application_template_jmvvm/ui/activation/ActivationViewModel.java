@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.ui.settings;
+package com.example.application_template_jmvvm.ui.activation;
 
 import androidx.lifecycle.ViewModel;
 

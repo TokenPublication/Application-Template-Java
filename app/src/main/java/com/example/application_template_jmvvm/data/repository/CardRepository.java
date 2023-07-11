@@ -8,7 +8,7 @@ import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.card.MSRCard;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.ui.transaction.CardViewModel;
+import com.example.application_template_jmvvm.ui.sale.CardViewModel;
 import com.google.gson.Gson;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
@@ -34,7 +34,7 @@ public class CardRepository implements CardServiceListener{
         return cardServiceBinding;
     }
 
-    public void cardServiceBinder(MainActivity mainActivity){
+    public void cardServiceBinder(MainActivity mainActivity) {
         this.cardServiceBinding = new CardServiceBinding(mainActivity, cardServiceListener);
     }
 
@@ -47,7 +47,7 @@ public class CardRepository implements CardServiceListener{
             obj.put("fallback", 1);
             obj.put("cardReadTypes", 6);
             obj.put("qrPay", 1);
-            this.amount = amount;   //TODO unbind nerede edilecek.
+            this.amount = amount;
             cardServiceBinding.getCard(amount, 30, obj.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -58,7 +58,7 @@ public class CardRepository implements CardServiceListener{
         Log.d("Card Data", cardData);
         try {
             JSONObject json = new JSONObject(cardData);
-            int type = json.getInt("mCardReadType");
+            int type = json.getInt("mCardReadType");        //TODO: resultCode
             if (type == CardReadType.QrPay.value) {
                 ContentValues values = new ContentValues();
                 values.put(TransactionCols.col_bCardReadType, type);
@@ -78,7 +78,7 @@ public class CardRepository implements CardServiceListener{
                 cardServiceBinding.getOnlinePIN(amount, card.getCardNumber(), 0x0A01, 0, 4, 8, 30);
             }
             cardViewModel.afterCardDataReceived(card);  //TODO livedata ile yukarıya ?
-        } catch (Exception e) {
+        } catch (Exception e) {         //TODO: handle
             e.printStackTrace();
         }
     }

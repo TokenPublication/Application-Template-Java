@@ -14,11 +14,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.example.application_template_jmvvm.domain.printHelpers.PrintHelper;
-import com.example.application_template_jmvvm.domain.printHelpers.StringHelper;
+import com.example.application_template_jmvvm.utils.printHelpers.PrintHelper;
+import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.ui.utils.MenuItem;
+import com.example.application_template_jmvvm.utils.objects.MenuItem;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 import com.token.uicomponents.ListMenuFragment.MenuItemClickListener;
@@ -35,7 +35,6 @@ public class ExampleFragment extends Fragment {
     List<IListMenuItem> menuItems = new ArrayList<>();
     private ExampleViewModel mViewModel;
     private MainActivity mainActivity;
-
     protected int qrAmount = 100;
     protected String qrString = "QR Code Test";
 
@@ -63,7 +62,6 @@ public class ExampleFragment extends Fragment {
             Toast.makeText(this.mainActivity,"Sub Menu 1", Toast.LENGTH_LONG).show();
 
         }, null));
-
         subList1.add(new MenuItem("Menu Item 2", (menuItem) -> {
 
             Toast.makeText(this.mainActivity,"Sub Menu 2", Toast.LENGTH_LONG).show();
@@ -76,7 +74,6 @@ public class ExampleFragment extends Fragment {
         }, null));
 
         menuItems.add(new MenuItem("Sub Menu", subList1, null));
-
 
         menuItems.add(new MenuItem("Custom Input List", (MenuItemClickListener<MenuItem>) menuItem -> {
             CustomInputListFragment CustomInputListFragment = new CustomInputListFragment(this.mainActivity);
@@ -175,7 +172,7 @@ public class ExampleFragment extends Fragment {
         menuItems.add(new MenuItem("Print Functions", subListPrint, null));
 
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.examples), true, R.drawable.token_logo_png);
-        mViewModel.replaceFragment(mainActivity,mListMenuFragment,false);
+        mViewModel.replaceFragment(mainActivity, mListMenuFragment, false);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.ui.posTxn;
+package com.example.application_template_jmvvm.ui.posTxn.batch;
 
 import android.content.Intent;
 import android.os.Handler;
@@ -12,11 +12,10 @@ import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.code.BatchResult;
 import com.example.application_template_jmvvm.data.model.response.BatchCloseResponse;
-import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
 import com.example.application_template_jmvvm.data.repository.TransactionRepository;
-import com.example.application_template_jmvvm.domain.printHelpers.BatchClosePrintHelper;
+import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
 import com.token.uicomponents.infodialog.InfoDialog;
 
 import java.text.SimpleDateFormat;
@@ -35,7 +34,7 @@ public class BatchViewModel extends ViewModel {
 
     public BatchRepository batchRepository;
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
-    private MutableLiveData<String> showDialogLiveData = new MutableLiveData<>();
+    private MutableLiveData<InfoDialogData> infoDialogLiveData = new MutableLiveData<>();
 
     @Inject
     public BatchViewModel(BatchRepository batchRepository) {
@@ -45,7 +44,7 @@ public class BatchViewModel extends ViewModel {
     public void BatchCloseRoutine(MainActivity mainActivity, ActivationRepository activationRepository,
                                   TransactionRepository transactionRepository) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
-        setShowDialogLiveData("Progress");
+        setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, "Progress"));
         Observable<Boolean> observable = Observable.just(true)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io());
@@ -68,7 +67,7 @@ public class BatchViewModel extends ViewModel {
                     mainHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            setShowDialogLiveData(progressText);
+                            setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, progressText));
                         }
                     });
                 }
@@ -116,12 +115,12 @@ public class BatchViewModel extends ViewModel {
         intentLiveData.postValue(intent);
     }
 
-    public MutableLiveData<String> getShowDialogLiveData() {
-        return showDialogLiveData;
+    public MutableLiveData<InfoDialogData> getInfoDialogLiveData() {
+        return infoDialogLiveData;
     }
 
-    public void setShowDialogLiveData(String text) {
-        showDialogLiveData.postValue(text);
+    public void setInfoDialogLiveData(InfoDialogData infoDialogData) {
+        infoDialogLiveData.postValue(infoDialogData);
     }
 
     public int getBatchNo() {

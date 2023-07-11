@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.ui.di;
+package com.example.application_template_jmvvm.di;
 
 import android.app.Application;
 

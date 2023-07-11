@@ -10,10 +10,12 @@ import com.example.application_template_jmvvm.data.database.batch.BatchDao;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.code.BatchResult;
 import com.example.application_template_jmvvm.data.model.response.BatchCloseResponse;
-import com.example.application_template_jmvvm.domain.printHelpers.BatchClosePrintHelper;
-import com.example.application_template_jmvvm.ui.posTxn.BatchViewModel;
+import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
+import com.example.application_template_jmvvm.utils.printHelpers.BatchClosePrintHelper;
+import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.token.printerlib.PrinterService;
 import com.token.printerlib.StyledString;
+import com.token.uicomponents.infodialog.InfoDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -22,24 +24,15 @@ import javax.inject.Inject;
 
 public class BatchRepository {
     private BatchDao batchDao;
-    private int groupSN;
-    private int batchNo;
-    private String previousBatchSlip;
-    private List<BatchDB> allBatch;
 
     @Inject
     public BatchRepository(BatchDao batchDao) {
         this.batchDao = batchDao;
-        groupSN = batchDao.getGUPSN();
-        batchNo = batchDao.getBatchNo();
-        previousBatchSlip = batchDao.getBatchPreviousSlip();
-        allBatch = batchDao.getAllBatch();
         initializeBatch();
     }
 
     private void initializeBatch() {
-        // Check if the initial row exists
-        if (allBatch.isEmpty()) {
+        if (batchDao.getAllBatch().isEmpty()) {
             BatchDB batch = new BatchDB();
             batch.setCol_ulGUP_SN(1);
             batch.setCol_batchNo(1);
@@ -53,8 +46,8 @@ public class BatchRepository {
     }
 
     public BatchCloseResponse prepareResponse(BatchViewModel batchViewModel, BatchResult batchResult, SimpleDateFormat date) {
-        if (batchResult == BatchResult.SUCCESS) {
-            batchViewModel.setShowDialogLiveData("Confirmed");
+        if (batchResult == BatchResult.SUCCESS) {   //Dummy response, always success
+            batchViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, "GRUP KAPAMA BAŞARILI"));
         }
         return new BatchCloseResponse(batchResult, date);
     }
@@ -85,11 +78,11 @@ public class BatchRepository {
     }
 
     public String getPreviousBatchSlip() {
-        return previousBatchSlip;
+        return batchDao.getBatchPreviousSlip();
     }
 
     public List<BatchDB> getAllBatch() {
-        return allBatch;
+        return batchDao.getAllBatch();
     }
 
     public void updateBatchNo() {
