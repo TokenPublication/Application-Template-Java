@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -85,10 +86,26 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
         rvTransactions.setLayoutManager(new LinearLayoutManager(mainActivity));
     }
 
-    public void startVoid(TransactionEntity transactionEntity) {
+    public void gibVoid(LifecycleOwner lifecycleOwner, String refNo) {
+        cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
+            infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                List<TransactionEntity> transactionList = transactionViewModel.getTransactionRepository().getTransactionsByRefNo(refNo);
+                TransactionEntity transaction = transactionList.get(0);
+                if (transaction != null) {
+                    if (Objects.equals(card.getCardNumber(), transaction.getBaPAN())) {
+                        startVoid(lifecycleOwner, transaction);
+                    }
+                }
+                infoDialog.dismiss();
+            }, 2000);
+        });
+    }
+
+    public void startVoid(LifecycleOwner lifecycleOwner, TransactionEntity transactionEntity) {
         transactionViewModel.TransactionRoutine(null, null, mainActivity, transactionEntity, null, TransactionCode.VOID,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
-        transactionViewModel.getInfoDialogLiveData().observe(getViewLifecycleOwner(), infoDialogData -> {
+        transactionViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), "Progress")) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
             } else {
@@ -98,7 +115,7 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
                 }
             }
         });
-        transactionViewModel.getIntentLiveData().observe(getViewLifecycleOwner(), resultIntent -> {
+        transactionViewModel.getIntentLiveData().observe(lifecycleOwner, resultIntent -> {
             mainActivity.setResult(Activity.RESULT_OK,resultIntent);
             mainActivity.finish();
         });
@@ -109,4 +126,5 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
 
     @Override
     public void canceled(int i) {}
+
 }

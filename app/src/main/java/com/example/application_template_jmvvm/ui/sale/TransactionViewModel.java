@@ -24,6 +24,8 @@ import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
 import com.token.uicomponents.infodialog.InfoDialog;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.Observable;
@@ -103,7 +105,8 @@ public class TransactionViewModel extends ViewModel {
             batchRepository.updateGUPSN();
         }
         else {
-            transactionRepository.setVoid(transactionEntity.getUlGUP_SN(), transactionEntity.getBaDate(), transactionEntity.getSID());
+            String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss").format(new Date());
+            transactionRepository.setVoid(transactionEntity.getUlGUP_SN(), date, transactionEntity.getSID());
         }
         return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
     }
