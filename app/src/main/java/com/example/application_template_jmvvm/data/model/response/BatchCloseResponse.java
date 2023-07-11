@@ -8,8 +8,6 @@ public class BatchCloseResponse {
     private BatchResult batchResult;
     private SimpleDateFormat date;
 
-    public BatchCloseResponse(){}
-
     public BatchCloseResponse(BatchResult batchResult, SimpleDateFormat date) {
         this.batchResult = batchResult;
         this.date = date;

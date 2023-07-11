@@ -10,6 +10,7 @@ import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
+import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.type.PaymentTypes;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
@@ -28,6 +29,7 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import javax.inject.Inject;
 
@@ -81,7 +83,7 @@ public class TransactionRepository {
         onlineTransactionResponse.setmRefNo(String.valueOf((long) (Math.random() * 900000000) + (1000000000L * (int) (Math.random() * 9) + 1)));
         onlineTransactionResponse.setmDisplayData("Display Data");
         onlineTransactionResponse.setmKeySequenceNumber("3");
-        onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
         if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS) { //Dummy Response, always success
             transactionViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, "ONAY KODU: " + onlineTransactionResponse.getmAuthCode())); //TODO liveData SORULACAK.
         }
@@ -98,12 +100,12 @@ public class TransactionRepository {
         transactionEntity.setBaPAN(card.getmCardNumber());
         transactionEntity.setBaExpDate(card.getmExpireDate());
         transactionEntity.setBaCustomName(card.getmTrack1CustomerName());
-        if (card.getmCardReadType() != 1) {
+        if (card.getmCardReadType() != CardReadType.ICC.getType() && card.getmCardReadType() != CardReadType.QrPay.getType()) {
             transactionEntity.setBaDate(card.getDateTime().substring(0, 8));
             transactionEntity.setBaTime(card.getDateTime().substring(8));
             transactionEntity.setBaTranDate(card.getDateTime());
         } else {
-            transactionEntity.setBaTranDate(new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss").format(new Date()));
+            transactionEntity.setBaTranDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date()));
         }
         transactionEntity.setBaTrack2(card.getmTrack2Data());
         transactionEntity.setBaRspCode(onlineTransactionResponse.getmResponseCode().toString());
@@ -161,7 +163,11 @@ public class TransactionRepository {
         bundle.putInt("PaymentStatus", 0); // #2 Payment Status
         bundle.putInt("Amount", amount); // #3 Amount
         bundle.putInt("BatchNo", transactionEntity.getBatchNo());
-        bundle.putString("CardNo", StringHelper.MaskTheCardNo(transactionEntity.getBaPAN())); //#5 Card No "MASKED"
+        if (transactionEntity.getbCardReadType() != CardReadType.QrPay.getType()) {
+            bundle.putString("CardNo", StringHelper.MaskTheCardNo(transactionEntity.getBaPAN())); //#5 Card No "MASKED"
+        } else {
+            cardNo = "5209305830592013";  //Dummy for QR sale
+        }
         bundle.putString("MID", activationRepository.getMerchantId()); //#6 Merchant ID
         bundle.putString("TID", activationRepository.getTerminalId()); //#7 Terminal ID
         bundle.putInt("TxnNo", transactionEntity.getUlGUP_SN());

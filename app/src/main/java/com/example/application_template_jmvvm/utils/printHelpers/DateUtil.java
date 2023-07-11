@@ -27,7 +27,7 @@ public class DateUtil {
             return false;
         }
         String date = getFormattedDate(dateText);
-        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyy");
+        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyy", Locale.getDefault());
         return sdf.format(Calendar.getInstance().getTime()).equals(date);
     }
 }

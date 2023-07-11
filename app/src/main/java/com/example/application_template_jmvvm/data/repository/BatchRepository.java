@@ -40,9 +40,9 @@ public class BatchRepository {
         }
     }
 
-    public String prepareSlip(ActivationRepository activationRepository, BatchRepository batchRepository, List<TransactionEntity> transactionList) {
+    public String prepareSlip(MainActivity mainActivity, ActivationRepository activationRepository, BatchRepository batchRepository, List<TransactionEntity> transactionList) {
         BatchClosePrintHelper batchClosePrintHelper = new BatchClosePrintHelper();
-        return batchClosePrintHelper.batchText(String.valueOf(batchRepository.getBatchNo()), activationRepository, transactionList, true);
+        return batchClosePrintHelper.batchText(mainActivity, String.valueOf(batchRepository.getBatchNo()), activationRepository, transactionList, true);
     }
 
     public BatchCloseResponse prepareResponse(BatchViewModel batchViewModel, BatchResult batchResult, SimpleDateFormat date) {

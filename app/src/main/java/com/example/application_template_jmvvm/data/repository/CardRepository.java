@@ -1,9 +1,7 @@
 package com.example.application_template_jmvvm.data.repository;
 
-import android.content.ContentValues;
 import android.util.Log;
 
-import com.example.application_template_jmvvm.data.database.transaction.TransactionCols;
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
@@ -23,12 +21,10 @@ public class CardRepository implements CardServiceListener {
         void afterCardDataReceived(ICCCard card);
         void afterCardServiceConnected(Boolean isConnected);
         void setCallBackMessage(CardServiceResult cardServiceResult);
-        void afterQrDataReceived(ContentValues contentValues);
     }
 
     private RepositoryCallback repositoryCallback;
     private ICCCard card;
-    private MSRCard msrCard;
     private CardServiceBinding cardServiceBinding;
     private CardServiceListener cardServiceListener;
     private int amount;
@@ -102,11 +98,7 @@ public class CardRepository implements CardServiceListener {
             if (resultCode == CardServiceResult.SUCCESS.resultCode()) {
                 int type = json.getInt("mCardReadType");
                 if (type == CardReadType.QrPay.value) {
-                    ContentValues values = new ContentValues();
-                    values.put(TransactionCols.col_bCardReadType, type);
-                    values.put(TransactionCols.col_ulAmount, json.getInt("mTranAmount1"));
-                    repositoryCallback.afterQrDataReceived(values);
-                    return;
+                    this.card = new Gson().fromJson(cardData, ICCCard.class);
                 }
                 if (type == CardReadType.CLCard.value) {
                     this.card = new Gson().fromJson(cardData, ICCCard.class);
@@ -114,7 +106,6 @@ public class CardRepository implements CardServiceListener {
                     this.card = new Gson().fromJson(cardData, ICCCard.class);
                 } else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
                     MSRCard card = new Gson().fromJson(cardData, MSRCard.class);
-                    this.msrCard = card;
                     cardServiceBinding.getOnlinePIN(amount, card.getCardNumber(), 0x0A01, 0, 4, 8, 30);
                 }
                 cardServiceBinding.unBind();

@@ -1,11 +1,8 @@
 package com.example.application_template_jmvvm.utils.printHelpers;
 
-import java.util.Locale;
-
 public class StringHelper {
 
     public static String getAmount(int amount) {
-        String Lang = Locale.getDefault().getDisplayLanguage();
         String currency;
 
         currency = "₺";

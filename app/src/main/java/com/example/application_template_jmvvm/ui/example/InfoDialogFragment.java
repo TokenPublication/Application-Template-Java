@@ -82,7 +82,7 @@ public class InfoDialogFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        MenuItemClickListener listener = (MenuItemClickListener<InfoDialogItem>) item -> showPopup(item);
+        MenuItemClickListener listener = (MenuItemClickListener<InfoDialogItem>) this::showPopup;
 
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Confirmed, "Confirmed", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Warning, "Warning", listener, null));
@@ -96,8 +96,8 @@ public class InfoDialogFragment extends Fragment {
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Progress, "Progress", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.None, "None", listener, null));
 
-        ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems,"Info Dialog" , true, R.drawable.token_logo_png);
-        mainActivity.replaceFragment(R.id.container,mListMenuFragment,false);
+        ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, "Info Dialog" , true, R.drawable.token_logo_png);
+        mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);
     }
 
     private void showPopup(InfoDialogItem item) {

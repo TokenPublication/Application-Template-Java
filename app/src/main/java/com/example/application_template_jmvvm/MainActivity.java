@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -30,8 +31,6 @@ import com.example.application_template_jmvvm.ui.sale.SaleFragment;
 import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
-import com.tokeninc.cardservicebinding.CardServiceBinding;
-import com.tokeninc.deviceinfo.DeviceInfo;
 
 import org.json.JSONObject;
 
@@ -48,7 +47,6 @@ import dagger.hilt.android.AndroidEntryPoint;
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity implements InfoDialogListener {
 
-    public CardServiceBinding cardServiceBinding;
     private FragmentManager fragmentManager;
     public ActivationViewModel activationViewModel;
     private CardViewModel cardViewModel;
@@ -79,17 +77,29 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     */
     private void buildConfigs() {
         if (BuildConfig.FLAVOR.equals("TR1000")) {
-            Log.v("TR1000 APP","Application Template for 1000TR");
+            Log.v("TR1000 APP", "Application Template for 1000TR");
         }
-        if(BuildConfig.FLAVOR.equals("TR400")) {
-            Log.v("TR400 APP","Application Template for  400TR");
+        if (BuildConfig.FLAVOR.equals("TR400")) {
+            Log.v("TR400 APP", "Application Template for  400TR");
         }
     }
 
     private void actionControl(@Nullable String action) {
-        Log.d("egecan", action);
         if (Objects.equals(action, getString(R.string.Sale_Action))) {
             saleActionReceived();
+        }
+
+        else if (Objects.equals(action, getString(R.string.BatchClose_Action))) {
+            if (transactionViewModel.isTransactionListEmpty()) {
+                showInfoDialog(InfoDialog.InfoType.Warning, "No Transaction", false);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    setResult(Activity.RESULT_CANCELED);
+                    callbackMessage(CardServiceResult.ERROR);
+                }, 2000);
+            } else {
+                PosTxnFragment posTxnFragment = new PosTxnFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
+                posTxnFragment.batchClose(this);
+            }
         }
 
         else if (Objects.equals(action, getString(R.string.PosTxn_Action))) {
@@ -140,9 +150,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     cardViewModel.readCard(amount);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        infoDialog.dismiss();
-                    },1000);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> infoDialog.dismiss(),1000);
                     cardViewModel.getCardServiceResultLiveData().observe(lifecycleOwner, this::callbackMessage);
                 }, 2000);
             }
@@ -181,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 String refundData = new JSONObject(getIntent().getExtras().getString("RefundInfo")).toString();
                 String refNo = new JSONObject(refundData).getString("RefNo");
                 int amount = Integer.parseInt(new JSONObject(refundData).getString("Amount"));
-                String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss").format(new Date());
+                String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
                 if (new JSONObject(refundData).getInt("BatchNo") == batchViewModel.getBatchNo()) { //void
                     readCard(this, 0);
                     VoidFragment voidFragment = new VoidFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
@@ -278,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 Log.d("emv_config", "conf line: " + line);
                 totalCL.append(line).append('\n');
             }
-            int setCLConfigResult = cardServiceBinding.setEMVCLConfiguration(totalCL.toString());
+            int setCLConfigResult = cardViewModel.getCardServiceBinding().setEMVCLConfiguration(totalCL.toString());
             Toast.makeText(getApplicationContext(), "setEMVCLConfiguration res=" + setCLConfigResult, Toast.LENGTH_SHORT).show();
             Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
         } catch (Exception e) {

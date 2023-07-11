@@ -1,6 +1,9 @@
 package com.example.application_template_jmvvm.utils.printHelpers;
 
+import android.content.Context;
+
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.StyledString;
@@ -10,7 +13,7 @@ import java.util.List;
 
 public class BatchClosePrintHelper extends BasePrintHelper {
 
-    public String batchText(String batch_no, ActivationRepository activationRepository, List<TransactionEntity> transactions, boolean isCopy) {
+    public String batchText(Context context, String batch_no, ActivationRepository activationRepository, List<TransactionEntity> transactions, boolean isCopy) {
         StyledString styledText = new StyledString();
         PrintHelper printHelper = new PrintHelper();
         int totalAmount = 0;
@@ -61,8 +64,13 @@ public class BatchClosePrintHelper extends BasePrintHelper {
             }
 
             addText(styledText, transactionType + transaction.getUlGUP_SN(), PrinterDefinitions.Alignment.Right);
-            addTextToNewLine(styledText, StringHelper.MaskTheCardNo(transaction.getBaPAN()), PrinterDefinitions.Alignment.Left);
-            addText(styledText, transaction.getBaExpDate(), PrinterDefinitions.Alignment.Right);
+            if (transaction.getbCardReadType() != CardReadType.QrPay.getType()) {
+                addTextToNewLine(styledText, StringHelper.MaskTheCardNo(transaction.getBaPAN()), PrinterDefinitions.Alignment.Left);
+                addText(styledText, transaction.getBaExpDate(), PrinterDefinitions.Alignment.Right);
+            } else {
+                addTextToNewLine(styledText, StringHelper.MaskTheCardNo("5209305830592013"), PrinterDefinitions.Alignment.Left);
+                addText(styledText, "290925", PrinterDefinitions.Alignment.Right);
+            }
             addTextToNewLine(styledText, transaction.getRefNo(), PrinterDefinitions.Alignment.Left);
 
             int amount = transaction.getUlAmount();
@@ -78,14 +86,14 @@ public class BatchClosePrintHelper extends BasePrintHelper {
         styledText.newLine();
         addTextToNewLine(styledText, "===========================", PrinterDefinitions.Alignment.Center);
         styledText.newLine();
-        styledText.printBitmap("ykb", 20);
+        styledText.printLogo(context);
         styledText.addSpace(50);
 
         printHelper.PrintBatchClose(styledText, batch_no, String.valueOf(transactions.size()), totalAmount, MID, TID);
 
         addTextToNewLine(styledText, "BU BELGEYİ SAKLAYINIZ", PrinterDefinitions.Alignment.Center, 8);
         styledText.newLine();
-        styledText.printBitmap("ykb", 20);
+        styledText.printLogo(context);
         styledText.addSpace(50);
 
         return styledText.toString();

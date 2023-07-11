@@ -5,6 +5,7 @@ import android.content.Context;
 import com.example.application_template_jmvvm.AppTemp;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
+import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.utils.objects.SampleReceipt;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.token.printerlib.PrinterDefinitions;
@@ -115,8 +116,10 @@ public class SalePrintHelper extends BasePrintHelper{
         if (transactionCode == TransactionCode.MATCHED_REFUND || transactionCode == TransactionCode.INSTALLMENT_REFUND || transactionCode == TransactionCode.CASH_REFUND) {
             styledText.addTextToLine(StringHelper.getAmount(transactionEntity.getUlAmount2()), PrinterDefinitions.Alignment.Right);
         }
-        else {
+        else if (transactionEntity != null) {
             styledText.addTextToLine(StringHelper.getAmount(transactionEntity.getUlAmount()), PrinterDefinitions.Alignment.Right);
+        } else {
+            styledText.addTextToLine(receipt.getAmount(), PrinterDefinitions.Alignment.Right);
         }
 
         styledText.setLineSpacing(0.5f);
@@ -162,11 +165,16 @@ public class SalePrintHelper extends BasePrintHelper{
         if (transactionCode == TransactionCode.SALE) {
             if (slipType == SlipType.CARDHOLDER_SLIP) {
                 styledText.addTextToLine("KARŞILIĞI MAL/HİZM ALDIM", Alignment.Center);
-            }
-            else {
+            } else {
                 styledText.addTextToLine("İşlem Şifre Girilerek Yapılmıştır", Alignment.Center);
                 styledText.newLine();
                 styledText.addTextToLine("İMZAYA GEREK YOKTUR", Alignment.Center);
+            }
+            if (transactionEntity != null && transactionEntity.getbCardReadType() == CardReadType.QrPay.getType()) {
+                styledText.newLine();
+                styledText.addTextToLine("Bu işlem TR Karekod", Alignment.Center);
+                styledText.newLine();
+                styledText.addTextToLine("ile yapılmıştır", Alignment.Center);
             }
         }
 
@@ -188,11 +196,12 @@ public class SalePrintHelper extends BasePrintHelper{
         if (transactionEntity != null) {
             styledText.addTextToLine("GRUP NO:" + transactionEntity.getBatchNo());
             styledText.addTextToLine("REF NO: " + transactionEntity.getRefNo(), PrinterDefinitions.Alignment.Right);
-            styledText.newLine();
-            styledText.addTextToLine("AID: " + transactionEntity.getAid());
-            styledText.addTextToLine(transactionEntity.getAidLabel(), PrinterDefinitions.Alignment.Right);
-        }
-        else {
+            if (transactionEntity.getbCardReadType() != CardReadType.QrPay.getType()) {
+                styledText.newLine();
+                styledText.addTextToLine("AID: " + transactionEntity.getAid());
+                styledText.addTextToLine(transactionEntity.getAidLabel(), PrinterDefinitions.Alignment.Right);
+            }
+        } else {
             styledText.addTextToLine("GRUP NO:" + 3);
             styledText.addTextToLine("REF NO: " + ((int) (Math.random() * 90000000) + 10000000), Alignment.Right);
             styledText.newLine();

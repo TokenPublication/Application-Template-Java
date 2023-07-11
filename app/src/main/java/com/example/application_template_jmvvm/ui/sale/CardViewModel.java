@@ -1,6 +1,5 @@
 package com.example.application_template_jmvvm.ui.sale;
 
-import android.content.ContentValues;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -22,7 +21,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 public class CardViewModel extends ViewModel implements CardRepository.RepositoryCallback {
     private CardRepository cardRepository;
     private MutableLiveData<ICCCard> cardLiveData = new MutableLiveData<>();
-    private MutableLiveData<ContentValues> qrLiveData = new MutableLiveData<>();
     private MutableLiveData<Boolean> isCardServiceConnect = new MutableLiveData<>(false);
     private MutableLiveData<CardServiceResult> cardServiceResultLiveData = new MutableLiveData<>();
 
@@ -65,15 +63,6 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
 
     public LiveData<ICCCard> getCardLiveData() {
         return cardLiveData;
-    }
-
-    @Override
-    public void afterQrDataReceived(ContentValues contentValues) {
-        qrLiveData.postValue(contentValues);
-    }
-
-    public MutableLiveData<ContentValues> getQrLiveData() {
-        return qrLiveData;
     }
 
     public CardServiceBinding getCardServiceBinding() {
