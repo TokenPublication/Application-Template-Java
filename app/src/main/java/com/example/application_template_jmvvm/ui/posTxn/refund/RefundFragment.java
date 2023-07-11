@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LifecycleOwner;
 
 import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
@@ -186,19 +187,22 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         mainActivity.readCard(fragment.getViewLifecycleOwner(), amount);
         cardViewModel.getCardLiveData().observe(fragment.getViewLifecycleOwner(), card -> {
             mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-            new Handler(Looper.getMainLooper()).postDelayed(() ->
-                    doRefund(card, transactionCode, inputList, fragment), 2000);
+            Bundle refundInfo = bundleCreator(transactionCode, inputList);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> doRefund(card, transactionCode, refundInfo, fragment.getViewLifecycleOwner()), 2000);
         });
     }
 
-    public void gibRefund(Bundle refundBundle) {
+    public void gibRefund(Bundle refundInfo) {
+        cardViewModel.getCardLiveData().observe(mainActivity, card -> {
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> doRefund(card, TransactionCode.MATCHED_REFUND, refundInfo, mainActivity), 2000);
+        });
     }
 
-    public void doRefund(ICCCard card, TransactionCode transactionCode, List<CustomInputFormat> inputList, Fragment fragment) {
-        Bundle refundInfo = bundleCreator(transactionCode, inputList);
+    public void doRefund(ICCCard card, TransactionCode transactionCode, Bundle refundInfo, LifecycleOwner lifecycleOwner) {
         transactionViewModel.TransactionRoutine(card, null, mainActivity, null, refundInfo, transactionCode,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
-        transactionViewModel.getInfoDialogLiveData().observe(fragment.getViewLifecycleOwner(), infoDialogData -> {
+        transactionViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), "Progress")) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
             } else {
@@ -208,7 +212,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
                 }
             }
         });
-        transactionViewModel.getIntentLiveData().observe(fragment.getViewLifecycleOwner(), resultIntent -> {
+        transactionViewModel.getIntentLiveData().observe(lifecycleOwner, resultIntent -> {
             mainActivity.setResult(Activity.RESULT_OK,resultIntent);
             mainActivity.finish();
         });

@@ -39,6 +39,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -179,14 +180,19 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             try {
                 String refundData = new JSONObject(getIntent().getExtras().getString("RefundInfo")).toString();
                 String refNo = new JSONObject(refundData).getString("RefNo");
+                int amount = Integer.parseInt(new JSONObject(refundData).getString("Amount"));
+                String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss").format(new Date());
                 if (new JSONObject(refundData).getInt("BatchNo") == batchViewModel.getBatchNo()) { //void
                     readCard(this, 0);
                     VoidFragment voidFragment = new VoidFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
-                    voidFragment.gibVoid(this, refNo);
+                    voidFragment.gibVoid(refNo);
                 } else {
                     Bundle refundBundle = new Bundle();
-                    refundBundle.putString("RefundInfo", refundData);
-                    int amount = Integer.parseInt(new JSONObject(refundData).getString("Amount"));
+                    refundBundle.putInt(ExtraContentInfo.orgAmount, amount);
+                    refundBundle.putInt(ExtraContentInfo.refAmount, amount);
+                    refundBundle.putString(ExtraContentInfo.refNo, refNo);
+                    refundBundle.putString(ExtraContentInfo.authCode, new JSONObject(refundData).getString("AuthCode"));
+                    refundBundle.putString(ExtraContentInfo.tranDate, date);
                     readCard(this, amount);
                     RefundFragment refundFragment = new RefundFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
                     refundFragment.gibRefund(refundBundle);
