@@ -1,6 +1,7 @@
 package com.example.application_template_jmvvm.ui.sale;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.type.PaymentTypes;
@@ -29,6 +31,7 @@ import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
+import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 
@@ -39,8 +42,6 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     int amount;
     View view;
     String uuid;
-    private Bundle bundle;
-    private Intent intent;
     private ActivationViewModel activationViewModel;
     private TransactionViewModel transactionViewModel;
     private BatchViewModel batchViewModel;
@@ -60,8 +61,8 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        intent = mainActivity.getIntent();
-        bundle = intent.getExtras();
+        Intent intent = mainActivity.getIntent();
+        Bundle bundle = intent.getExtras();
         amount = bundle.getInt("Amount");
         uuid = intent.getExtras().getString("UUID");
     }
@@ -69,64 +70,25 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        view.findViewById(R.id.btnSale).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mainActivity.readCard(getViewLifecycleOwner(), amount);
-
-                cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
-                    if (card != null) {
-                        infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            doSale(card);
-                            infoDialog.dismiss();
-                        }, 2000);
-                    }
-                });
-            }
+        view.findViewById(R.id.btnSale).setOnClickListener(v -> {
+            mainActivity.readCard(getViewLifecycleOwner(), amount);
+            cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
+                mainActivity.getInfoDialog().update(InfoDialog.InfoType.Confirmed, "Read Successful");
+                new Handler(Looper.getMainLooper()).postDelayed(() -> doSale(card), 2000);
+            });
+            cardViewModel.getQrLiveData().observe(getViewLifecycleOwner(), qrData -> {
+                mainActivity.getInfoDialog().update(InfoDialog.InfoType.Confirmed, "Read Successful");
+                new Handler(Looper.getMainLooper()).postDelayed(() -> QrSale(qrData), 2000);
+            });
         });
 
-        view.findViewById(R.id.btnSuccess).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                prepareDummyResponse(ResponseCode.SUCCESS);
-            }
-        });
+        view.findViewById(R.id.btnSuccess).setOnClickListener(v -> prepareDummyResponse(ResponseCode.SUCCESS));
+        view.findViewById(R.id.btnError).setOnClickListener(v -> prepareDummyResponse(ResponseCode.ERROR));
+        view.findViewById(R.id.btnCancel).setOnClickListener(v -> prepareDummyResponse(ResponseCode.CANCELLED));
+        view.findViewById(R.id.btnOffline_decline).setOnClickListener(v -> prepareDummyResponse(ResponseCode.OFFLINE_DECLINE));
+        view.findViewById(R.id.btnUnable_decline).setOnClickListener(v -> prepareDummyResponse(ResponseCode.UNABLE_DECLINE));
+        view.findViewById(R.id.btnOnline_decline).setOnClickListener(v -> prepareDummyResponse(ResponseCode.ONLINE_DECLINE));
 
-        view.findViewById(R.id.btnError).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                prepareDummyResponse(ResponseCode.ERROR);
-            }
-        });
-
-        view.findViewById(R.id.btnCancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                prepareDummyResponse(ResponseCode.CANCELLED);
-            }
-        });
-
-        view.findViewById(R.id.btnOffline_decline).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                prepareDummyResponse(ResponseCode.OFFLINE_DECLINE);
-            }
-        });
-
-        view.findViewById(R.id.btnUnable_decline).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                prepareDummyResponse(ResponseCode.UNABLE_DECLINE);
-            }
-        });
-
-        view.findViewById(R.id.btnOnline_decline).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                prepareDummyResponse(ResponseCode.ONLINE_DECLINE);
-            }
-        });
         prepareSpinner(view);
     }
 
@@ -199,7 +161,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
 
     public void onSaleResponseRetrieved(Integer price, ResponseCode code, Boolean hasSlip, SlipType slipType, String cardNo, String ownerName, int paymentType) {
         transactionViewModel.prepareDummyResponse(activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(),
-                                                mainActivity, this, price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
+                                                mainActivity, price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
         transactionViewModel.getIntentLiveData().observe(getViewLifecycleOwner(), resultIntent -> {
             if (code == ResponseCode.SUCCESS) {
                 mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Success", false);
@@ -214,7 +176,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     }
 
     public void doSale(ICCCard card) {
-        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, this, null, null, TransactionCode.SALE,
+        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, null, null, TransactionCode.SALE,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
         transactionViewModel.getInfoDialogLiveData().observe(getViewLifecycleOwner(), infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), "Progress")) {
@@ -233,29 +195,24 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     }
 
     @Override
-    public void confirmed(int i) {
-
-    }
+    public void confirmed(int i) {}
 
     @Override
-    public void canceled(int i) {
+    public void canceled(int i) {}
 
-    }
-
-    /*public void QrSale(CardServiceBinding cardServiceBinding) {
-        InfoDialog dialog = main.showInfoDialog(InfoDialog.InfoType.Progress, "Please Wait", true);
+    public void QrSale(ContentValues contentValues) {
+        InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, "Please Wait", true);
         // Request to Show a QR Code ->
         cardViewModel.getCardServiceBinding().showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(amount), "QR Code Test"); // Shows QR on the back screen
         dialog.setQr("QR Code Test", "Waiting For the QR Code to Read"); // Shows the same QR on Info Dialog
-        ContentValues contentValues =
         // Request a QR Response ->
-        if (QRisSuccess) {
+        if (true) {
             // Dummy Response
             new Handler().postDelayed(() -> {
                 dialog.update(InfoDialog.InfoType.Confirmed,"QR " + getString(R.string.trans_successful));
                 new Handler().postDelayed(() -> {
                     dialog.dismiss();
-                    main.finish();
+                    mainActivity.finish();
                 }, 5000);
             }, 3000);
         }
@@ -263,9 +220,9 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
             dialog.update(InfoDialog.InfoType.Declined, "Error");
         }
         dialog.setDismissedListener(() -> {
-            // You can call your QR Payment Cancel method here
-            main.setResult(Activity.RESULT_CANCELED);
-            main.finish();
+            Toast.makeText(mainActivity, "Cancelled", Toast.LENGTH_LONG).show();
+            mainActivity.setResult(Activity.RESULT_CANCELED);
+            mainActivity.finish();
         });
-    }*/
+    }
 }

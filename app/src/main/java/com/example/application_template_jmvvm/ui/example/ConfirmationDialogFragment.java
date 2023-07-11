@@ -23,7 +23,6 @@ import java.util.List;
 public class ConfirmationDialogFragment extends Fragment implements InfoDialogListener {
 
     List<IListMenuItem> menuItems = new ArrayList<>();
-
     private MainActivity mainActivity;
 
     public ConfirmationDialogFragment(MainActivity mainActivity) {
@@ -37,8 +36,7 @@ public class ConfirmationDialogFragment extends Fragment implements InfoDialogLi
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_confirmation_dialog, container, false);
-        return view;
+        return inflater.inflate(R.layout.fragment_confirmation_dialog, container, false);
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -78,7 +76,7 @@ public class ConfirmationDialogFragment extends Fragment implements InfoDialogLi
                 mainActivity.showConfirmationDialog(InfoDialog.InfoType.None,"None", "Confirmation: None", InfoDialog.InfoDialogButtons.Both, 89, this)));
 
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, "Confirmation Dialog", true, R.drawable.token_logo_png);
-        mainActivity.replaceFragment(R.id.container,mListMenuFragment,false);
+        mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);
     }
 
     public void confirmed(int arg) {

@@ -16,6 +16,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
@@ -49,17 +50,8 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        /*
-        Firstly, added TR1000 and TR400 configurations to build.gradle file. After that,
-        related to Build Variant (400TRDebug or 1000TRDebug) the manifest file created with apk
-        and the appname in manifest file will be 1000TR or 400TR.
-        */
-        if (BuildConfig.FLAVOR.equals("TR1000")) {
-            Log.v("TR1000 APP","Application Template for 1000TR");
-        }
-        if(BuildConfig.FLAVOR.equals("TR400")) {
-            Log.v("TR400 APP","Application Template for  400TR");
-        }
+
+        buildConfigs();
         fragmentManager = getSupportFragmentManager();
 
         activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);
@@ -70,18 +62,32 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         actionControl(getIntent().getAction());
     }
 
-    private void actionControl(@Nullable String action){
-        if (Objects.equals(action, getString(R.string.Sale_Action))){
+    /**
+     * Firstly, added TR1000 and TR400 configurations to build.gradle file. After that,
+     * related to Build Variant (400TRDebug or 1000TRDebug) the manifest file created with apk
+     * and the appname in manifest file will be 1000TR or 400TR.
+    */
+    private void buildConfigs() {
+        if (BuildConfig.FLAVOR.equals("TR1000")) {
+            Log.v("TR1000 APP","Application Template for 1000TR");
+        }
+        if(BuildConfig.FLAVOR.equals("TR400")) {
+            Log.v("TR400 APP","Application Template for  400TR");
+        }
+    }
+
+    private void actionControl(@Nullable String action) {
+        if (Objects.equals(action, getString(R.string.Sale_Action))) {
             SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, saleTxnFragment, false);
         }
 
-        else if (Objects.equals(action, getString(R.string.PosTxn_Action))){
+        else if (Objects.equals(action, getString(R.string.PosTxn_Action))) {
             PosTxnFragment posTxnFragment = new PosTxnFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
 
-        else if (Objects.equals(action, getString(R.string.Settings_Action))){
+        else if (Objects.equals(action, getString(R.string.Settings_Action))) {
             SettingsFragment settingsFragment = new SettingsFragment(this, activationViewModel);
             replaceFragment(R.id.container, settingsFragment, false);
         }
@@ -119,10 +125,19 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 timer.cancel();
                 infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        cardViewModel.readCard(amount);
-                        infoDialog.dismiss();
-                    }, 1000);
+                    cardViewModel.readCard(amount);
+                    cardViewModel.getCardServiceResultLiveData().observe(lifecycleOwner, cardServiceResult -> {
+                        if (cardServiceResult.resultCode() == CardServiceResult.USER_CANCELLED.resultCode()) {
+                            Toast.makeText(this,"Cancelled", Toast.LENGTH_LONG).show();
+                        }
+                        if (cardServiceResult.resultCode() == CardServiceResult.ERROR_TIMEOUT.resultCode()) {
+                            Toast.makeText(this,"Error Timeout", Toast.LENGTH_LONG).show();
+                        }
+                        if (cardServiceResult.resultCode() == CardServiceResult.ERROR.resultCode()) {
+                            Toast.makeText(this,"Error", Toast.LENGTH_LONG).show();
+                        }
+                        finish();
+                    });
                 }, 2000);
             }
         });
@@ -138,6 +153,10 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         InfoDialog fragment = InfoDialog.newInstance(type, text, isCancelable);
         fragment.show(getSupportFragmentManager(), "");
         return fragment;
+    }
+
+    public InfoDialog getInfoDialog() {
+        return infoDialog;
     }
 
     public void replaceFragment(@IdRes Integer resourceId, Fragment fragment, Boolean addToBackStack) {
@@ -170,8 +189,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             int setConfigResult = cardServiceBinding.setEMVConfiguration(total.toString());
             Toast.makeText(getApplicationContext(), "setEMVConfiguration res=" + setConfigResult, Toast.LENGTH_SHORT).show();
             Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -188,19 +206,14 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             int setCLConfigResult = cardServiceBinding.setEMVCLConfiguration(totalCL.toString());
             Toast.makeText(getApplicationContext(), "setEMVCLConfiguration res=" + setCLConfigResult, Toast.LENGTH_SHORT).show();
             Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void confirmed(int i) {
-
-    }
+    public void confirmed(int i) {}
 
     @Override
-    public void canceled(int i) {
-
-    }
+    public void canceled(int i) {}
 }

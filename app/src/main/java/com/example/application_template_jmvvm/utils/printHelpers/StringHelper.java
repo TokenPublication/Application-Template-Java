@@ -19,8 +19,8 @@ public class StringHelper {
         return s1 + "," + s2 + currency;
     }
 
-    public static String GenerateApprovalCode(String BatchNo, String TransactionNo, String SaleID){
-        String approvalCode = "0";
+    public static String GenerateApprovalCode(String BatchNo, String TransactionNo, String SaleID) {
+        String approvalCode;
         approvalCode = BatchNo + TransactionNo + SaleID;
         return approvalCode;
     }

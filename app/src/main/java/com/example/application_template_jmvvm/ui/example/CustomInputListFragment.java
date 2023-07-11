@@ -15,14 +15,12 @@ import com.token.uicomponents.CustomInput.CustomInputFormat;
 import com.token.uicomponents.CustomInput.EditTextInputType;
 import com.token.uicomponents.CustomInput.InputListFragment;
 import com.token.uicomponents.CustomInput.InputValidator;
-import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CustomInputListFragment extends Fragment {
 
-    List<IListMenuItem> menuItems = new ArrayList<>();
     private MainActivity mainActivity;
 
     public CustomInputListFragment(MainActivity mainActivity) {
@@ -36,15 +34,13 @@ public class CustomInputListFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_custom_input_list, container, false);
-        return view;
+        return inflater.inflate(R.layout.fragment_custom_input_list, container, false);
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         InputValidator validator = input -> input.getText().length() == 19;
-
         InputValidator validator2 = input -> input.getText().length() == 10;
 
         List<CustomInputFormat> inputList = new ArrayList<>();

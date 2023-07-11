@@ -25,6 +25,7 @@ import com.example.application_template_jmvvm.ui.sale.CardViewModel;
 import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 import com.example.application_template_jmvvm.utils.objects.MenuItem;
 
+import com.example.application_template_jmvvm.utils.printHelpers.DateUtil;
 import com.token.uicomponents.CustomInput.CustomInputFormat;
 import com.token.uicomponents.CustomInput.EditTextInputType;
 import com.token.uicomponents.CustomInput.InputListFragment;
@@ -52,9 +53,6 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
     int instCount;
     private CustomInputFormat inputTranDate;
     private CustomInputFormat inputOrgAmount;
-    private CustomInputFormat inputRetAmount;
-    private CustomInputFormat inputRefNo;
-    private CustomInputFormat inputAuthCode;
     private MainActivity mainActivity;
     private InfoDialog infoDialog;
     private InputListFragment inputListFragment;
@@ -84,17 +82,11 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         super.onViewCreated(view, savedInstanceState);
     }
 
-    private void showMenu(){
+    private void showMenu() {
         List<IListMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(new MenuItem(getString(R.string.matched_refund), iListMenuItem -> {
-            showMatchedReturnFragment(TransactionCode.MATCHED_REFUND);
-        }));
-        menuItems.add(new MenuItem(getString(R.string.installment_refund), iListMenuItem -> {
-            showInstallmentRefundFragment();
-        }));
-        menuItems.add(new MenuItem(getString(R.string.cash_refund), iListMenuItem -> {
-            showReturnFragment();
-        }));
+        menuItems.add(new MenuItem(getString(R.string.matched_refund), iListMenuItem -> showMatchedReturnFragment(TransactionCode.MATCHED_REFUND)));
+        menuItems.add(new MenuItem(getString(R.string.installment_refund), iListMenuItem -> showInstallmentRefundFragment()));
+        menuItems.add(new MenuItem(getString(R.string.cash_refund), iListMenuItem -> showReturnFragment()));
         menuItems.add(new MenuItem(getString(R.string.loyalty_refund), iListMenuItem -> {       //TODO: Bakılacak.
 
         }));
@@ -111,7 +103,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
                 });
         inputList.add(inputOrgAmount);
 
-        inputRetAmount = new CustomInputFormat(getString(R.string.refund_amount), Amount, null, getString(R.string.invalid_amount),
+        CustomInputFormat inputRetAmount = new CustomInputFormat(getString(R.string.refund_amount), Amount, null, getString(R.string.invalid_amount),
                 input -> {
                     int amount = input.getText().isEmpty() ? 0 : Integer.parseInt(input.getText());
                     int original = inputOrgAmount.getText().isEmpty() ? 0 : Integer.parseInt(inputOrgAmount.getText());
@@ -119,13 +111,12 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
                 });
         inputList.add(inputRetAmount);
 
-        inputRefNo = new CustomInputFormat(getString(R.string.ref_no), EditTextInputType.Number, 10, getString(R.string.ref_no_invalid_ten_digits),
-                customInputFormat -> {
-                    return !isCurrentDay(inputTranDate.getText()) || isCurrentDay(inputTranDate.getText()) && customInputFormat.getText().length() == 10;
-                });
+        CustomInputFormat inputRefNo = new CustomInputFormat(getString(R.string.ref_no), EditTextInputType.Number, 10, getString(R.string.ref_no_invalid_ten_digits),
+                customInputFormat -> !DateUtil.isCurrentDay(inputTranDate.getText()) || DateUtil.isCurrentDay(inputTranDate.getText())
+                        && customInputFormat.getText().length() == 10);
         inputList.add(inputRefNo);
 
-        inputAuthCode = new CustomInputFormat(getString(R.string.confirmation_code), EditTextInputType.Number, 6, getString(R.string.confirmation_code_invalid_six_digits),
+        CustomInputFormat inputAuthCode = new CustomInputFormat(getString(R.string.confirmation_code), EditTextInputType.Number, 6, getString(R.string.confirmation_code_invalid_six_digits),
                 customInputFormat -> customInputFormat.getText().length() == 6);
         inputList.add(inputAuthCode);
 
@@ -137,8 +128,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
                         Date now = Calendar.getInstance().getTime();
                         SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd");
                         return Integer.parseInt(sdf.format(now)) >= Integer.parseInt(date);
-                    } catch (Exception e) {
-                    }
+                    } catch (Exception e) {}
                     return false;
                 }
         );
@@ -152,7 +142,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         mainActivity.replaceFragment(R.id.container, inputListFragment, true);
     }
 
-    private void showReturnFragment(){
+    private void showReturnFragment() {
         List<CustomInputFormat> inputList = new ArrayList<>();
         inputList.add(new CustomInputFormat(getString(R.string.refund_amount), Amount, null, getString(R.string.invalid_amount), input -> {
             int ListAmount = input.getText().isEmpty() ? 0 : Integer.parseInt(input.getText());
@@ -175,7 +165,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
 
     private void showInstallmentRefundFragment() {
         MenuItemClickListener<MenuItem> listener = menuItem -> {
-            String itemName = menuItem.getName().toString();
+            String itemName = menuItem.getName();
             String[] itemNameSplit = itemName.split(" ");
             instCount = Integer.parseInt(itemNameSplit[0]);
             showMatchedReturnFragment(TransactionCode.INSTALLMENT_REFUND);
@@ -194,21 +184,16 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
 
     private void cardReader(InputListFragment fragment, List<CustomInputFormat> inputList) {
         mainActivity.readCard(fragment.getViewLifecycleOwner(), amount);
-
         cardViewModel.getCardLiveData().observe(fragment.getViewLifecycleOwner(), card -> {
-            if (card != null) {
-                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    doRefund(card, transactionCode, inputList, fragment);
-                    infoDialog.dismiss();
-                    }, 2000);
-            }
+            mainActivity.getInfoDialog().update(InfoDialog.InfoType.Confirmed, "Read Successful");
+            new Handler(Looper.getMainLooper()).postDelayed(() ->
+                    doRefund(card, transactionCode, inputList, fragment), 2000);
         });
     }
 
     public void doRefund(ICCCard card, TransactionCode transactionCode, List<CustomInputFormat> inputList, Fragment fragment) {
         Bundle refundInfo = bundleCreator(transactionCode, inputList);
-        transactionViewModel.TransactionRoutine(card, null, mainActivity, this, null, refundInfo, transactionCode,
+        transactionViewModel.TransactionRoutine(card, null, mainActivity, null, refundInfo, transactionCode,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
         transactionViewModel.getInfoDialogLiveData().observe(fragment.getViewLifecycleOwner(), infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), "Progress")) {
@@ -253,27 +238,9 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         return bundle;
     }
 
-    private String getFormattedDate(String dateText) {
-        String[] array = dateText.split("/");
-        return array[0] + array[1] + array[2].substring(2);
-    }
-
-    private boolean isCurrentDay(String dateText) {
-        if (dateText.isEmpty()) {
-            return false;
-        }
-        String date = getFormattedDate(dateText);
-        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyy");
-        return sdf.format(Calendar.getInstance().getTime()).equals(date);
-    }
+    @Override
+    public void confirmed(int i) {}
 
     @Override
-    public void confirmed(int i) {
-
-    }
-
-    @Override
-    public void canceled(int i) {
-
-    }
+    public void canceled(int i) {}
 }

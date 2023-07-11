@@ -5,6 +5,7 @@ import android.app.Application;
 import com.example.application_template_jmvvm.data.database.AppTempDB;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
+import com.example.application_template_jmvvm.data.repository.CardRepository;
 import com.example.application_template_jmvvm.data.repository.TransactionRepository;
 
 import javax.inject.Singleton;
@@ -12,7 +13,6 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
-import dagger.hilt.android.components.ActivityComponent;
 import dagger.hilt.components.SingletonComponent;
 
 @Module
@@ -43,4 +43,9 @@ public class AppModule {
         return new TransactionRepository(database.transactionDao());
     }
 
+    @Provides
+    @Singleton
+    public CardRepository provideCardRepository() {
+        return new CardRepository();
+    }
 }

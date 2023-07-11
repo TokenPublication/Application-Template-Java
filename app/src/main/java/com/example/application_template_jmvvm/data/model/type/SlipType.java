@@ -13,5 +13,5 @@ public enum SlipType {
         this.value = value;
     }
 
-    public int getValue() { return value;}
+    public int getType() { return value;}
 }

@@ -11,20 +11,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 
 import java.util.List;
 
 public class TransactionsRecycleAdapter extends RecyclerView.Adapter<TransactionsRecycleAdapter.MyHolder> {
 
     private List<TransactionEntity> transactionList;
-    private TransactionViewModel transactionViewModel;
     private VoidFragment voidFragment;
 
-    public TransactionsRecycleAdapter(List<TransactionEntity> transactionList, TransactionViewModel transactionViewModel,
-                                      VoidFragment voidFragment) {
+    public TransactionsRecycleAdapter(List<TransactionEntity> transactionList, VoidFragment voidFragment) {
         this.transactionList = transactionList;
-        this.transactionViewModel = transactionViewModel;
         this.voidFragment = voidFragment;
     }
 
@@ -43,12 +39,7 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         holder.sale_amount.setText(StringHelper.getAmount(transaction.getUlAmount()));
         holder.approval_code.setText(transaction.getAuthCode());
         holder.serial_no.setText(String.valueOf(transaction.getUlGUP_SN()));
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                voidFragment.startVoid(transaction);
-            }
-        });
+        holder.itemView.setOnClickListener(v -> voidFragment.startVoid(transaction));
     }
 
     @Override
@@ -56,17 +47,17 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         return transactionList.size();
     }
 
-    class MyHolder extends RecyclerView.ViewHolder {
+    static class MyHolder extends RecyclerView.ViewHolder {
         TextView card_no, process_time, sale_amount, approval_code, serial_no;
 
         public MyHolder(View itemView) {
             super(itemView);
 
-            card_no = (TextView) itemView.findViewById(R.id.textCardNo);
-            process_time = (TextView) itemView.findViewById(R.id.textDate);
-            sale_amount = (TextView) itemView.findViewById(R.id.textAmount);
-            approval_code = (TextView) itemView.findViewById(R.id.textApprovalCode);
-            serial_no = (TextView) itemView.findViewById(R.id.tvSN);
+            card_no = itemView.findViewById(R.id.textCardNo);
+            process_time = itemView.findViewById(R.id.textDate);
+            sale_amount = itemView.findViewById(R.id.textAmount);
+            approval_code = itemView.findViewById(R.id.textApprovalCode);
+            serial_no = itemView.findViewById(R.id.tvSN);
         }
     }
 

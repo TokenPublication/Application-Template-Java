@@ -10,7 +10,7 @@
 		<!--round corner-->
 		<corners android:radius="5dip" />
 		
-		<!-- boader
+		<!-- border
 		<stroke android:width="1dip" android:color="#538394" />
 		-->
 		

@@ -24,7 +24,7 @@ import java.util.List;
 
 public class InfoDialogFragment extends Fragment {
 
-    class InfoDialogItem implements IListMenuItem {
+    static class InfoDialogItem implements IListMenuItem {
 
         private InfoDialog.InfoType mType;
         private String mText;
@@ -63,9 +63,7 @@ public class InfoDialogFragment extends Fragment {
     }
 
     List<IListMenuItem> menuItems = new ArrayList<>();
-
     private MainActivity mainActivity;
-
 
     public InfoDialogFragment(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -78,8 +76,7 @@ public class InfoDialogFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_info_dialog, container, false);
-        return view;
+        return inflater.inflate(R.layout.fragment_info_dialog, container, false);
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -90,9 +87,9 @@ public class InfoDialogFragment extends Fragment {
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Confirmed, "Confirmed", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Warning, "Warning", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Error, "Error", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Info,"Info", listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Info, "Info", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Declined, "Declined", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Connecting,"Connecting", listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Connecting, "Connecting", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Downloading, "Downloading", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Uploading, "Uploading", listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Processing, "Processing", listener, null));
@@ -103,7 +100,7 @@ public class InfoDialogFragment extends Fragment {
         mainActivity.replaceFragment(R.id.container,mListMenuFragment,false);
     }
 
-    private void showPopup(InfoDialogItem item){
+    private void showPopup(InfoDialogItem item) {
         InfoDialog dialog = mainActivity.showInfoDialog(item.mType, item.mText, true);
         //Dismiss dialog by calling dialog.dismiss() when needed.
     }
@@ -116,6 +113,5 @@ public class InfoDialogFragment extends Fragment {
         mainActivity.setResult(Activity.RESULT_OK, resultIntent);//PosTxn_Request_Code:13
         mainActivity.finish();
     }
-
 
 }

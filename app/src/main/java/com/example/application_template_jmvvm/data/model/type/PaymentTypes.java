@@ -9,6 +9,7 @@ public enum PaymentTypes {
     OTHER(27);
 
     public final int type;
+
     PaymentTypes(int type) {
         this.type = type;
     }

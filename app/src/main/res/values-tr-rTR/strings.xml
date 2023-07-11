@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Application Template</string>
+    <string name="app_name">Application Template JMVVM</string>
     <string name="title_activity_list_menu">ListMenuActivity</string>
     <string name="amount">Amount</string>
     <string name="waiting">Waiting for a Response</string>

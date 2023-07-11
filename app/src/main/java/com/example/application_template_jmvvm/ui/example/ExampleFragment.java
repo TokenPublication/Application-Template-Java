@@ -1,7 +1,5 @@
 package com.example.application_template_jmvvm.ui.example;
 
-import androidx.lifecycle.ViewModelProvider;
-
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -15,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.application_template_jmvvm.utils.printHelpers.PrintHelper;
-import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.utils.objects.MenuItem;
@@ -32,9 +29,8 @@ import java.util.List;
 
 public class ExampleFragment extends Fragment {
 
-    List<IListMenuItem> menuItems = new ArrayList<>();
-    private ExampleViewModel mViewModel;
     private MainActivity mainActivity;
+    List<IListMenuItem> menuItems = new ArrayList<>();
     protected int qrAmount = 100;
     protected String qrString = "QR Code Test";
 
@@ -44,34 +40,21 @@ public class ExampleFragment extends Fragment {
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(requireActivity()).get(ExampleViewModel.class);
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_postxn, container, false);
-        return view;
+        return inflater.inflate(R.layout.fragment_postxn, container, false);
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         List<IListMenuItem> subList1 = new ArrayList<>();
-        subList1.add(new MenuItem("Menu Item 1", (menuItem) -> {
-            Toast.makeText(this.mainActivity,"Sub Menu 1", Toast.LENGTH_LONG).show();
-
-        }, null));
-        subList1.add(new MenuItem("Menu Item 2", (menuItem) -> {
-
-            Toast.makeText(this.mainActivity,"Sub Menu 2", Toast.LENGTH_LONG).show();
-
-        }, null));
-        subList1.add(new MenuItem("Menu Item 3", (menuItem) -> {
-
-            Toast.makeText(this.mainActivity,"Sub Menu 3", Toast.LENGTH_LONG).show();
-
-        }, null));
+        subList1.add(new MenuItem("Menu Item 1", (menuItem) -> Toast.makeText(this.mainActivity,"Sub Menu 1", Toast.LENGTH_LONG).show(), null));
+        subList1.add(new MenuItem("Menu Item 2", (menuItem) -> Toast.makeText(this.mainActivity,"Sub Menu 2", Toast.LENGTH_LONG).show(), null));
+        subList1.add(new MenuItem("Menu Item 3", (menuItem) -> Toast.makeText(this.mainActivity,"Sub Menu 3", Toast.LENGTH_LONG).show(), null));
 
         menuItems.add(new MenuItem("Sub Menu", subList1, null));
 
@@ -138,41 +121,31 @@ public class ExampleFragment extends Fragment {
             dialog.show(mainActivity.getSupportFragmentManager(), "Num Pad");
         }));
 
-        //TODO: Card Service binding
+        //TODO: Card Service Binding
         menuItems.add(new MenuItem("Show QR", (menuItem) -> {
             InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, "QR Loading", true);
-            // For detailed usage; SaleActivity
-            mainActivity.cardServiceBinding.showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(qrAmount), qrString); // Shows QR on the back screen
-            dialog.setQr(qrString, "WAITING FOR THE QR CODE"); // Shows the same QR on Info Dialog
+            //mainActivity.cardServiceBinding.showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(qrAmount), qrString); // Shows QR on the back screen
+            dialog.setQr(qrString, "WAITING FOR THE QR CODE");
         }));
 
         List<IListMenuItem> subListPrint = new ArrayList<>();
         subListPrint.add(new MenuItem("Print Load Success", (menuItem) -> {
             PrintHelper.PrintSuccess(mainActivity.getApplicationContext()); // Message print: Load Success
-
         }, null));
 
         subListPrint.add(new MenuItem("Print Load Error", (menuItem) -> {
             PrintHelper.PrintError(mainActivity.getApplicationContext()); // Message print: Load Error
-
         }, null));
 
-        subListPrint.add(new MenuItem("Print contactless32", (menuItem) -> {
-            PrintHelper.PrintContactless(true, mainActivity.getApplicationContext());
-        }, null));
+        subListPrint.add(new MenuItem("Print contactless32", (menuItem) -> PrintHelper.PrintContactless(true, mainActivity.getApplicationContext()), null));
 
-        subListPrint.add(new MenuItem("Print  contactless64", (menuItem) -> {
-            PrintHelper.PrintContactless(false, mainActivity.getApplicationContext());
-        }, null));
+        subListPrint.add(new MenuItem("Print  contactless64", (menuItem) -> PrintHelper.PrintContactless(false, mainActivity.getApplicationContext()), null));
 
-        subListPrint.add(new MenuItem("Print Visa", (menuItem) -> {
-            PrintHelper.PrintVisa(mainActivity.getApplicationContext());
-        }, null));
+        subListPrint.add(new MenuItem("Print Visa", (menuItem) -> PrintHelper.PrintVisa(mainActivity.getApplicationContext()), null));
 
         menuItems.add(new MenuItem("Print Functions", subListPrint, null));
 
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.examples), true, R.drawable.token_logo_png);
-        mViewModel.replaceFragment(mainActivity, mListMenuFragment, false);
+        mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);
     }
-
 }

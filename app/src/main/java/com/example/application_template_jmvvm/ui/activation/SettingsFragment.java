@@ -42,8 +42,7 @@ public class SettingsFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_settings, container, false);
-        return view;
+        return inflater.inflate(R.layout.fragment_settings, container, false);
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -51,14 +50,10 @@ public class SettingsFragment extends Fragment {
         showMenu();
     }
 
-    private void showMenu(){
+    private void showMenu() {
         List<IListMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(new MenuItem(getString(R.string.setup), iListMenuItem -> {
-            addTidMidFragment();
-        }));
-        menuItems.add(new MenuItem(getString(R.string.host_settings), iListMenuItem -> {
-            addIpFragment();
-        }));
+        menuItems.add(new MenuItem(getString(R.string.setup), iListMenuItem -> addTidMidFragment()));
+        menuItems.add(new MenuItem(getString(R.string.host_settings), iListMenuItem -> addIpFragment()));
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.settings), true, R.drawable.token_logo_png);
         mainActivity.replaceFragment(R.id.container, mListMenuFragment,false);
     }
@@ -73,7 +68,6 @@ public class SettingsFragment extends Fragment {
         inputList.get(1).setText(activationViewModel.getTerminalId());
 
         InputListFragment TidMidFragment = InputListFragment.newInstance(inputList, mainActivity.getString(R.string.save), list -> {
-
             merchantId = inputList.get(0).getText();
             terminalId = inputList.get(1).getText();
 

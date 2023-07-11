@@ -1,12 +1,12 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="Sale_Action">Sale_Action</string>
-    <string name="Settings_Action">Settings_Action</string>
-    <string name="Refund_Action">Refund_Action</string>
-    <string name="BatchClose_Action">BatchClose_Action</string>
-    <string name="Parameter_Action">Parameter_Action</string>
-    <string name="PosTxn_Action">PosTxn_Action</string>
+<resources>
+    <string name="Sale_Action" translatable="false">Sale_Action</string>
+    <string name="Settings_Action" translatable="false">Settings_Action</string>
+    <string name="Refund_Action" translatable="false">Refund_Action</string>
+    <string name="BatchClose_Action" translatable="false">BatchClose_Action</string>
+    <string name="Parameter_Action" translatable="false">Parameter_Action</string>
+    <string name="PosTxn_Action" translatable="false">PosTxn_Action</string>
 
-    <string name="app_name">Application Template</string>
+    <string name="app_name">Application Template JMVVM</string>
     <string name="title_activity_list_menu">ListMenuActivity</string>
     <string name="amount">Amount</string>
     <string name="waiting">Waiting for a Response</string>

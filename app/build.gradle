@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.application_template_jmvvm"
-        minSdk 25
+        minSdk 26
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -67,6 +67,7 @@ configurations {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation fileTree(dir: 'libs', include: ['*.aar'])
+
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.recyclerview:recyclerview:1.3.0'
     implementation 'com.google.android.material:material:1.8.0'
@@ -74,21 +75,26 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.1'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
     implementation 'androidx.room:room-runtime:2.4.0'
     annotationProcessor 'androidx.room:room-compiler:2.4.0'
+
     //implementation 'com.tokeninc.barcodescanner:core:1.0.0'
     //implementation 'com.tokeninc.barcodescanner:implementation:1.0.0'
     implementation 'com.google.zxing:core:3.4.0'
     implementation 'com.google.code.gson:gson:2.8.5'
+
     implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    implementation 'com.google.dagger:dagger:2.38.1'
-    //implementation 'com.journeyapps:zxing-android-embedded:4.0.2@aar'
+
     implementation 'org.apache.commons:commons-text:1.9'
     implementation 'com.squareup:javapoet:1.13.0'
+
+    implementation 'com.google.dagger:dagger:2.38.1'
     implementation 'com.google.dagger:hilt-android:2.38.1'
     annotationProcessor 'com.google.dagger:hilt-compiler:2.38.1'
 
@@ -99,10 +105,12 @@ dependencies {
     // For local unit tests
     testImplementation 'com.google.dagger:hilt-android-testing:2.38.1'
     testAnnotationProcessor 'com.google.dagger:hilt-compiler:2.38.1'
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.10"
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10") {
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
     }
 
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
 }
 
