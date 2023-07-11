@@ -32,6 +32,7 @@ public class CardRepository implements CardServiceListener {
     private CardServiceBinding cardServiceBinding;
     private CardServiceListener cardServiceListener;
     private int amount;
+    private boolean isGIB = false;
 
     @Inject
     public CardRepository() {
@@ -46,6 +47,10 @@ public class CardRepository implements CardServiceListener {
         this.cardServiceBinding = new CardServiceBinding(mainActivity, cardServiceListener);
     }
 
+    public void setGIB(boolean GIB) {
+        isGIB = GIB;
+    }
+
     public CardServiceBinding getCardServiceBinding() {
         return cardServiceBinding;
     }
@@ -53,12 +58,19 @@ public class CardRepository implements CardServiceListener {
     public void readCard(int amount) {
         try {
             JSONObject obj = new JSONObject();
-            obj.put("forceOnline", 1);
-            obj.put("zeroAmount", 0);
+            obj.put("forceOnline", 0);
+            obj.put("zeroAmount", 1);
             obj.put("showAmount", (amount == 0) ? 0 : 1);
             obj.put("fallback", 1);
-            obj.put("cardReadTypes", 6);
             obj.put("qrPay", 1);
+            obj.put("cardReadTypes",6);
+            obj.put("partialEMV", 1);
+            obj.put("keyIn", 1);
+            obj.put("askCVV", 1);
+            if (isGIB) {
+                obj.put("showCardScreen", 0);
+                isGIB = false;
+            }
             this.amount = amount;
             cardServiceBinding.getCard(amount, 30, obj.toString());
         } catch (Exception e) {

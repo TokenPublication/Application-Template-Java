@@ -96,12 +96,15 @@ public class TransactionRepository {
         transactionEntity.setbTransCode(transactionCode.getType());
         transactionEntity.setBaPAN(card.getmCardNumber());
         transactionEntity.setBaExpDate(card.getmExpireDate());
-        transactionEntity.setBaDate(card.getDateTime().substring(0, 8));
-        transactionEntity.setBaTime(card.getDateTime().substring(8));
+        transactionEntity.setBaCustomName(card.getmTrack1CustomerName());
+        if (card.getmCardReadType() != 1) {
+            transactionEntity.setBaDate(card.getDateTime().substring(0, 8));
+            transactionEntity.setBaTime(card.getDateTime().substring(8));
+            transactionEntity.setBaTranDate(card.getDateTime());
+        }
         transactionEntity.setBaTrack2(card.getmTrack2Data());
         transactionEntity.setBaRspCode(onlineTransactionResponse.getmResponseCode().toString());
         transactionEntity.setIsVoid(0);
-        transactionEntity.setBaTranDate(card.getDateTime());
         transactionEntity.setRefNo(onlineTransactionResponse.getmRefNo());
         transactionEntity.setIsSignature(0);
         transactionEntity.setStPrintData1(onlineTransactionResponse.getmTextPrintCode1());

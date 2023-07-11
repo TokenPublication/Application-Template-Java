@@ -17,6 +17,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
+import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
@@ -27,6 +28,7 @@ import com.example.application_template_jmvvm.ui.sale.SaleFragment;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
+import com.tokeninc.deviceinfo.DeviceInfo;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -79,7 +81,26 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private void actionControl(@Nullable String action) {
         if (Objects.equals(action, getString(R.string.Sale_Action))) {
             SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
-            replaceFragment(R.id.container, saleTxnFragment, false);
+            Bundle bundle = getIntent().getExtras();
+            String cardData = bundle != null ? bundle.getString("CardData") : null;
+            int amount = getIntent().getExtras().getInt("Amount");
+
+            if (cardData != null && !cardData.equals(" ")) {
+                replaceFragment(R.id.container, saleTxnFragment, false);
+            }
+
+            if (getIntent().getExtras() != null) {
+                int cardReadType = getIntent().getExtras().getInt("CardReadType");
+                if (cardReadType == CardReadType.ICC.getType()) {
+                    cardViewModel.setGIB(true);
+                    readCard(this, amount);
+                    saleTxnFragment.cardReaderGIB();
+                } else {
+                    replaceFragment(R.id.container, saleTxnFragment, false);
+                }
+            } else {
+                replaceFragment(R.id.container, saleTxnFragment, false);
+            }
         }
 
         else if (Objects.equals(action, getString(R.string.PosTxn_Action))) {
@@ -126,6 +147,9 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     cardViewModel.readCard(amount);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        infoDialog.dismiss();
+                    },1000);
                     cardViewModel.getCardServiceResultLiveData().observe(lifecycleOwner, cardServiceResult -> {
                         if (cardServiceResult.resultCode() == CardServiceResult.USER_CANCELLED.resultCode()) {
                             Toast.makeText(this,"Cancelled", Toast.LENGTH_LONG).show();
@@ -186,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 Log.d("emv_config", "conf line: " + line);
                 total.append(line).append('\n');
             }
-            int setConfigResult = cardServiceBinding.setEMVConfiguration(total.toString());
+            int setConfigResult = cardViewModel.getCardServiceBinding().setEMVConfiguration(total.toString());
             Toast.makeText(getApplicationContext(), "setEMVConfiguration res=" + setConfigResult, Toast.LENGTH_SHORT).show();
             Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
         } catch (Exception e) {

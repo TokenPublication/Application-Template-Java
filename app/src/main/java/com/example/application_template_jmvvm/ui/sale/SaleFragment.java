@@ -9,6 +9,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LifecycleOwner;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -64,7 +65,6 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         Intent intent = mainActivity.getIntent();
         Bundle bundle = intent.getExtras();
         amount = bundle.getInt("Amount");
-        uuid = intent.getExtras().getString("UUID");
     }
 
     @Override
@@ -73,11 +73,11 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         view.findViewById(R.id.btnSale).setOnClickListener(v -> {
             mainActivity.readCard(getViewLifecycleOwner(), amount);
             cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
-                mainActivity.getInfoDialog().update(InfoDialog.InfoType.Confirmed, "Read Successful");
-                new Handler(Looper.getMainLooper()).postDelayed(() -> doSale(card), 2000);
+                mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> doSale(card, this.getViewLifecycleOwner()), 2000);
             });
             cardViewModel.getQrLiveData().observe(getViewLifecycleOwner(), qrData -> {
-                mainActivity.getInfoDialog().update(InfoDialog.InfoType.Confirmed, "Read Successful");
+                mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
                 new Handler(Looper.getMainLooper()).postDelayed(() -> QrSale(qrData), 2000);
             });
         });
@@ -175,10 +175,18 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         });
     }
 
-    public void doSale(ICCCard card) {
+    public void cardReaderGIB() {
+        cardViewModel.getCardLiveData().observe(mainActivity, card -> {
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> doSale(card, mainActivity), 2000);
+        });
+    }
+
+    public void doSale(ICCCard card, LifecycleOwner viewLifecycleOwner) {
+        uuid = mainActivity.getIntent().getExtras().getString("UUID");
         transactionViewModel.TransactionRoutine(card, uuid, mainActivity, null, null, TransactionCode.SALE,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
-        transactionViewModel.getInfoDialogLiveData().observe(getViewLifecycleOwner(), infoDialogData -> {
+        transactionViewModel.getInfoDialogLiveData().observe(viewLifecycleOwner, infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), "Progress")) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
             } else {
@@ -188,7 +196,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
                 }
             }
         });
-        transactionViewModel.getIntentLiveData().observe(getViewLifecycleOwner(), resultIntent -> {
+        transactionViewModel.getIntentLiveData().observe(viewLifecycleOwner, resultIntent -> {
             mainActivity.setResult(Activity.RESULT_OK,resultIntent);
             mainActivity.finish();
         });

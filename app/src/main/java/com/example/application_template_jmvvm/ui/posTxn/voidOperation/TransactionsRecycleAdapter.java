@@ -36,7 +36,11 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         TransactionEntity transaction = transactionList.get(position);
         holder.card_no.setText(StringHelper.MaskTheCardNo(transaction.getBaPAN()));
         holder.process_time.setText(transaction.getBaTranDate());
-        holder.sale_amount.setText(StringHelper.getAmount(transaction.getUlAmount()));
+        if (transaction.getbTransCode() != 1) {
+            holder.sale_amount.setText(StringHelper.getAmount(transaction.getUlAmount2()));
+        } else {
+            holder.sale_amount.setText(StringHelper.getAmount(transaction.getUlAmount()));
+        }
         holder.approval_code.setText(transaction.getAuthCode());
         holder.serial_no.setText(String.valueOf(transaction.getUlGUP_SN()));
         holder.itemView.setOnClickListener(v -> voidFragment.startVoid(transaction));
