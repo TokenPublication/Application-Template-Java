@@ -82,23 +82,23 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {
             if (transactionViewModel.isTransactionListEmpty()) {
                 InfoDialog infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Warning,
-                        "No Transaction", false);
+                        getString(R.string.no_trans_found), false);
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     if (infoDialog != null) {
                         infoDialog.dismiss();
                     }
                 }, 2000);
             } else {
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Info, "Batch Close",
-                        "Implement Batch Close ?", InfoDialog.InfoDialogButtons.Both, 1,
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Info, mainActivity.getString(R.string.batch_close),
+                        mainActivity.getString(R.string.batch_close_will_be_done), InfoDialog.InfoDialogButtons.Both, 1,
                         new InfoDialogListener() {
                             @Override
                             public void confirmed(int i) {
-                                batchClose(listMenuFragment.getViewLifecycleOwner());
+                                doBatchClose(listMenuFragment.getViewLifecycleOwner(), false);
                             }
 
                             @Override
-                            public void canceled(int i) {}
+                            public void canceled(int i) { }
                     });
             }
         }));
@@ -108,36 +108,36 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
             mainActivity.replaceFragment(R.id.container, ExampleFragment, true);
         }));
 
-        menuItems.add(new MenuItem("Slip Tekrarı", iListMenuItem -> {
-            batchViewModel.getBatchRepository().printSlip(batchViewModel.getPreviousBatchSlip(), mainActivity);
-            mainActivity.finish();
+        menuItems.add(new MenuItem(getString(R.string.previous_batch_slip), iListMenuItem -> {
+            infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                batchViewModel.printPreviousBatchSlip(mainActivity);
+                infoDialog.dismiss();
+            }, 2000);
         }));
 
         listMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.pos_operations), true, R.drawable.token_logo_png);
         mainActivity.replaceFragment(R.id.container, listMenuFragment, false);
     }
 
-    public void batchClose(LifecycleOwner lifecycleOwner) {
-        batchViewModel.BatchCloseRoutine(mainActivity, activationViewModel.getActivationRepository(), transactionViewModel.getTransactionRepository());
+    public void doBatchClose(LifecycleOwner lifecycleOwner, Boolean isGIB) {
+        batchViewModel.BatchCloseRoutine(mainActivity, activationViewModel.getActivationRepository(), transactionViewModel.getTransactionRepository(), isGIB);
         batchViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
-            if (Objects.equals(infoDialogData.getText(), "Progress")) {
+            if (Objects.equals(infoDialogData.getText(), mainActivity.getString(R.string.connecting))) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
             } else {
                 infoDialog.update(infoDialogData.getType(), infoDialogData.getText());
-                if (infoDialogData.getType() == InfoDialog.InfoType.Confirmed) {
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {}, 2000);
-                }
             }
         });
         batchViewModel.getIntentLiveData().observe(lifecycleOwner, resultIntent -> {
-            mainActivity.setResult(Activity.RESULT_OK,resultIntent);
+            mainActivity.setResult(Activity.RESULT_OK, resultIntent);
             mainActivity.finish();
         });
     }
 
     @Override
-    public void confirmed(int i) {}
+    public void confirmed(int i) { }
 
     @Override
-    public void canceled(int i) {}
+    public void canceled(int i) { }
 }

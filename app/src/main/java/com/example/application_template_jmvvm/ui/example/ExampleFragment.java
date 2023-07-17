@@ -65,22 +65,22 @@ public class ExampleFragment extends Fragment {
 
         menuItems.add(new MenuItem("Sub Menu", subList1, null));
 
-        menuItems.add(new MenuItem("Custom Input List", (MenuItemClickListener<MenuItem>) menuItem -> {
+        menuItems.add(new MenuItem(getString(R.string.custom_input_list), (MenuItemClickListener<MenuItem>) menuItem -> {
             CustomInputListFragment CustomInputListFragment = new CustomInputListFragment(this.mainActivity);
             mainActivity.replaceFragment(R.id.container, CustomInputListFragment, true);
         }));
 
-        menuItems.add(new MenuItem("Info Dialog", (menuItem) -> {
+        menuItems.add(new MenuItem(getString(R.string.info_dialog), (menuItem) -> {
             InfoDialogFragment InfoDialogFragment = new InfoDialogFragment(this.mainActivity);
             mainActivity.replaceFragment(R.id.container, InfoDialogFragment, true);
         }));
 
-        menuItems.add(new MenuItem("Confirmation Dialog", (menuItem) -> {
+        menuItems.add(new MenuItem(getString(R.string.confirmation_dialog), (menuItem) -> {
             ConfirmationDialogFragment ConfirmationDialogFragment = new ConfirmationDialogFragment(this.mainActivity);
             mainActivity.replaceFragment(R.id.container, ConfirmationDialogFragment, true);
         }));
 
-        menuItems.add(new MenuItem("Device Info", (menuItem) -> {
+        menuItems.add(new MenuItem(getString(R.string.device_info), (menuItem) -> {
             /*    [Device Info](https://github.com/TokenPublication/DeviceInfoClientApp)    */
 
             DeviceInfo deviceInfo = new DeviceInfo(mainActivity.getApplicationContext());
@@ -115,9 +115,9 @@ public class ExampleFragment extends Fragment {
         }));
 
         menuItems.add(new MenuItem("Num Pad", (menuItem) -> {
-            NumPadDialog dialog = NumPadDialog.newInstance(new NumPadListener(){
+            NumPadDialog dialog = NumPadDialog.newInstance(new NumPadListener() {
                 @Override
-                public void enter(String pin) {}
+                public void enter(String pin) { }
                 @Override
                 public void onCanceled() {
                     //Num pad canceled callback
@@ -126,12 +126,12 @@ public class ExampleFragment extends Fragment {
             dialog.show(mainActivity.getSupportFragmentManager(), "Num Pad");
         }));
 
-        menuItems.add(new MenuItem("Show QR", (menuItem) -> {
-            InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, "QR Loading", true);
+        menuItems.add(new MenuItem(getString(R.string.show_qr), (menuItem) -> {
+            InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, getString(R.string.qr_loading), true);
             cardViewModel.initializeCardServiceBinding(mainActivity);
             cardViewModel.getIsCardServiceConnect().observe(listMenuFragment.getViewLifecycleOwner(), isConnected -> new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                cardViewModel.getCardServiceBinding().showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(qrAmount), qrString); // Shows QR on the back screen
-                dialog.setQr(qrString, "WAITING FOR THE QR CODE");
+                cardViewModel.getCardServiceBinding().showQR(getString(R.string.please_read_qr), StringHelper.getAmount(qrAmount), qrString); // Shows QR on the back screen
+                dialog.setQr(qrString, getString(R.string.waiting_qr_read));
             }, 2000));
         }));
 
@@ -150,7 +150,7 @@ public class ExampleFragment extends Fragment {
 
         subListPrint.add(new MenuItem("Print Visa", (menuItem) -> PrintHelper.PrintVisa(mainActivity.getApplicationContext()), null));
 
-        menuItems.add(new MenuItem("Print Functions", subListPrint, null));
+        menuItems.add(new MenuItem(getString(R.string.print_functions), subListPrint, null));
 
         listMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.examples), true, R.drawable.token_logo_png);
         mainActivity.replaceFragment(R.id.container, listMenuFragment, false);

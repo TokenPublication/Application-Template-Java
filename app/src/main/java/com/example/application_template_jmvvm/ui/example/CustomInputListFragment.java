@@ -51,23 +51,23 @@ public class CustomInputListFragment extends Fragment {
 
         inputList.add(customInputFormat);
 
-        inputList.add(new CustomInputFormat("Card Number", EditTextInputType.CreditCardNumber, null, "Invalid card number!", validator));
-        inputList.add(new CustomInputFormat("Expire Date", EditTextInputType.ExpiryDate, null, null, null));
-        inputList.add(new CustomInputFormat("CVV", EditTextInputType.CVV, null, null, null));
-        inputList.add(new CustomInputFormat("Date", EditTextInputType.Date, null, null, null));
-        inputList.add(new CustomInputFormat("Time", EditTextInputType.Time, null, null, null));
-        inputList.add(new CustomInputFormat("Number", EditTextInputType.Number, null, null, null));
-        inputList.add(new CustomInputFormat("Amount", EditTextInputType.Amount, null, null, null));
-        inputList.add(new CustomInputFormat("IP", EditTextInputType.IpAddress, null, null, null));
-        inputList.add(new CustomInputFormat("Password", EditTextInputType.Password, null, null, null));
-        inputList.add(new CustomInputFormat("Password (Num)", EditTextInputType.NumberPassword, null, null, null));
-        inputList.add(new CustomInputFormat("New Text", EditTextInputType.Text, null, "Max text size 10", validator2));
+        inputList.add(new CustomInputFormat(getString(R.string.card_number), EditTextInputType.CreditCardNumber, null, getString(R.string.invalid_card_number), validator));
+        inputList.add(new CustomInputFormat(getString(R.string.expire_date), EditTextInputType.ExpiryDate, null, null, null));
+        inputList.add(new CustomInputFormat(getString(R.string.cvv), EditTextInputType.CVV, null, null, null));
+        inputList.add(new CustomInputFormat(getString(R.string.date), EditTextInputType.Date, null, null, null));
+        inputList.add(new CustomInputFormat(getString(R.string.time), EditTextInputType.Time, null, null, null));
+        inputList.add(new CustomInputFormat(getString(R.string.number), EditTextInputType.Number, null, null, null));
+        inputList.add(new CustomInputFormat(getString(R.string.amount), EditTextInputType.Amount, null, null, null));
+        inputList.add(new CustomInputFormat(getString(R.string.ip), EditTextInputType.IpAddress, null, null, null));
+        inputList.add(new CustomInputFormat(getString(R.string.password), EditTextInputType.Password, null, null, null));
+        inputList.add(new CustomInputFormat(getString(R.string.num_password), EditTextInputType.NumberPassword, null, null, null));
+        inputList.add(new CustomInputFormat(getString(R.string.new_text), EditTextInputType.Text, null, getString(R.string.invalid_text), validator2));
 
         inputList.get(1).setText("1234");
 
         InputListFragment fragment = InputListFragment.newInstance(inputList);
         mainActivity.replaceFragment(R.id.container, fragment, false);
-        fragment.setActionLayout("Custom Input List", true, null); // Fragment has a back button and a title
+        fragment.setActionLayout(getString(R.string.custom_input_list), true, null); // Fragment has a back button and a title
     }
 
 }

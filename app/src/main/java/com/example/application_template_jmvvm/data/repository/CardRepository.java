@@ -3,10 +3,12 @@ package com.example.application_template_jmvvm.data.repository;
 import android.util.Log;
 
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
+import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.card.MSRCard;
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.data.model.type.EmvProcessType;
 import com.google.gson.Gson;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
@@ -24,11 +26,12 @@ public class CardRepository implements CardServiceListener {
     }
 
     private RepositoryCallback repositoryCallback;
-    private ICCCard card;
     private CardServiceBinding cardServiceBinding;
     private CardServiceListener cardServiceListener;
     private int amount;
+    private TransactionCode transactionCode;
     private boolean isGIB = false;
+    private boolean isApprove = false;
 
     @Inject
     public CardRepository() {
@@ -51,25 +54,35 @@ public class CardRepository implements CardServiceListener {
         return cardServiceBinding;
     }
 
-    public void readCard(int amount) {
+    public void readCard(int amount, TransactionCode transactionCode) {
         try {
-            JSONObject obj = new JSONObject();
-            obj.put("forceOnline", 0);
-            obj.put("zeroAmount", 1);
-            obj.put("showAmount", (amount == 0) ? 0 : 1);
-            obj.put("fallback", 1);
-            obj.put("qrPay", 1);
-            obj.put("cardReadTypes",6);
-            obj.put("partialEMV", 1);
-            obj.put("keyIn", 1);
-            obj.put("askCVV", 1);
-            if (isGIB) {
-                obj.put("showCardScreen", 0);
-                isGIB = false;
+            if (!isApprove) {
+                JSONObject obj = new JSONObject();
+                obj.put("forceOnline", 1);
+                obj.put("zeroAmount", 0);
+                if (transactionCode != TransactionCode.SALE && transactionCode != TransactionCode.VOID) {
+                    obj.put("emvProcessType", EmvProcessType.FULL_EMV.ordinal());
+                } else {
+                    obj.put("emvProcessType", EmvProcessType.READ_CARD.ordinal());
+                }
+                obj.put("showAmount", (transactionCode == TransactionCode.VOID) ? 0 : 1);
+                obj.put("fallback", 1);
+                obj.put("qrPay", 1);
+                obj.put("cardReadTypes",6);
+                obj.put("keyIn", 1);
+                obj.put("askCVV", 1);
+                obj.put("reqEMVData", "575A5F245F204F84959F12");
+                if (isGIB) {
+                    obj.put("showCardScreen", 0);
+                }
+                this.amount = amount;
+                this.transactionCode = transactionCode;
+                cardServiceBinding.getCard(amount, 30, obj.toString());
+            } else {
+                approveCard();
             }
-            this.amount = amount;
-            cardServiceBinding.getCard(amount, 30, obj.toString());
         } catch (Exception e) {
+            repositoryCallback.setCallBackMessage(CardServiceResult.ERROR);
             e.printStackTrace();
         }
     }
@@ -98,19 +111,49 @@ public class CardRepository implements CardServiceListener {
             if (resultCode == CardServiceResult.SUCCESS.resultCode()) {
                 int type = json.getInt("mCardReadType");
                 if (type == CardReadType.QrPay.value) {
-                    this.card = new Gson().fromJson(cardData, ICCCard.class);
+                    ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
+                    cardServiceBinding.unBind();
+                    repositoryCallback.afterCardDataReceived(card);
                 }
                 if (type == CardReadType.CLCard.value) {
-                    this.card = new Gson().fromJson(cardData, ICCCard.class);
+                    ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
+                    cardServiceBinding.unBind();
+                    repositoryCallback.afterCardDataReceived(card);
                 } else if (type == CardReadType.ICC.value) {
-                    this.card = new Gson().fromJson(cardData, ICCCard.class);
+                    if (!isApprove && transactionCode == TransactionCode.SALE) {
+                        isApprove = true;
+                        ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
+                        repositoryCallback.afterCardDataReceived(card);
+                    } else {
+                        isGIB = false;
+                        ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
+                        cardServiceBinding.unBind();
+                        repositoryCallback.afterCardDataReceived(card);
+                    }
                 } else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
                     MSRCard card = new Gson().fromJson(cardData, MSRCard.class);
                     cardServiceBinding.getOnlinePIN(amount, card.getCardNumber(), 0x0A01, 0, 4, 8, 30);
                 }
-                cardServiceBinding.unBind();
-                repositoryCallback.afterCardDataReceived(card);
             }
+        } catch (Exception e) {
+            repositoryCallback.setCallBackMessage(CardServiceResult.ERROR);
+            e.printStackTrace();
+        }
+    }
+
+    private void approveCard() {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("forceOnline", 1);
+            obj.put("zeroAmount", 0);
+            obj.put("emvProcessType", EmvProcessType.CONTINUE_EMV.ordinal());
+            obj.put("showAmount", 1);
+            obj.put("fallback", 1);
+            obj.put("qrPay", 1);
+            obj.put("cardReadTypes",6);
+            obj.put("keyIn", 1);
+            obj.put("askCVV", 1);
+            cardServiceBinding.getCard(amount, 30, obj.toString());
         } catch (Exception e) {
             repositoryCallback.setCallBackMessage(CardServiceResult.ERROR);
             e.printStackTrace();
@@ -123,8 +166,8 @@ public class CardRepository implements CardServiceListener {
     }
 
     @Override
-    public void onPinReceived(String s) {}
+    public void onPinReceived(String s) { }
 
     @Override
-    public void onICCTakeOut() {}
+    public void onICCTakeOut() { }
 }

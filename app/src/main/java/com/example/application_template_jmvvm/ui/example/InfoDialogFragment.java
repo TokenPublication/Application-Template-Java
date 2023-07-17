@@ -84,19 +84,19 @@ public class InfoDialogFragment extends Fragment {
 
         MenuItemClickListener listener = (MenuItemClickListener<InfoDialogItem>) this::showPopup;
 
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Confirmed, "Confirmed", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Warning, "Warning", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Error, "Error", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Info, "Info", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Declined, "Declined", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Connecting, "Connecting", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Downloading, "Downloading", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Uploading, "Uploading", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Processing, "Processing", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Progress, "Progress", listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.None, "None", listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Confirmed, getString(R.string.confirmed), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Warning, getString(R.string.warning), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Error, getString(R.string.error), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Info, getString(R.string.info), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Declined, getString(R.string.declined), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Connecting, getString(R.string.connecting), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Downloading, getString(R.string.downloading), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Uploading, getString(R.string.uploading), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Processing, getString(R.string.processing), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Progress, getString(R.string.progress), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.None, getString(R.string.none), listener, null));
 
-        ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, "Info Dialog" , true, R.drawable.token_logo_png);
+        ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.info_dialog) , true, R.drawable.token_logo_png);
         mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);
     }
 

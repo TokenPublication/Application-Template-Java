@@ -21,7 +21,6 @@ import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.type.PaymentTypes;
@@ -32,10 +31,15 @@ import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
+import com.example.application_template_jmvvm.utils.objects.MenuItem;
 import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
+import com.token.uicomponents.ListMenuFragment.IListMenuItem;
+import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class SaleFragment extends Fragment implements InfoDialogListener {
@@ -47,10 +51,12 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     private BatchViewModel batchViewModel;
     private CardViewModel cardViewModel;
     private MainActivity mainActivity;
+    private ListMenuFragment listMenuFragment;
     Spinner spinner;
     InfoDialog infoDialog;
     private boolean QRisSuccess = true;
     private boolean isCancelable = true;
+    private boolean isApprove = false;
 
     public SaleFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
                         TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
@@ -71,24 +77,16 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        view.findViewById(R.id.btnSale).setOnClickListener(v -> {
-            mainActivity.readCard(getViewLifecycleOwner(), amount);
-            cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
-                if (card.getmCardReadType() != CardReadType.QrPay.getType()) {
-                    mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> doSale(card, this.getViewLifecycleOwner()), 2000);
-                } else {
-                    QrSale(card);
-                }
-            });
-        });
-
+        view.findViewById(R.id.btnSale).setOnClickListener(v -> cardReader(getViewLifecycleOwner(), amount));
         view.findViewById(R.id.btnSuccess).setOnClickListener(v -> prepareDummyResponse(view, ResponseCode.SUCCESS));
         view.findViewById(R.id.btnError).setOnClickListener(v -> prepareDummyResponse(view, ResponseCode.ERROR));
         view.findViewById(R.id.btnCancel).setOnClickListener(v -> prepareDummyResponse(view, ResponseCode.CANCELLED));
         view.findViewById(R.id.btnOffline_decline).setOnClickListener(v -> prepareDummyResponse(view, ResponseCode.OFFLINE_DECLINE));
         view.findViewById(R.id.btnUnable_decline).setOnClickListener(v -> prepareDummyResponse(view, ResponseCode.UNABLE_DECLINE));
         view.findViewById(R.id.btnOnline_decline).setOnClickListener(v -> prepareDummyResponse(view, ResponseCode.ONLINE_DECLINE));
+
+        TextView tvAmount = view.findViewById(R.id.tvAmount);
+        tvAmount.setText(StringHelper.getAmount(amount));
 
         prepareSpinner(view);
     }
@@ -120,7 +118,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         }
 
         @Override
-        public void onNothingSelected(AdapterView<?> parent) {}
+        public void onNothingSelected(AdapterView<?> parent) { }
     };
 
     public void prepareDummyResponse(View view, ResponseCode code) {
@@ -138,7 +136,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         else if (cbCustomer.isChecked())
             slipType = SlipType.CARDHOLDER_SLIP;
 
-        if(code == ResponseCode.SUCCESS){
+        if (code == ResponseCode.SUCCESS) {
             String text = spinner.getSelectedItem().toString();
 
             if (text.equals(String.valueOf(PaymentTypes.TRQRCREDITCARD)))
@@ -156,74 +154,95 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         onSaleResponseRetrieved(amount, code, true, slipType, "1234 **** **** 7890", "OWNER NAME", paymentType);
     }
 
+    public void cardReader(LifecycleOwner lifecycleOwner, int amount) {
+        if (isApprove) {
+            cardViewModel.readCard(amount, TransactionCode.SALE);
+        } else {
+            mainActivity.readCard(lifecycleOwner, amount, TransactionCode.SALE);
+        }
+        cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
+            if (card != null) {
+                if (card.getmCardReadType() == CardReadType.QrPay.getType()) {
+                    QrSale();
+                } else if (card.getmCardReadType() == CardReadType.ICC.getType() && !isApprove) {
+                    isApprove = true;
+                    cardViewModel.setCardLiveData(null);
+                    prepareSaleMenu();
+                } else {
+                    doSale(card, lifecycleOwner);
+                }
+            }
+        });
+    }
+
+    private void prepareSaleMenu() {
+        List<IListMenuItem> menuItems = new ArrayList<>();
+        menuItems.add(new MenuItem(getString(R.string.sale), iListMenuItem -> cardReader(listMenuFragment.getViewLifecycleOwner(), amount)));
+        menuItems.add(new MenuItem(getString(R.string.installment_sale), iListMenuItem -> { }));
+        menuItems.add(new MenuItem(getString(R.string.loyalty_sale), iListMenuItem -> { }));
+        menuItems.add(new MenuItem(getString(R.string.campaign_sale), iListMenuItem -> { }));
+
+        listMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.sale_type), true, R.drawable.token_logo_png);
+        mainActivity.replaceFragment(R.id.container, listMenuFragment, false);
+    }
+
     public void onSaleResponseRetrieved(Integer price, ResponseCode code, Boolean hasSlip, SlipType slipType, String cardNo, String ownerName, int paymentType) {
         transactionViewModel.prepareDummyResponse(activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(),
                                                 mainActivity, price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
         transactionViewModel.getIntentLiveData().observe(getViewLifecycleOwner(), resultIntent -> {
             if (code == ResponseCode.SUCCESS) {
-                mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Success", false);
+                mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, getString(R.string.trans_successful), false);
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    mainActivity.setResult(Activity.RESULT_OK, resultIntent);    //TODO Result gönderilecek.
+                    mainActivity.setResult(Activity.RESULT_OK, resultIntent);
                     mainActivity.finish();
                 }, 2000);
+            } else {
+                mainActivity.responseMessage(code, "");
             }
-            mainActivity.setResult(Activity.RESULT_OK, resultIntent);
-            mainActivity.finish();
-        });
-    }
-
-    public void cardReaderGIB() {
-        cardViewModel.getCardLiveData().observe(mainActivity, card -> {
-            mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-            new Handler(Looper.getMainLooper()).postDelayed(() -> doSale(card, mainActivity), 2000);
         });
     }
 
     public void doSale(ICCCard card, LifecycleOwner viewLifecycleOwner) {
         uuid = mainActivity.getIntent().getExtras().getString("UUID");
         transactionViewModel.TransactionRoutine(card, uuid, mainActivity, null, null, TransactionCode.SALE,
-                                                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
+                                                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), null);
         transactionViewModel.getInfoDialogLiveData().observe(viewLifecycleOwner, infoDialogData -> {
-            if (Objects.equals(infoDialogData.getText(), "Progress")) {
+            if (Objects.equals(infoDialogData.getText(), mainActivity.getString(R.string.connecting))) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
             } else {
                 infoDialog.update(infoDialogData.getType(), infoDialogData.getText());
-                if (infoDialogData.getType() == InfoDialog.InfoType.Confirmed) {
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {}, 2000);
-                }
             }
         });
         transactionViewModel.getIntentLiveData().observe(viewLifecycleOwner, resultIntent -> {
-            mainActivity.setResult(Activity.RESULT_OK,resultIntent);
+            mainActivity.setResult(Activity.RESULT_OK, resultIntent);
             mainActivity.finish();
         });
     }
 
-    public void QrSale(ICCCard card) {
-        InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, "Please Wait", true);
+    public void QrSale() {
+        InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, getString(R.string.please_wait), true);
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            cardViewModel.getCardServiceBinding().showQR("PLEASE READ THE QR CODE", StringHelper.getAmount(amount), "QR Code Test"); // Shows QR on the back screen
-            dialog.setQr("QR Code Test", "Waiting For the QR Code to Read"); // Shows the same QR on Info Dialog
+            cardViewModel.getCardServiceBinding().showQR(getString(R.string.please_read_qr), StringHelper.getAmount(amount), "QR Code Test"); // Shows QR on the back screen
+            dialog.setQr("QR Code Test", getString(R.string.waiting_qr_read)); // Shows the same QR on Info Dialog
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 if (QRisSuccess) {
                     mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "QR " + getString(R.string.trans_successful), false);
                     isCancelable = false;
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> doSale(card, this.getViewLifecycleOwner()), 3000);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> mainActivity.finish(), 3000);
                 }
             },5000);
         },2000);
         dialog.setDismissedListener(() -> {
             if (isCancelable) {
                 QRisSuccess = false;
-                mainActivity.setResult(Activity.RESULT_CANCELED);
-                mainActivity.callbackMessage(CardServiceResult.USER_CANCELLED);
+                mainActivity.responseMessage(ResponseCode.CANCELLED, "");
             }
         });
     }
 
     @Override
-    public void confirmed(int i) {}
+    public void confirmed(int i) { }
 
     @Override
-    public void canceled(int i) {}
+    public void canceled(int i) { }
 }

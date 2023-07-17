@@ -12,6 +12,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
@@ -52,10 +53,11 @@ public class TransactionViewModel extends ViewModel {
     }
 
     public void TransactionRoutine(ICCCard card, String uuid, MainActivity mainActivity, TransactionEntity transactionEntity,
-                                   Bundle bundle, TransactionCode transactionCode, ActivationRepository activationRepository, BatchRepository batchRepository) {
+                                   Bundle bundle, TransactionCode transactionCode, ActivationRepository activationRepository,
+                                   BatchRepository batchRepository, Boolean isGIB) {
         TransactionViewModel transactionViewModel = this;
         Handler mainHandler = new Handler(Looper.getMainLooper());
-        setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, "Progress"));
+        setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.connecting)));
         Observable<Boolean> observable = Observable.just(true)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io());
@@ -73,7 +75,7 @@ public class TransactionViewModel extends ViewModel {
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    final String progressText = "Progress: " + (i * 10);
+                    final String progressText = mainActivity.getString(R.string.connecting) + " " + (i * 10);
 
                     mainHandler.post(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, progressText)));
                 }
@@ -87,9 +89,10 @@ public class TransactionViewModel extends ViewModel {
             @Override
             public void onComplete() {
                 Log.i("Complete","Complete");
-                OnlineTransactionResponse onlineTransactionResponse = transactionRepository.parseResponse(transactionViewModel);
-                Intent resultIntent = finishTransaction(card, uuid, mainActivity, transactionEntity,
-                                                        bundle, transactionCode, onlineTransactionResponse, activationRepository, batchRepository);
+                OnlineTransactionResponse onlineTransactionResponse = transactionRepository.parseResponse(transactionViewModel, mainActivity);
+                batchRepository.updateSTN();
+                Intent resultIntent = finishTransaction(card, uuid, mainActivity, transactionEntity, bundle, transactionCode,
+                                                        onlineTransactionResponse, activationRepository, batchRepository, isGIB);
                 mainHandler.post(() -> setIntentLiveData(resultIntent));
             }
         };
@@ -98,19 +101,30 @@ public class TransactionViewModel extends ViewModel {
 
     private Intent finishTransaction(ICCCard card, String uuid, MainActivity mainActivity, TransactionEntity transactionEntity,
                                      Bundle bundle, TransactionCode transactionCode, OnlineTransactionResponse onlineTransactionResponse,
-                                     ActivationRepository activationRepository, BatchRepository batchRepository) {
-        if (transactionCode != TransactionCode.VOID){
+                                     ActivationRepository activationRepository, BatchRepository batchRepository, Boolean isGIB) {
+        if (transactionCode != TransactionCode.VOID) {
             transactionEntity = transactionRepository.entityCreator(card, uuid, bundle, onlineTransactionResponse, transactionCode);
+            transactionEntity.setUlSTN(batchRepository.getSTN());
             transactionEntity.setBatchNo(batchRepository.getBatchNo());
             transactionEntity.setUlGUP_SN(batchRepository.getGroupSN());
-            transactionRepository.insertTransaction(transactionEntity);
+            transactionRepository.insertTransaction(transactionEntity); //TODO isSignature CVM'den
             batchRepository.updateGUPSN();
         }
         else {
             String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
             transactionRepository.setVoid(transactionEntity.getUlGUP_SN(), date, transactionEntity.getSID());
         }
-        return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
+        if (isGIB != null) {
+            new Handler(Looper.getMainLooper()).postDelayed(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt))), 1000);
+            if (isGIB) {
+                return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
+            } else {
+                transactionRepository.prepareSlip(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode);
+            }
+        } else {
+            return transactionRepository.prepareSaleIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
+        }
+        return null;
     }
 
     public void prepareDummyResponse(ActivationRepository activationRepository, BatchRepository batchRepository, MainActivity mainActivity,
@@ -137,6 +151,10 @@ public class TransactionViewModel extends ViewModel {
 
     public List<TransactionEntity> getTransactionsByCardNo(String cardNo) {
         return transactionRepository.getTransactionsByCardNo(cardNo);
+    }
+
+    public List<TransactionEntity> getTransactionsByRefNo(String refNo) {
+        return transactionRepository.getTransactionsByRefNo(refNo);
     }
 
     public boolean isVoidListEmpty() {

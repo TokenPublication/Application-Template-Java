@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.code.BatchResult;
 import com.example.application_template_jmvvm.data.model.response.BatchCloseResponse;
@@ -18,9 +19,7 @@ import com.example.application_template_jmvvm.data.repository.TransactionReposit
 import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
 import com.token.uicomponents.infodialog.InfoDialog;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Locale;
 
 import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
@@ -42,9 +41,9 @@ public class BatchViewModel extends ViewModel {
     }
 
     public void BatchCloseRoutine(MainActivity mainActivity, ActivationRepository activationRepository,
-                                  TransactionRepository transactionRepository) {
+                                  TransactionRepository transactionRepository, Boolean isGIB) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
-        setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, "Progress"));
+        setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.connecting)));
         Observable<Boolean> observable = Observable.just(true)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io());
@@ -62,7 +61,7 @@ public class BatchViewModel extends ViewModel {
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    final String progressText = "Progress: " + (i * 10);
+                    final String progressText = mainActivity.getString(R.string.connecting) + " " + (i * 10);
 
                     mainHandler.post(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, progressText)));
                 }
@@ -76,21 +75,27 @@ public class BatchViewModel extends ViewModel {
             @Override
             public void onComplete() {
                 Log.i("Complete","Complete");
-                Intent resultIntent = finishBatchClose(mainActivity, activationRepository, transactionRepository);
+                Intent resultIntent = finishBatchClose(mainActivity, activationRepository, transactionRepository, isGIB);
                 mainHandler.post(() -> setIntentLiveData(resultIntent));
             }
         };
         observable.subscribe(observer);
     }
 
-    private Intent finishBatchClose(MainActivity mainActivity, ActivationRepository activationRepository, TransactionRepository transactionRepository) {
+    private Intent finishBatchClose(MainActivity mainActivity, ActivationRepository activationRepository, TransactionRepository transactionRepository, Boolean isGIB) {
         List<TransactionEntity> transactionList = transactionRepository.getAllTransactions();
         String slip = batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList);
         batchRepository.updateBatchSlip(slip, batchRepository.getBatchNo());
         batchRepository.updateBatchNo();
         transactionRepository.deleteAll();
-        BatchCloseResponse batchCloseResponse = batchRepository.prepareResponse(this, BatchResult.SUCCESS, new SimpleDateFormat("dd-MM-yy HH:mm:ss", Locale.getDefault()));
-        return batchRepository.prepareBatchIntent(batchCloseResponse, mainActivity, slip);
+        BatchCloseResponse batchCloseResponse = batchRepository.prepareResponse(mainActivity, this, BatchResult.SUCCESS);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt))), 1000);
+        if (isGIB) {
+            return batchRepository.prepareBatchIntent(batchCloseResponse, mainActivity, slip);
+        } else {
+            batchRepository.printSlip(slip, mainActivity);
+        }
+        return null;
     }
 
     public BatchRepository getBatchRepository() {
@@ -119,6 +124,10 @@ public class BatchViewModel extends ViewModel {
 
     public String getPreviousBatchSlip() {
         return batchRepository.getPreviousBatchSlip();
+    }
+
+    public void printPreviousBatchSlip(MainActivity mainActivity) {
+        batchRepository.printSlip(getPreviousBatchSlip(), mainActivity);
     }
 
     public void deleteAll() {

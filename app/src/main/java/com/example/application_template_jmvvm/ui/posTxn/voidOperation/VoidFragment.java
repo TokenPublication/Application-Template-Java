@@ -3,8 +3,6 @@ package com.example.application_template_jmvvm.ui.posTxn.voidOperation;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
-import com.example.application_template_jmvvm.data.model.card.ICCCard;
+import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
@@ -39,6 +37,7 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     private TransactionViewModel transactionViewModel;
     private InfoDialog infoDialog;
     private RecyclerView rvTransactions;
+    int amount = 0;
 
     public VoidFragment(MainActivity mainActivity, ActivationViewModel activationViewModel, CardViewModel cardViewModel,
                         TransactionViewModel transactionViewModel, BatchViewModel batchViewModel) {
@@ -60,17 +59,13 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
         if (empty) {
             showNoTransaction();
         } else {
-            mainActivity.readCard(getViewLifecycleOwner(), 0);
+            mainActivity.readCard(getViewLifecycleOwner(), amount, TransactionCode.VOID);
             cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
                 List<TransactionEntity> transactionList = transactionViewModel.getTransactionsByCardNo(card.getCardNumber());
                 if (transactionList.size() == 0) {
                     showNoTransaction();
                 } else {
-                    infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        setView(transactionList);
-                        infoDialog.dismiss();
-                    }, 2000);
+                    setView(transactionList);
                 }
             });
         }
@@ -93,45 +88,44 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
         rvTransactions.setLayoutManager(new LinearLayoutManager(mainActivity));
     }
 
-    public void gibVoid(String refNo) {
+    public void gibVoid(String refNo, Boolean isGIB) {
         cardViewModel.getCardLiveData().observe(mainActivity, card -> {
-            infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                List<TransactionEntity> transactionList = transactionViewModel.getTransactionRepository().getTransactionsByRefNo(refNo);
-                TransactionEntity transaction = transactionList.get(0);
-                if (transaction != null) {
-                    if (Objects.equals(card.getCardNumber(), transaction.getBaPAN())) {
-                        startVoid(mainActivity, transaction);
-                    }
+            List<TransactionEntity> transactionList = transactionViewModel.getTransactionsByRefNo(refNo);
+            TransactionEntity transaction = transactionList.get(0);
+            if (transaction != null) {
+                if (Objects.equals(card.getCardNumber(), transaction.getBaPAN())) {
+                    startVoid(mainActivity, transaction, isGIB);
                 }
-                infoDialog.dismiss();
-            }, 2000);
+            } else {
+                mainActivity.responseMessage(ResponseCode.ERROR, getString(R.string.trans_not_found));
+            }
         });
     }
 
-    public void startVoid(LifecycleOwner lifecycleOwner, TransactionEntity transactionEntity) {
+    public void startVoid(LifecycleOwner lifecycleOwner, TransactionEntity transactionEntity, Boolean isGIB) {
         transactionViewModel.TransactionRoutine(null, null, mainActivity, transactionEntity, null, TransactionCode.VOID,
-                                                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
+                                                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), isGIB);
         transactionViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
-            if (Objects.equals(infoDialogData.getText(), "Progress")) {
+            if (Objects.equals(infoDialogData.getText(), getString(R.string.connecting))) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
             } else {
                 infoDialog.update(infoDialogData.getType(), infoDialogData.getText());
-                if (infoDialogData.getType() == InfoDialog.InfoType.Confirmed) {
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {}, 2000);
-                }
             }
         });
         transactionViewModel.getIntentLiveData().observe(lifecycleOwner, resultIntent -> {
-            mainActivity.setResult(Activity.RESULT_OK,resultIntent);
+            if (resultIntent != null) {
+                mainActivity.setResult(Activity.RESULT_OK, resultIntent);
+            } else {
+                mainActivity.setResult(Activity.RESULT_OK);
+            }
             mainActivity.finish();
         });
     }
 
     @Override
-    public void confirmed(int i) {}
+    public void confirmed(int i) { }
 
     @Override
-    public void canceled(int i) {}
+    public void canceled(int i) { }
 
 }

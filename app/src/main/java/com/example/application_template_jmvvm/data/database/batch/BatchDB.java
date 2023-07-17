@@ -8,8 +8,9 @@ import com.example.application_template_jmvvm.data.database.DatabaseInfo;
 
 @Entity(tableName = DatabaseInfo.BATCHTABLE)
 public class BatchDB {
-    @ColumnInfo(name = BatchCol.col_previous_batch_slip)
-    private String col_previous_batch_slip;
+
+    @ColumnInfo(name = BatchCol.col_ulSTN)
+    private int col_ulSTN;
 
     @PrimaryKey
     @ColumnInfo(name = BatchCol.col_batchNo)
@@ -18,12 +19,15 @@ public class BatchDB {
     @ColumnInfo(name = BatchCol.col_ulGUP_SN)
     private int col_ulGUP_SN = 1;
 
-    public String getCol_previous_batch_slip() {
-        return col_previous_batch_slip;
+    @ColumnInfo(name = BatchCol.col_previous_batch_slip)
+    private String col_previous_batch_slip;
+
+    public int getCol_ulSTN() {
+        return col_ulSTN;
     }
 
-    public void setCol_previous_batch_slip(String col_previous_batch_slip) {
-        this.col_previous_batch_slip = col_previous_batch_slip;
+    public void setCol_ulSTN(int col_ulSTN) {
+        this.col_ulSTN = col_ulSTN;
     }
 
     public int getCol_batchNo() {
@@ -40,5 +44,13 @@ public class BatchDB {
 
     public void setCol_ulGUP_SN(int col_ulGUP_SN) {
         this.col_ulGUP_SN = col_ulGUP_SN;
+    }
+
+    public String getCol_previous_batch_slip() {
+        return col_previous_batch_slip;
+    }
+
+    public void setCol_previous_batch_slip(String col_previous_batch_slip) {
+        this.col_previous_batch_slip = col_previous_batch_slip;
     }
 }

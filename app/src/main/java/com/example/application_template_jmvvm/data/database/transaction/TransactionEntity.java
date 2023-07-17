@@ -12,7 +12,7 @@ public class TransactionEntity {
     public String uuid;
 
     @ColumnInfo(name = TransactionCols.col_ulSTN)
-    public String ulSTN;
+    public int ulSTN;
 
     @PrimaryKey
     @ColumnInfo(name = TransactionCols.col_ulGUP_SN)
@@ -20,9 +20,6 @@ public class TransactionEntity {
 
     @ColumnInfo(name = TransactionCols.col_batchNo)
     public int batchNo;
-
-    @ColumnInfo(name = TransactionCols.col_settleNo)
-    public int settleNo;
 
     @ColumnInfo(name = TransactionCols.col_bCardReadType)
     public int bCardReadType;
@@ -42,20 +39,14 @@ public class TransactionEntity {
     @ColumnInfo(name = TransactionCols.col_baExpDate)
     public String baExpDate;
 
-    @ColumnInfo(name = TransactionCols.col_baDate)
-    public String baDate;
-
-    @ColumnInfo(name = TransactionCols.col_baTime)
-    public String baTime;
-
     @ColumnInfo(name = TransactionCols.col_baTrack2)
     public String baTrack2;
 
-    @ColumnInfo(name = TransactionCols.col_baCustomName)
-    public String baCustomName;
+    @ColumnInfo(name = TransactionCols.col_baCustomerName)
+    public String baCustomerName;
 
     @ColumnInfo(name = TransactionCols.col_baRspCode)
-    public String baRspCode;
+    public int baRspCode;
 
     @ColumnInfo(name = TransactionCols.col_isVoid)
     public int isVoid;
@@ -78,11 +69,8 @@ public class TransactionEntity {
     @ColumnInfo(name = TransactionCols.col_isSignature)
     public int isSignature;
 
-    @ColumnInfo(name = TransactionCols.col_stPrintData1)
-    public String stPrintData1;
-
-    @ColumnInfo(name = TransactionCols.col_stPrintData2)
-    public String stPrintData2;
+    @ColumnInfo(name = TransactionCols.col_stPrintData)
+    public String stPrintData;
 
     @ColumnInfo(name = TransactionCols.col_baVoidDateTime)
     public String baVoidDateTime;
@@ -118,7 +106,7 @@ public class TransactionEntity {
         this.uuid = uuid;
     }
 
-    public void setUlSTN(String ulSTN) {
+    public void setUlSTN(int ulSTN) {
         this.ulSTN = ulSTN;
     }
 
@@ -128,10 +116,6 @@ public class TransactionEntity {
 
     public void setBatchNo(int batchNo) {
         this.batchNo = batchNo;
-    }
-
-    public void setSettleNo(int settleNo) {
-        this.settleNo = settleNo;
     }
 
     public void setbCardReadType(int bCardReadType) {
@@ -158,23 +142,15 @@ public class TransactionEntity {
         this.baExpDate = baExpDate;
     }
 
-    public void setBaDate(String baDate) {
-        this.baDate = baDate;
-    }
-
-    public void setBaTime(String baTime) {
-        this.baTime = baTime;
-    }
-
     public void setBaTrack2(String baTrack2) {
         this.baTrack2 = baTrack2;
     }
 
-    public void setBaCustomName(String baCustomName) {
-        this.baCustomName = baCustomName;
+    public void setBaCustomerName(String baCustomName) {
+        this.baCustomerName = baCustomName;
     }
 
-    public void setBaRspCode(String baRspCode) {
+    public void setBaRspCode(int baRspCode) {
         this.baRspCode = baRspCode;
     }
 
@@ -206,12 +182,8 @@ public class TransactionEntity {
         this.isSignature = isSignature;
     }
 
-    public void setStPrintData1(String stPrintData1) {
-        this.stPrintData1 = stPrintData1;
-    }
-
-    public void setStPrintData2(String stPrintData2) {
-        this.stPrintData2 = stPrintData2;
+    public void setStPrintData(String stPrintData) {
+        this.stPrintData = stPrintData;
     }
 
     public void setBaVoidDateTime(String baVoidDateTime) {
@@ -258,7 +230,7 @@ public class TransactionEntity {
         return uuid;
     }
 
-    public String getUlSTN() {
+    public int getUlSTN() {
         return ulSTN;
     }
 
@@ -268,10 +240,6 @@ public class TransactionEntity {
 
     public int getBatchNo() {
         return batchNo;
-    }
-
-    public int getSettleNo() {
-        return settleNo;
     }
 
     public int getbCardReadType() {
@@ -298,23 +266,15 @@ public class TransactionEntity {
         return baExpDate;
     }
 
-    public String getBaDate() {
-        return baDate;
-    }
-
-    public String getBaTime() {
-        return baTime;
-    }
-
     public String getBaTrack2() {
         return baTrack2;
     }
 
-    public String getBaCustomName() {
-        return baCustomName;
+    public String getBaCustomerName() {
+        return baCustomerName;
     }
 
-    public String getBaRspCode() {
+    public int getBaRspCode() {
         return baRspCode;
     }
 
@@ -346,12 +306,8 @@ public class TransactionEntity {
         return isSignature;
     }
 
-    public String getStPrintData1() {
-        return stPrintData1;
-    }
-
-    public String getStPrintData2() {
-        return stPrintData2;
+    public String getStPrintData() {
+        return stPrintData;
     }
 
     public String getBaVoidDateTime() {
