@@ -41,7 +41,7 @@ public class BatchViewModel extends ViewModel {
     }
 
     public void BatchCloseRoutine(MainActivity mainActivity, ActivationRepository activationRepository,
-                                  TransactionRepository transactionRepository, Boolean isGIB) {
+                                  TransactionRepository transactionRepository, Boolean isAutoBatch) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
         setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.connecting)));
         Observable<Boolean> observable = Observable.just(true)
@@ -75,14 +75,14 @@ public class BatchViewModel extends ViewModel {
             @Override
             public void onComplete() {
                 Log.i("Complete","Complete");
-                Intent resultIntent = finishBatchClose(mainActivity, activationRepository, transactionRepository, isGIB);
+                Intent resultIntent = finishBatchClose(mainActivity, activationRepository, transactionRepository, isAutoBatch);
                 mainHandler.post(() -> setIntentLiveData(resultIntent));
             }
         };
         observable.subscribe(observer);
     }
 
-    private Intent finishBatchClose(MainActivity mainActivity, ActivationRepository activationRepository, TransactionRepository transactionRepository, Boolean isGIB) {
+    private Intent finishBatchClose(MainActivity mainActivity, ActivationRepository activationRepository, TransactionRepository transactionRepository, Boolean isAutoBatch) {
         List<TransactionEntity> transactionList = transactionRepository.getAllTransactions();
         String slip = batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList);
         batchRepository.updateBatchSlip(slip, batchRepository.getBatchNo());
@@ -90,7 +90,7 @@ public class BatchViewModel extends ViewModel {
         transactionRepository.deleteAll();
         BatchCloseResponse batchCloseResponse = batchRepository.prepareResponse(mainActivity, this, BatchResult.SUCCESS);
         new Handler(Looper.getMainLooper()).postDelayed(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt))), 1000);
-        if (isGIB) {
+        if (isAutoBatch) {
             return batchRepository.prepareBatchIntent(batchCloseResponse, mainActivity, slip);
         } else {
             batchRepository.printSlip(slip, mainActivity);

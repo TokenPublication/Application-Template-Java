@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         cardViewModel = new ViewModelProvider(this).get(CardViewModel.class);
         transactionViewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
 
+        initializeCardService(this);
         actionControl(getIntent().getAction());
     }
 
@@ -117,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
 
         else if (Objects.equals(action, getString(R.string.Parameter_Action))) {
-            finish();
+            finish(); //TODO Trigger
         }
 
         else {
@@ -126,10 +127,10 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
     }
 
-    public void readCard(LifecycleOwner lifecycleOwner, int amount, TransactionCode transactionCode) {
+    public void initializeCardService(LifecycleOwner lifecycleOwner) {
         final boolean[] isCancelled = {false};
         infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
-        CountDownTimer timer = new CountDownTimer(10000, 1000) {
+        CountDownTimer timer = new CountDownTimer(30000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) { }
 
@@ -151,13 +152,20 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
             if (isConnected && !isCancelled[0]) {
                 timer.cancel();
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    cardViewModel.readCard(amount, transactionCode);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> infoDialog.dismiss(),1000);
-                    cardViewModel.getCardServiceResultLiveData().observe(lifecycleOwner, this::callbackMessage);
-                }, 2000);
+                infoDialog.dismiss();
             }
         });
+    }
+
+    public void readCard(LifecycleOwner lifecycleOwner, int amount, TransactionCode transactionCode) {
+        if (cardViewModel.getCardServiceBinding() != null) {
+            cardViewModel.readCard(amount, transactionCode);
+            cardViewModel.getCardServiceResultLiveData().observe(lifecycleOwner, this::callbackMessage);
+            cardViewModel.getResponseMessageLiveData().observe(lifecycleOwner, responseCode -> responseMessage(responseCode, getString(R.string.card_service_error)));
+        } else {
+            initializeCardService(lifecycleOwner);
+            readCard(lifecycleOwner, amount, transactionCode);
+        }
     }
 
     private void saleActionReceived() {
@@ -174,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             int cardReadType = getIntent().getExtras().getInt("CardReadType");
             if (cardReadType == CardReadType.ICC.getType()) {
                 cardViewModel.setGIB(true);
-                saleTxnFragment.cardReader(this, amount);
+                saleTxnFragment.cardReader(this, amount, true);
             } else {
                 replaceFragment(R.id.container, saleTxnFragment, false);
             }
@@ -206,7 +214,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                     refundFragment.cardReader(this, refundBundle, true);
                 }
             } catch (Exception e) {
-                responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_error));
+                responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_not_found));
             }
         }
     }

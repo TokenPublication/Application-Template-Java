@@ -7,19 +7,14 @@
     <string name="PosTxn_Action" translatable="false">PosTxn_Action</string>
 
     <string name="app_name">Application Template JMVVM</string>
-    <string name="title_activity_list_menu">ListMenuActivity</string>
     <string name="amount">Amount</string>
-    <string name="waiting">Waiting for a Response</string>
+    <string name="reports">Reports</string>
     <string name="please_wait">Please Wait</string>
     <string name="approved">Approved</string>
     <string name="device_info">Device Info</string>
     <string name="show_qr" translatable="false">Show QR</string>
 
-    <string name="transactions">Transactions</string>
-    <string name="reports">Reports</string>
     <string name="void_transaction">Void</string>
-    <string name="insert_card">Please Insert Card</string>
-    <string name="button">Button</string>
 
     <string name="pos_operations">POS Operations</string>
     <string name="matched_refund">Matched Refund</string>
@@ -38,7 +33,6 @@
     <string name="confirmation_code_invalid_six_digits">Confirmation Code is Invalid (6 Digits)</string>
     <string name="tran_date">Transaction Date</string>
     <string name="tran_date_invalid">Transaction Date is Invalid</string>
-    <string name="tran_date_error">Transaction Date Error</string>
     <string name="refund">Refund</string>
     <string name="installment">Installment</string>
 
@@ -49,8 +43,7 @@
 
     <string name="no_trans_found">No Transactions Found</string>
     <string name="trans_not_found">Transaction Not Found</string>
-    <string name="trans_cancelling">Cancelling the Transaction</string>
-    <string name="trans_refunding">The Transaction is Being Refunded</string>
+    <string name="card_service_error">Card Service Error</string>
 
     <string name="examples">Examples</string>
     <string name="batch_close">Batch Close</string>
@@ -60,20 +53,19 @@
     <string name="confirmation_dialog" translatable="false">Confirmation Dialog</string>
     <string name="custom_input_list" translatable="false">Custom Input List</string>
     <string name="success">Success</string>
-    <string name="confirmed">Confirmed</string>
-    <string name="warning">Warning</string>
-    <string name="info">Info</string>
-    <string name="downloading">Downloading</string>
-    <string name="uploading">Uploading</string>
-    <string name="processing">Processing</string>
-    <string name="progress">Progress</string>
+    <string name="confirmed" translatable="false">Confirmed</string>
+    <string name="warning" translatable="false">Warning</string>
+    <string name="info" translatable="false">Info</string>
+    <string name="downloading" translatable="false">Downloading</string>
+    <string name="uploading" translatable="false">Uploading</string>
+    <string name="processing" translatable="false">Processing</string>
+    <string name="progress" translatable="false">Progress</string>
     <string name="none" translatable="false">None</string>
     <string name="cancelled">Cancelled</string>
     <string name="error">Error</string>
     <string name="error_timeout">Error Timeout</string>
     <string name="declined">Declined</string>
     <string name="refund_info_not_found">Refund Info Not Found</string>
-    <string name="refund_info_error">Refund Info Error</string>
 
     <string name="card_number">Card Number</string>
     <string name="invalid_card_number">Invalid Card Number</string>
@@ -81,11 +73,11 @@
     <string name="cvv">CVV</string>
     <string name="date">Date</string>
     <string name="time">Time</string>
-    <string name="number">Number</string>
-    <string name="ip">IP</string>
-    <string name="password">Password</string>
-    <string name="num_password">Password (num)</string>
-    <string name="new_text">New Text</string>
+    <string name="number" translatable="false">Number</string>
+    <string name="ip" translatable="false">IP</string>
+    <string name="password" translatable="false">Password</string>
+    <string name="num_password" translatable="false">Password (num)</string>
+    <string name="new_text" translatable="false">New Text</string>
     <string name="invalid_text">Max Text Size is 10</string>
 
     <string name="sale">Sale</string>
