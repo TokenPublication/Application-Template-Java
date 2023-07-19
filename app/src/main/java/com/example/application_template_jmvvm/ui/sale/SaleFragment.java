@@ -12,6 +12,7 @@ import androidx.lifecycle.LifecycleOwner;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -167,7 +168,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
                 } else if (card.getmCardReadType() == CardReadType.ICC.getType() && !isApprove) {
                     isApprove = true;
                     cardViewModel.setCardLiveData(null);
-                    prepareSaleMenu(card.getCardNumber(), isGIB);
+                    prepareSaleMenu(card, isGIB);
                 } else {
                     doSale(card, lifecycleOwner);
                 }
@@ -175,19 +176,18 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         });
     }
 
-    private void prepareSaleMenu(String cardNo, boolean isGIB) {
-        //TODO Developer
-        boolean isTranCard = false;
+    private void prepareSaleMenu(ICCCard card, boolean isGIB) {
         boolean isInstallmentAllowed = false;
         boolean isLoyaltyAllowed = false;
         boolean isCampaignAllowed = false;
         if (!isGIB) {
-            isTranCard = cardNo.length() >= 8;
-            if (isTranCard) {
-                isInstallmentAllowed = true;
-                isLoyaltyAllowed = true;
-                isCampaignAllowed = true;
-            }
+            /*
+              * TODO Developer, Check from BIN table, isInstallmentAllowed etc.
+             */
+            Log.d("Card Number", card.getCardNumber());
+            isInstallmentAllowed = true;
+            isLoyaltyAllowed = true;
+            isCampaignAllowed = true;
         }
 
         List<IListMenuItem> menuItems = new ArrayList<>();
@@ -211,6 +211,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         MenuItemClickListener<MenuItem> listener = menuItem -> {
             String itemName = menuItem.getName();
             String[] itemNameSplit = itemName.split(" ");
+            //TODO Developer, Check instCount from Parameter DB.
             instCount = Integer.parseInt(itemNameSplit[0]);
             cardReader(instFragment.getViewLifecycleOwner(), amount, false);
         };

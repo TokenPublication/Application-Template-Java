@@ -21,6 +21,9 @@ public interface TransactionDao {
     @Query("SELECT * FROM " + DatabaseInfo.TRANSACTIONTABLE + " WHERE " + TransactionCols.col_refNo + " = :refNo")
     List<TransactionEntity> getTransactionsByRefNo(String refNo);
 
+    @Query("SELECT * FROM " + DatabaseInfo.TRANSACTIONTABLE + " WHERE " + TransactionCols.col_uuid + " = :uuid")
+    List<TransactionEntity> getTransactionsByUUID(String uuid);
+
     @Query("SELECT * FROM " + DatabaseInfo.TRANSACTIONTABLE + " ORDER BY " + TransactionCols.col_ulGUP_SN)
     List<TransactionEntity> getAllTransactions();
 

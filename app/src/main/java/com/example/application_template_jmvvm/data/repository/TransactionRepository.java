@@ -177,11 +177,11 @@ public class TransactionRepository {
         if (responseCode == ResponseCode.CANCELLED || responseCode == ResponseCode.UNABLE_DECLINE || responseCode == ResponseCode.OFFLINE_DECLINE) {
             slipType = SlipType.NO_SLIP;
         } else {
-            if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
-                bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
+            if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {  //TODO owner name null check,
+                bundle.putString("customerSlipData", salePrintHelper.getFormattedText(new SampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
             }
             if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-                bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
+                bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(new SampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
             }
             bundle.putString("RefundInfo", getRefundInfo(transactionEntity, cardNo, amount, activationRepository, batchRepository));
             if (transactionCode == TransactionCode.MATCHED_REFUND || transactionCode == TransactionCode.CASH_REFUND || transactionCode == TransactionCode.INSTALLMENT_REFUND || transactionCode == TransactionCode.VOID) {
@@ -210,8 +210,8 @@ public class TransactionRepository {
         SalePrintHelper salePrintHelper = new SalePrintHelper();
         String cardNo = transactionEntity.getBaPAN();
         int amount = transactionEntity.getUlAmount();
-        String customerSlipData = salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2);
-        String merchantSlipData = salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2);
+        String customerSlipData = salePrintHelper.getFormattedText(new SampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2);
+        String merchantSlipData = salePrintHelper.getFormattedText(new SampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2);
         printSlip(customerSlipData, mainActivity);
         printSlip(merchantSlipData, mainActivity);
     }
@@ -248,10 +248,10 @@ public class TransactionRepository {
         bundle.putInt("PaymentType", paymentType);
         SalePrintHelper salePrintHelper = new SalePrintHelper();
         if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, ownerName, price, activationRepository, batchRepository), null, TransactionCode.SALE, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
+            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(new SampleReceipt(cardNo, ownerName, price, activationRepository, batchRepository), null, TransactionCode.SALE, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
         }
         if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(getSampleReceipt(cardNo, ownerName, price, activationRepository, batchRepository), null, TransactionCode.SALE, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
+            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(new SampleReceipt(cardNo, ownerName, price, activationRepository, batchRepository), null, TransactionCode.SALE, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
         }
         resultIntent.putExtras(bundle);
         transactionViewModel.setIntentLiveData(resultIntent);
@@ -284,20 +284,4 @@ public class TransactionRepository {
         }
         return json.toString();
     }
-
-    private SampleReceipt getSampleReceipt(String cardNo, String ownerName, int amount, ActivationRepository activationRepository, BatchRepository batchRepository) {
-        SampleReceipt receipt = new SampleReceipt();
-        receipt.setMerchantName("TOKEN FINTECH");
-        receipt.setMerchantID(activationRepository.getMerchantId());
-        receipt.setPosID(activationRepository.getTerminalId());
-        receipt.setCardNo(StringHelper.maskCardNumber(cardNo));
-        receipt.setFullName(ownerName);
-        receipt.setAmount(StringHelper.getAmount(amount));
-        receipt.setGroupNo(String.valueOf(batchRepository.getBatchNo()));
-        receipt.setAid("A0000000000031010");
-        receipt.setSerialNo(String.valueOf(batchRepository.getGroupSN()));
-        receipt.setApprovalCode(StringHelper.GenerateApprovalCode(String.valueOf(batchRepository.getBatchNo()), String.valueOf(batchRepository.getGroupSN()), String.valueOf(batchRepository.getGroupSN()-1)));
-        return receipt;
-    }
-
 }
