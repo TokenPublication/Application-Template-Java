@@ -104,7 +104,8 @@
 
     <string name="print_functions">Print Functions</string>
     <string name="starting_activation">Starting Activation…</string>
-    <string name="parameter_loading">Parameter Loading</string>
+    <string name="parameter_loading">Parameter Loading…</string>
+    <string name="parameter_load_successful">Parameter Load Successful</string>
     <string name="member_act_completed">Member activation: Completed</string>
     <string name="rkl_loading">RKL Loading</string>
     <string name="rkl_loaded">RKL Loaded</string>

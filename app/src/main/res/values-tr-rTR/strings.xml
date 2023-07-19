@@ -81,6 +81,7 @@
     <string name="print_functions">Print Fonksiyonları</string>
     <string name="starting_activation">Aktivasyon Başlatılıyor…</string>
     <string name="parameter_loading">Parametre Yükleniyor…</string>
+    <string name="parameter_load_successful">Parametre Yüklemesi: Başarılı</string>
     <string name="member_act_completed">Üye İşyeri Aktivasyonu: Başarılı</string>
     <string name="rkl_loading">RKL Yükleniyor…</string>
     <string name="rkl_loaded">RKL Yüklendi</string>

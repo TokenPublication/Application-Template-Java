@@ -16,6 +16,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
@@ -31,6 +32,8 @@ import com.example.application_template_jmvvm.ui.posTxn.voidOperation.VoidFragme
 import com.example.application_template_jmvvm.ui.sale.CardViewModel;
 import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.sale.SaleFragment;
+import com.example.application_template_jmvvm.ui.trigger.TriggerFragment;
+import com.example.application_template_jmvvm.ui.trigger.TriggerViewModel;
 import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private CardViewModel cardViewModel;
     public BatchViewModel batchViewModel;
     private TransactionViewModel transactionViewModel;
+    private TriggerViewModel triggerViewModel;
     private InfoDialog infoDialog;
 
     @Override
@@ -66,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         batchViewModel = new ViewModelProvider(this).get(BatchViewModel.class);
         cardViewModel = new ViewModelProvider(this).get(CardViewModel.class);
         transactionViewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
+        triggerViewModel = new ViewModelProvider(this).get(TriggerViewModel.class);
 
         initializeCardService(this);
         actionControl(getIntent().getAction());
@@ -118,7 +123,8 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
 
         else if (Objects.equals(action, getString(R.string.Parameter_Action))) {
-            finish(); //TODO Trigger
+            TriggerFragment triggerFragment = new TriggerFragment(this, triggerViewModel);
+            replaceFragment(R.id.container, triggerFragment, false);
         }
 
         else {
