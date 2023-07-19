@@ -66,8 +66,6 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
         super.onViewCreated(view, savedInstanceState);
 
         List<IListMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(new MenuItem(getString(R.string.transactions), iListMenuItem -> { //TODO bakılacak.
-        }));
 
         menuItems.add(new MenuItem(getString(R.string.refund), iListMenuItem -> {
             RefundFragment RefundFragment = new RefundFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
@@ -120,8 +118,8 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
         mainActivity.replaceFragment(R.id.container, listMenuFragment, false);
     }
 
-    public void doBatchClose(LifecycleOwner lifecycleOwner, Boolean isGIB) {
-        batchViewModel.BatchCloseRoutine(mainActivity, activationViewModel.getActivationRepository(), transactionViewModel.getTransactionRepository(), isGIB);
+    public void doBatchClose(LifecycleOwner lifecycleOwner, Boolean isAutoBatch) {
+        batchViewModel.BatchCloseRoutine(mainActivity, activationViewModel.getActivationRepository(), transactionViewModel.getTransactionRepository(), isAutoBatch);
         batchViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), mainActivity.getString(R.string.connecting))) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);

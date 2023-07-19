@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
+import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.repository.CardRepository;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
@@ -24,6 +25,7 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
     private MutableLiveData<ICCCard> cardLiveData = new MutableLiveData<>();
     private MutableLiveData<Boolean> isCardServiceConnect = new MutableLiveData<>(false);
     private MutableLiveData<CardServiceResult> cardServiceResultLiveData = new MutableLiveData<>();
+    private MutableLiveData<ResponseCode> responseMessageLiveData = new MutableLiveData<>();
 
     @Inject
     public CardViewModel(CardRepository cardRepository) {
@@ -32,8 +34,9 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
     }
 
     public void initializeCardServiceBinding(MainActivity mainActivity) {
-        new Handler(Looper.getMainLooper()).postDelayed(() -> cardRepository.cardServiceBinder(mainActivity), 5);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> cardRepository.cardServiceBinder(mainActivity), 1000);
     }
+
     public void readCard(int amount, TransactionCode transactionCode) {
         cardRepository.readCard(amount, transactionCode);
     }
@@ -54,6 +57,15 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
 
     public MutableLiveData<CardServiceResult> getCardServiceResultLiveData() {
         return cardServiceResultLiveData;
+    }
+
+    @Override
+    public void setResponseMessage(ResponseCode responseCode) {
+        responseMessageLiveData.postValue(responseCode);
+    }
+
+    public MutableLiveData<ResponseCode> getResponseMessageLiveData() {
+        return responseMessageLiveData;
     }
 
     @Override

@@ -130,7 +130,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
                         SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd", Locale.US);
                         return Integer.parseInt(sdf.format(now)) >= Integer.parseInt(date);
                     } catch (Exception e) {
-                        Toast.makeText(mainActivity, getString(R.string.tran_date_error), Toast.LENGTH_LONG).show();
+                        e.printStackTrace();
                     }
                     return false;
                 }
@@ -179,7 +179,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         int maxInst = 12;
         List<IListMenuItem> menuItems = new ArrayList<>();
         for (int i = 2; i <= maxInst; i++) {
-            MenuItem menuItem = new MenuItem(i +" " +getString(R.string.installment), listener);
+            MenuItem menuItem = new MenuItem(i + " " +getString(R.string.installment), listener);
             menuItems.add(menuItem);
         }
 
@@ -200,18 +200,14 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         transactionViewModel.TransactionRoutine(card, null, mainActivity, null, refundInfo, transactionCode,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), isGIB);
         transactionViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
-            if (Objects.equals(infoDialogData.getText(), getString(R.string.connecting))) {
+            if (Objects.equals(infoDialogData.getText(), mainActivity.getApplicationContext().getString(R.string.connecting))) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
             } else {
                 infoDialog.update(infoDialogData.getType(), infoDialogData.getText());
             }
         });
         transactionViewModel.getIntentLiveData().observe(lifecycleOwner, resultIntent -> {
-            if (resultIntent != null) {
-                mainActivity.setResult(Activity.RESULT_OK, resultIntent);
-            } else {
-                mainActivity.setResult(Activity.RESULT_OK);
-            }
+            mainActivity.setResult(Activity.RESULT_OK, resultIntent);
             mainActivity.finish();
         });
     }

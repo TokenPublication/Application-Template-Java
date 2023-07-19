@@ -106,18 +106,14 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
         transactionViewModel.TransactionRoutine(null, null, mainActivity, transactionEntity, null, TransactionCode.VOID,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), isGIB);
         transactionViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
-            if (Objects.equals(infoDialogData.getText(), getString(R.string.connecting))) {
+            if (Objects.equals(infoDialogData.getText(), mainActivity.getApplicationContext().getString(R.string.connecting))) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
             } else {
                 infoDialog.update(infoDialogData.getType(), infoDialogData.getText());
             }
         });
         transactionViewModel.getIntentLiveData().observe(lifecycleOwner, resultIntent -> {
-            if (resultIntent != null) {
-                mainActivity.setResult(Activity.RESULT_OK, resultIntent);
-            } else {
-                mainActivity.setResult(Activity.RESULT_OK);
-            }
+            mainActivity.setResult(Activity.RESULT_OK, resultIntent);
             mainActivity.finish();
         });
     }

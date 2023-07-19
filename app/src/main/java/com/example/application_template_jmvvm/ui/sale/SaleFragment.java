@@ -31,10 +31,12 @@ import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
+import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.example.application_template_jmvvm.utils.objects.MenuItem;
 import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
+import com.token.uicomponents.ListMenuFragment.MenuItemClickListener;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 
@@ -52,8 +54,10 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     private CardViewModel cardViewModel;
     private MainActivity mainActivity;
     private ListMenuFragment listMenuFragment;
+    private ListMenuFragment instFragment;
     Spinner spinner;
     InfoDialog infoDialog;
+    int instCount = 0;
     private boolean QRisSuccess = true;
     private boolean isCancelable = true;
     private boolean isApprove = false;
@@ -77,7 +81,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        view.findViewById(R.id.btnSale).setOnClickListener(v -> cardReader(getViewLifecycleOwner(), amount));
+        view.findViewById(R.id.btnSale).setOnClickListener(v -> cardReader(getViewLifecycleOwner(), amount, false));
         view.findViewById(R.id.btnSuccess).setOnClickListener(v -> prepareDummyResponse(view, ResponseCode.SUCCESS));
         view.findViewById(R.id.btnError).setOnClickListener(v -> prepareDummyResponse(view, ResponseCode.ERROR));
         view.findViewById(R.id.btnCancel).setOnClickListener(v -> prepareDummyResponse(view, ResponseCode.CANCELLED));
@@ -154,12 +158,8 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         onSaleResponseRetrieved(amount, code, true, slipType, "1234 **** **** 7890", "OWNER NAME", paymentType);
     }
 
-    public void cardReader(LifecycleOwner lifecycleOwner, int amount) {
-        if (isApprove) {
-            cardViewModel.readCard(amount, TransactionCode.SALE);
-        } else {
-            mainActivity.readCard(lifecycleOwner, amount, TransactionCode.SALE);
-        }
+    public void cardReader(LifecycleOwner lifecycleOwner, int amount, boolean isGIB) {
+        mainActivity.readCard(lifecycleOwner, amount, TransactionCode.SALE);
         cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
             if (card != null) {
                 if (card.getmCardReadType() == CardReadType.QrPay.getType()) {
@@ -167,7 +167,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
                 } else if (card.getmCardReadType() == CardReadType.ICC.getType() && !isApprove) {
                     isApprove = true;
                     cardViewModel.setCardLiveData(null);
-                    prepareSaleMenu();
+                    prepareSaleMenu(card.getCardNumber(), isGIB);
                 } else {
                     doSale(card, lifecycleOwner);
                 }
@@ -175,15 +175,55 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         });
     }
 
-    private void prepareSaleMenu() {
-        List<IListMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(new MenuItem(getString(R.string.sale), iListMenuItem -> cardReader(listMenuFragment.getViewLifecycleOwner(), amount)));
-        menuItems.add(new MenuItem(getString(R.string.installment_sale), iListMenuItem -> { }));
-        menuItems.add(new MenuItem(getString(R.string.loyalty_sale), iListMenuItem -> { }));
-        menuItems.add(new MenuItem(getString(R.string.campaign_sale), iListMenuItem -> { }));
+    private void prepareSaleMenu(String cardNo, boolean isGIB) {
+        //TODO Developer
+        boolean isTranCard = false;
+        boolean isInstallmentAllowed = false;
+        boolean isLoyaltyAllowed = false;
+        boolean isCampaignAllowed = false;
+        if (!isGIB) {
+            isTranCard = cardNo.length() >= 8;
+            if (isTranCard) {
+                isInstallmentAllowed = true;
+                isLoyaltyAllowed = true;
+                isCampaignAllowed = true;
+            }
+        }
 
-        listMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.sale_type), true, R.drawable.token_logo_png);
+        List<IListMenuItem> menuItems = new ArrayList<>();
+
+        menuItems.add(new MenuItem(mainActivity.getApplicationContext().getString(R.string.sale), iListMenuItem -> cardReader(listMenuFragment.getViewLifecycleOwner(), amount, isGIB)));
+        if (isInstallmentAllowed) {
+            menuItems.add(new MenuItem(mainActivity.getString(R.string.installment_sale), iListMenuItem -> showInstallments()));
+        }
+        if (isLoyaltyAllowed) {
+            menuItems.add(new MenuItem(mainActivity.getString(R.string.loyalty_sale), iListMenuItem -> { }));
+        }
+        if (isCampaignAllowed) {
+            menuItems.add(new MenuItem(mainActivity.getString(R.string.campaign_sale), iListMenuItem -> { }));
+        }
+
+        listMenuFragment = ListMenuFragment.newInstance(menuItems, mainActivity.getApplicationContext().getString(R.string.sale_type), true, R.drawable.token_logo_png);
         mainActivity.replaceFragment(R.id.container, listMenuFragment, false);
+    }
+
+    private void showInstallments() {
+        MenuItemClickListener<MenuItem> listener = menuItem -> {
+            String itemName = menuItem.getName();
+            String[] itemNameSplit = itemName.split(" ");
+            instCount = Integer.parseInt(itemNameSplit[0]);
+            cardReader(instFragment.getViewLifecycleOwner(), amount, false);
+        };
+
+        int maxInst = 18;
+        List<IListMenuItem> menuItems = new ArrayList<>();
+        for (int i = 2; i <= maxInst; i++) {
+            MenuItem menuItem = new MenuItem(i + " " + mainActivity.getApplicationContext().getString(R.string.installment), listener);
+            menuItems.add(menuItem);
+        }
+
+        instFragment = ListMenuFragment.newInstance(menuItems, mainActivity.getApplicationContext().getString(R.string.installment_sale), true, R.drawable.token_logo_png);
+        mainActivity.replaceFragment(R.id.container, instFragment, true);
     }
 
     public void onSaleResponseRetrieved(Integer price, ResponseCode code, Boolean hasSlip, SlipType slipType, String cardNo, String ownerName, int paymentType) {
@@ -204,8 +244,15 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
 
     public void doSale(ICCCard card, LifecycleOwner viewLifecycleOwner) {
         uuid = mainActivity.getIntent().getExtras().getString("UUID");
-        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, null, null, TransactionCode.SALE,
-                                                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), null);
+        if (instCount > 0) {
+            Bundle bundle = new Bundle();
+            bundle.putInt(ExtraContentInfo.instCount, instCount);
+            transactionViewModel.TransactionRoutine(card, uuid, mainActivity, null, bundle, TransactionCode.INSTALLMENT_SALE,
+                    activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), null);
+        } else {
+            transactionViewModel.TransactionRoutine(card, uuid, mainActivity, null, null, TransactionCode.SALE,
+                    activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), null);
+        }
         transactionViewModel.getInfoDialogLiveData().observe(viewLifecycleOwner, infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), mainActivity.getString(R.string.connecting))) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);

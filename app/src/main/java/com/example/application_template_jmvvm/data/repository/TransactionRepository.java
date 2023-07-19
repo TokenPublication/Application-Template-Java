@@ -121,6 +121,9 @@ public class TransactionRepository {
         transactionEntity.setSID(card.getSID());
         transactionEntity.setIsOnlinePIN(0);
         switch (transactionCode) {
+            case INSTALLMENT_SALE:
+                transactionEntity.setbInstCnt(bundle.getInt(ExtraContentInfo.instCount));
+                break;
             case MATCHED_REFUND:
                 transactionEntity.setUlAmount(bundle.getInt(ExtraContentInfo.orgAmount));
                 transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
@@ -142,7 +145,6 @@ public class TransactionRepository {
                 transactionEntity.setbInstCnt(bundle.getInt(ExtraContentInfo.instCount));
                 break;
             default:
-                // Handle other refund types or provide a default behavior
                 break;
         }
         return transactionEntity;

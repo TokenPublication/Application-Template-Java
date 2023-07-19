@@ -46,6 +46,9 @@ public class SalePrintHelper extends BasePrintHelper{
                 case 1:
                     transactionType = "SATIŞ İPTALİ";
                     break;
+                case 2:
+                    transactionType = "T. SATIŞ İPTALİ";
+                    break;
                 case 3:
                     transactionType = "İPTAL İŞLEMİ";
                     break;
@@ -63,6 +66,11 @@ public class SalePrintHelper extends BasePrintHelper{
         }
         if (transactionCode == TransactionCode.SALE) {
             styledText.addTextToLine("SATIŞ", PrinterDefinitions.Alignment.Center);
+        }
+        if (transactionCode == TransactionCode.INSTALLMENT_SALE) {
+            styledText.addTextToLine("T. SATIŞ", PrinterDefinitions.Alignment.Center);
+            styledText.newLine();
+            styledText.addTextToLine(transactionEntity.getbInstCnt() + " TAKSİT", PrinterDefinitions.Alignment.Center);
         }
         if (transactionCode == TransactionCode.MATCHED_REFUND) {
             styledText.addTextToLine("E. İADE", PrinterDefinitions.Alignment.Center);
@@ -82,7 +90,7 @@ public class SalePrintHelper extends BasePrintHelper{
         if (transactionCode == TransactionCode.VOID) {
             lineTime = dateTime + " M OFFLINE";
         }
-        if (transactionCode == TransactionCode.SALE) {
+        if (transactionCode == TransactionCode.SALE || transactionCode == TransactionCode.INSTALLMENT_SALE) {
             lineTime = dateTime + " C ONLINE";
         }
         if (transactionCode == TransactionCode.MATCHED_REFUND) {
@@ -162,7 +170,7 @@ public class SalePrintHelper extends BasePrintHelper{
                 styledText.addTextToLine(signature, PrinterDefinitions.Alignment.Center);
             }
         }
-        if (transactionCode == TransactionCode.SALE) {
+        if (transactionCode == TransactionCode.SALE || transactionCode == TransactionCode.INSTALLMENT_SALE) {
             if (slipType == SlipType.CARDHOLDER_SLIP) {
                 styledText.addTextToLine("KARŞILIĞI MAL/HİZM ALDIM", Alignment.Center);
             } else {
@@ -205,7 +213,7 @@ public class SalePrintHelper extends BasePrintHelper{
         styledText.newLine();
         styledText.addTextToLine("Ver: 92.12.05");
 
-        if (transactionCode == TransactionCode.SALE) {
+        if (transactionCode == TransactionCode.SALE || transactionCode == TransactionCode.INSTALLMENT_SALE) {
             if (slipType == SlipType.MERCHANT_SLIP) {
                 addTextToNewLine(styledText, "*MALİ DEĞERİ YOKTUR*", Alignment.Center, 8);
             }
