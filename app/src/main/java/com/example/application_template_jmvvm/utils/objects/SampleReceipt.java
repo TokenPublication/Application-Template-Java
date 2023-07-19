@@ -1,5 +1,9 @@
 package com.example.application_template_jmvvm.utils.objects;
 
+import com.example.application_template_jmvvm.data.repository.ActivationRepository;
+import com.example.application_template_jmvvm.data.repository.BatchRepository;
+import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
+
 public class SampleReceipt {
     private String merchantName;
     private String merchantID;
@@ -11,6 +15,19 @@ public class SampleReceipt {
     private String aid;
     private String serialNo;
     private String approvalCode;
+
+    public SampleReceipt (String cardNo, String ownerName, int amount, ActivationRepository activationRepository, BatchRepository batchRepository) {
+        setMerchantName("TOKEN FINTECH");
+        setMerchantID(activationRepository.getMerchantId());
+        setPosID(activationRepository.getTerminalId());
+        setCardNo(StringHelper.maskCardNumber(cardNo));
+        setFullName(ownerName);
+        setAmount(StringHelper.getAmount(amount));
+        setGroupNo(String.valueOf(batchRepository.getBatchNo()));
+        setAid("A0000000000031010");
+        setSerialNo(String.valueOf(batchRepository.getGroupSN()));
+        setApprovalCode(StringHelper.GenerateApprovalCode(String.valueOf(batchRepository.getBatchNo()), String.valueOf(batchRepository.getGroupSN()), String.valueOf(batchRepository.getGroupSN()-1)));
+    }
 
     public String getMerchantName() {
         return merchantName;

@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             @Override
             public void onFinish() {
                 isCancelled[0] = true;
-                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.connect_failed));
+                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.card_service_error));
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     if (infoDialog != null) {
                         infoDialog.dismiss();

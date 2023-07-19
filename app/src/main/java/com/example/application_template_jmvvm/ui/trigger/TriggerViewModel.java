@@ -85,6 +85,7 @@ public class TriggerViewModel extends ViewModel {
                     bundle.putString("BINS", bins);
                     bundle.putString("AllowedOperations", "{\"QrAllowed\":1,\"KeyInAllowed\":1}");
                     bundle.putString("SupportedAIDs", "[A0000000031010, A0000000041010, A0000000032010]");
+                    //TODO Developer, Dummy response for test, check from Parameter DB.
 
                     resultIntent.putExtras(bundle);
                     mainHandler.post(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getApplicationContext().getString(R.string.parameter_load_successful))));

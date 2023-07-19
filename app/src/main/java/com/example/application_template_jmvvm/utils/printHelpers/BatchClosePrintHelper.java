@@ -3,7 +3,6 @@ package com.example.application_template_jmvvm.utils.printHelpers;
 import android.content.Context;
 
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
-import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.StyledString;
@@ -48,6 +47,9 @@ public class BatchClosePrintHelper extends BasePrintHelper {
                 case 1:
                     transactionType = "SATIŞ ";
                     break;
+                case 2:
+                    transactionType = "T. SATIŞ ";
+                    break;
                 case 4:
                     transactionType = "E. İADE ";
                     break;
@@ -64,13 +66,8 @@ public class BatchClosePrintHelper extends BasePrintHelper {
             }
 
             addText(styledText, transactionType + transaction.getUlGUP_SN(), PrinterDefinitions.Alignment.Right);
-            if (transaction.getbCardReadType() != CardReadType.QrPay.getType()) {
-                addTextToNewLine(styledText, StringHelper.MaskTheCardNo(transaction.getBaPAN()), PrinterDefinitions.Alignment.Left);
-                addText(styledText, transaction.getBaExpDate(), PrinterDefinitions.Alignment.Right);
-            } else {
-                addTextToNewLine(styledText, StringHelper.MaskTheCardNo("5209305830592013"), PrinterDefinitions.Alignment.Left);
-                addText(styledText, "290925", PrinterDefinitions.Alignment.Right);
-            }
+            addTextToNewLine(styledText, StringHelper.MaskTheCardNo(transaction.getBaPAN()), PrinterDefinitions.Alignment.Left);
+            addText(styledText, transaction.getBaExpDate(), PrinterDefinitions.Alignment.Right);
             addTextToNewLine(styledText, transaction.getRefNo(), PrinterDefinitions.Alignment.Left);
 
             int amount = transaction.getUlAmount();

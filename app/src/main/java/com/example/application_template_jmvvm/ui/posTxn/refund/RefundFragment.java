@@ -207,7 +207,9 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
             }
         });
         transactionViewModel.getIntentLiveData().observe(lifecycleOwner, resultIntent -> {
-            mainActivity.setResult(Activity.RESULT_OK, resultIntent);
+            if (resultIntent != null) {
+                mainActivity.setResult(Activity.RESULT_OK, resultIntent);
+            }
             mainActivity.finish();
         });
     }

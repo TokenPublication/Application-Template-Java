@@ -30,13 +30,13 @@
     <string name="tran_date_invalid">İşlem Tarihi Hatalı</string>
 
     <string name="connecting">Bağlantı Kuruluyor…</string>
-    <string name="connect_failed">Bağlantı Başarısız</string>
+    <string name="connect_failed">Kart Servis Hatası</string>
     <string name="trans_successful">İşlem Başarılı</string>
     <string name="printing_the_receipt">Slip Basılıyor</string>
 
     <string name="no_trans_found">İşlem Bulunamadı</string>
     <string name="trans_not_found">İşlem Bulunamadı</string>
-    <string name="card_service_error">Card Service Hatası</string>
+    <string name="card_service_error">Kart Servis Hatası</string>
 
     <string name="examples">Örnekler</string>
     <string name="batch_close">Grup Kapama</string>

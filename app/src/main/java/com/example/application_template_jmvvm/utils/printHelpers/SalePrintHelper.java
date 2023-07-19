@@ -68,7 +68,7 @@ public class SalePrintHelper extends BasePrintHelper{
             styledText.addTextToLine("SATIŞ", PrinterDefinitions.Alignment.Center);
         }
         if (transactionCode == TransactionCode.INSTALLMENT_SALE) {
-            styledText.addTextToLine("T. SATIŞ", PrinterDefinitions.Alignment.Center);
+            styledText.addTextToLine("T. SATIŞ", PrinterDefinitions.Alignment.Center); //TODO amount/installment 50 x 3 = 150 TL için, 2 3 punto küçük
             styledText.newLine();
             styledText.addTextToLine(transactionEntity.getbInstCnt() + " TAKSİT", PrinterDefinitions.Alignment.Center);
         }
@@ -141,7 +141,7 @@ public class SalePrintHelper extends BasePrintHelper{
             styledText.newLine();
             styledText.addTextToLine("İŞLEM TEMASSIZ TAMAMLANMIŞTIR", PrinterDefinitions.Alignment.Center);
             styledText.newLine();
-            styledText.addTextToLine("MASTERCARD CONTACTLESS", PrinterDefinitions.Alignment.Center);
+            styledText.addTextToLine("MASTERCARD CONTACTLESS", PrinterDefinitions.Alignment.Center); //TODO barış abiye sorulacak.
             if (slipType == SlipType.CARDHOLDER_SLIP) {
                 styledText.newLine();
                 String signature = "İŞ YERİ İMZA: _ _ _ _ _ _ _ _ _ _ _ _ _ _";
