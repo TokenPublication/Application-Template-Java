@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
+import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.repository.CardRepository;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.tokeninc.cardservicebinding.CardServiceBinding;
@@ -33,9 +34,8 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
     public void initializeCardServiceBinding(MainActivity mainActivity) {
         new Handler(Looper.getMainLooper()).postDelayed(() -> cardRepository.cardServiceBinder(mainActivity), 5);
     }
-
-    public void readCard(int amount) {
-        cardRepository.readCard(amount);
+    public void readCard(int amount, TransactionCode transactionCode) {
+        cardRepository.readCard(amount, transactionCode);
     }
 
     @Override
@@ -63,6 +63,10 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
 
     public LiveData<ICCCard> getCardLiveData() {
         return cardLiveData;
+    }
+
+    public void setCardLiveData(ICCCard card) {
+        cardLiveData.postValue(card);
     }
 
     public CardServiceBinding getCardServiceBinding() {

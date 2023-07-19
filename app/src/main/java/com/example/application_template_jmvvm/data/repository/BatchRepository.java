@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.database.batch.BatchDB;
 import com.example.application_template_jmvvm.data.database.batch.BatchDao;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
@@ -19,6 +20,7 @@ import com.token.uicomponents.infodialog.InfoDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 import javax.inject.Inject;
 
@@ -34,6 +36,7 @@ public class BatchRepository {
     private void initializeBatch() {
         if (batchDao.getAllBatch().isEmpty()) {
             BatchDB batch = new BatchDB();
+            batch.setCol_ulSTN(0);
             batch.setCol_ulGUP_SN(1);
             batch.setCol_batchNo(1);
             batchDao.insertBatch(batch);
@@ -45,10 +48,12 @@ public class BatchRepository {
         return batchClosePrintHelper.batchText(mainActivity, String.valueOf(batchRepository.getBatchNo()), activationRepository, transactionList, true);
     }
 
-    public BatchCloseResponse prepareResponse(BatchViewModel batchViewModel, BatchResult batchResult, SimpleDateFormat date) {
+    public BatchCloseResponse prepareResponse(MainActivity mainActivity, BatchViewModel batchViewModel, BatchResult batchResult) {
         if (batchResult == BatchResult.SUCCESS) {   //Dummy response, always success
-            batchViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, "GRUP KAPAMA BAŞARILI"));
+            batchViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getString(R.string.batch_close) + " " +
+                                                                    mainActivity.getString(R.string.success)));
         }
+        SimpleDateFormat date = new SimpleDateFormat("dd-MM-yy HH:mm:ss", Locale.getDefault());
         return new BatchCloseResponse(batchResult, date);
     }
 
@@ -69,32 +74,40 @@ public class BatchRepository {
         styledText.print(PrinterService.getService(mainActivity.getApplicationContext()));
     }
 
+    public int getSTN() {
+        return batchDao.getSTN();
+    }
+
+    public void updateSTN() {
+        batchDao.updateSTN();
+    }
+
     public int getGroupSN() {
         return batchDao.getGUPSN();
+    }
+
+    public void updateGUPSN() {
+        batchDao.updateGUPSN();
     }
 
     public int getBatchNo() {
         return batchDao.getBatchNo();
     }
 
-    public String getPreviousBatchSlip() {
-        return batchDao.getBatchPreviousSlip();
-    }
-
-    public List<BatchDB> getAllBatch() {
-        return batchDao.getAllBatch();
-    }
-
     public void updateBatchNo() {
         batchDao.updateBatchNo();
+    }
+
+    public String getPreviousBatchSlip() {
+        return batchDao.getBatchPreviousSlip();
     }
 
     public void updateBatchSlip(String batchSlip, Integer batchNo) {
         batchDao.updateBatchSlip(batchSlip, batchNo);
     }
 
-    public void updateGUPSN() {
-        batchDao.updateGUPSN();
+    public List<BatchDB> getAllBatch() {
+        return batchDao.getAllBatch();
     }
 
     public void deleteAll() {

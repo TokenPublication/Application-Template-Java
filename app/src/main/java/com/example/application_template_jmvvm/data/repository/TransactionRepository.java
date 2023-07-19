@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionDao;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
@@ -74,18 +75,18 @@ public class TransactionRepository {
         transactionDao.deleteAll();
     }
 
-    public OnlineTransactionResponse parseResponse(TransactionViewModel transactionViewModel) {
+    public OnlineTransactionResponse parseResponse(TransactionViewModel transactionViewModel, MainActivity mainActivity) {
         OnlineTransactionResponse onlineTransactionResponse = new OnlineTransactionResponse();
         onlineTransactionResponse.setmResponseCode(ResponseCode.SUCCESS);
-        onlineTransactionResponse.setmTextPrintCode1("Test Print 1");
-        onlineTransactionResponse.setmTextPrintCode2("Test Print 2");
+        onlineTransactionResponse.setmTextPrintCode("Test Print");
         onlineTransactionResponse.setmAuthCode(String.valueOf((int) (Math.random() * 900000) + 100000));
         onlineTransactionResponse.setmRefNo(String.valueOf((long) (Math.random() * 900000000) + (1000000000L * (int) (Math.random() * 9) + 1)));
         onlineTransactionResponse.setmDisplayData("Display Data");
         onlineTransactionResponse.setmKeySequenceNumber("3");
         onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
         if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS) { //Dummy Response, always success
-            transactionViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, "ONAY KODU: " + onlineTransactionResponse.getmAuthCode())); //TODO liveData SORULACAK.
+            transactionViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getString(R.string.confirmation_code)
+                                                                                                    + ": " + onlineTransactionResponse.getmAuthCode()));
         }
         return onlineTransactionResponse;
     }
@@ -93,27 +94,23 @@ public class TransactionRepository {
     public TransactionEntity entityCreator(ICCCard card, String uuid, Bundle bundle, OnlineTransactionResponse onlineTransactionResponse, TransactionCode transactionCode) {
         TransactionEntity transactionEntity = new TransactionEntity();
         transactionEntity.setUuid(uuid);
-        transactionEntity.setUlSTN("STN");
         transactionEntity.setUlAmount(card.getmTranAmount1());
         transactionEntity.setbCardReadType(card.getmCardReadType());
         transactionEntity.setbTransCode(transactionCode.getType());
         transactionEntity.setBaPAN(card.getmCardNumber());
         transactionEntity.setBaExpDate(card.getmExpireDate());
-        transactionEntity.setBaCustomName(card.getmTrack1CustomerName());
-        if (card.getmCardReadType() != CardReadType.ICC.getType() && card.getmCardReadType() != CardReadType.QrPay.getType()) {
-            transactionEntity.setBaDate(card.getDateTime().substring(0, 8));
-            transactionEntity.setBaTime(card.getDateTime().substring(8));
+        transactionEntity.setBaCustomerName(card.getmTrack1CustomerName());
+        if (card.getmCardReadType() != CardReadType.ICC.getType()) {
             transactionEntity.setBaTranDate(card.getDateTime());
         } else {
             transactionEntity.setBaTranDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date()));
         }
         transactionEntity.setBaTrack2(card.getmTrack2Data());
-        transactionEntity.setBaRspCode(onlineTransactionResponse.getmResponseCode().toString());
+        transactionEntity.setBaRspCode(onlineTransactionResponse.getmResponseCode().ordinal());
         transactionEntity.setIsVoid(0);
         transactionEntity.setRefNo(onlineTransactionResponse.getmRefNo());
         transactionEntity.setIsSignature(0);
-        transactionEntity.setStPrintData1(onlineTransactionResponse.getmTextPrintCode1());
-        transactionEntity.setStPrintData2(onlineTransactionResponse.getmTextPrintCode2());
+        transactionEntity.setStPrintData(onlineTransactionResponse.getmTextPrintCode());
         transactionEntity.setAuthCode(onlineTransactionResponse.getmAuthCode());
         transactionEntity.setAid(card.getAID2());
         transactionEntity.setAidLabel(card.getAIDLabel());
@@ -129,7 +126,8 @@ public class TransactionRepository {
                 transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
                 transactionEntity.setRefNo(bundle.getString(ExtraContentInfo.refNo));
                 transactionEntity.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
-                transactionEntity.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
+                transactionEntity.setBaTranDate(bundle.getString(ExtraContentInfo.tranDate));
+                transactionEntity.setBaTranDate2(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date()));
                 break;
             case CASH_REFUND:
                 transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
@@ -139,7 +137,8 @@ public class TransactionRepository {
                 transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
                 transactionEntity.setRefNo(bundle.getString(ExtraContentInfo.refNo));
                 transactionEntity.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
-                transactionEntity.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
+                transactionEntity.setBaTranDate(bundle.getString(ExtraContentInfo.tranDate));
+                transactionEntity.setBaTranDate2(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date()));
                 transactionEntity.setbInstCnt(bundle.getInt(ExtraContentInfo.instCount));
                 break;
             default:
@@ -149,7 +148,7 @@ public class TransactionRepository {
         return transactionEntity;
     }
 
-    public Intent prepareIntent(ActivationRepository activationRepository, BatchRepository batchRepository,
+    public Intent prepareSaleIntent(ActivationRepository activationRepository, BatchRepository batchRepository,
                                 MainActivity mainActivity, TransactionEntity transactionEntity,
                                 TransactionCode transactionCode, ResponseCode responseCode) {
         Bundle bundle = new Bundle();
@@ -163,11 +162,7 @@ public class TransactionRepository {
         bundle.putInt("PaymentStatus", 0); // #2 Payment Status
         bundle.putInt("Amount", amount); // #3 Amount
         bundle.putInt("BatchNo", transactionEntity.getBatchNo());
-        if (transactionEntity.getbCardReadType() != CardReadType.QrPay.getType()) {
-            bundle.putString("CardNo", StringHelper.MaskTheCardNo(transactionEntity.getBaPAN())); //#5 Card No "MASKED"
-        } else {
-            cardNo = "5209305830592013";  //Dummy for QR sale
-        }
+        bundle.putString("CardNo", StringHelper.MaskTheCardNo(transactionEntity.getBaPAN()));
         bundle.putString("MID", activationRepository.getMerchantId()); //#6 Merchant ID
         bundle.putString("TID", activationRepository.getTerminalId()); //#7 Terminal ID
         bundle.putInt("TxnNo", transactionEntity.getUlGUP_SN());
@@ -195,6 +190,28 @@ public class TransactionRepository {
 
         intent.putExtras(bundle);
         return intent;
+    }
+
+    public Intent prepareIntent(ActivationRepository activationRepository, BatchRepository batchRepository,
+                                    MainActivity mainActivity, TransactionEntity transactionEntity,
+                                    TransactionCode transactionCode, ResponseCode responseCode) {
+        Bundle bundle = new Bundle();
+        Intent intent = new Intent();
+        bundle.putInt("ResponseCode", responseCode.ordinal());
+        prepareSlip(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode);
+        intent.putExtras(bundle);
+        return intent;
+    }
+
+    public void prepareSlip(ActivationRepository activationRepository, BatchRepository batchRepository,
+                            MainActivity mainActivity, TransactionEntity transactionEntity, TransactionCode transactionCode) {
+        SalePrintHelper salePrintHelper = new SalePrintHelper();
+        String cardNo = transactionEntity.getBaPAN();
+        int amount = transactionEntity.getUlAmount();
+        String customerSlipData = salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2);
+        String merchantSlipData = salePrintHelper.getFormattedText(getSampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2);
+        printSlip(customerSlipData, mainActivity);
+        printSlip(merchantSlipData, mainActivity);
     }
 
     public void printSlip(String printText, MainActivity mainActivity) {

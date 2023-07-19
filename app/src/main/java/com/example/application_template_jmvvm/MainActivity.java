@@ -10,6 +10,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -18,6 +19,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
+import com.example.application_template_jmvvm.data.model.code.ResponseCode;
+import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
@@ -37,9 +40,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 import java.util.Objects;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             Log.v("TR1000 APP", "Application Template for 1000TR");
         }
         if (BuildConfig.FLAVOR.equals("TR400")) {
-            Log.v("TR400 APP", "Application Template for  400TR");
+            Log.v("TR400 APP", "Application Template for 400TR");
         }
     }
 
@@ -91,14 +91,14 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
 
         else if (Objects.equals(action, getString(R.string.BatchClose_Action))) {
             if (transactionViewModel.isTransactionListEmpty()) {
-                showInfoDialog(InfoDialog.InfoType.Warning, "No Transaction", false);
+                showInfoDialog(InfoDialog.InfoType.Warning, getString(R.string.no_trans_found), false);
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    setResult(Activity.RESULT_CANCELED);
-                    callbackMessage(CardServiceResult.ERROR);
+                    setResult(Activity.RESULT_OK);
+                    finish();
                 }, 2000);
             } else {
                 PosTxnFragment posTxnFragment = new PosTxnFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
-                posTxnFragment.batchClose(this);
+                posTxnFragment.doBatchClose(this, true);
             }
         }
 
@@ -116,23 +116,27 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             refundActionReceived();
         }
 
+        else if (Objects.equals(action, getString(R.string.Parameter_Action))) {
+            finish();
+        }
+
         else {
             PosTxnFragment posTxnFragment = new PosTxnFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
     }
 
-    public void readCard(LifecycleOwner lifecycleOwner, int amount) {
+    public void readCard(LifecycleOwner lifecycleOwner, int amount, TransactionCode transactionCode) {
         final boolean[] isCancelled = {false};
-        infoDialog = showInfoDialog(InfoDialog.InfoType.Processing, "Processing", false);
+        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
         CountDownTimer timer = new CountDownTimer(10000, 1000) {
             @Override
-            public void onTick(long millisUntilFinished) {}
+            public void onTick(long millisUntilFinished) { }
 
             @Override
             public void onFinish() {
                 isCancelled[0] = true;
-                infoDialog.update(InfoDialog.InfoType.Declined, "Connect Failed");
+                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.connect_failed));
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     if (infoDialog != null) {
                         infoDialog.dismiss();
@@ -147,9 +151,8 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
             if (isConnected && !isCancelled[0]) {
                 timer.cancel();
-                infoDialog.update(InfoDialog.InfoType.Confirmed, "Connected to Service");
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    cardViewModel.readCard(amount);
+                    cardViewModel.readCard(amount, transactionCode);
                     new Handler(Looper.getMainLooper()).postDelayed(() -> infoDialog.dismiss(),1000);
                     cardViewModel.getCardServiceResultLiveData().observe(lifecycleOwner, this::callbackMessage);
                 }, 2000);
@@ -171,8 +174,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             int cardReadType = getIntent().getExtras().getInt("CardReadType");
             if (cardReadType == CardReadType.ICC.getType()) {
                 cardViewModel.setGIB(true);
-                readCard(this, amount);
-                saleTxnFragment.cardReaderGIB();
+                saleTxnFragment.cardReader(this, amount);
             } else {
                 replaceFragment(R.id.container, saleTxnFragment, false);
             }
@@ -183,47 +185,80 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
 
     private void refundActionReceived() {
         if (getIntent().getExtras() == null || getIntent().getExtras().getString("RefundInfo") == null) {
-            callbackMessage(CardServiceResult.ERROR);
+            responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_not_found));
         } else {
             try {
                 String refundData = new JSONObject(getIntent().getExtras().getString("RefundInfo")).toString();
                 String refNo = new JSONObject(refundData).getString("RefNo");
                 int amount = Integer.parseInt(new JSONObject(refundData).getString("Amount"));
-                String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
                 if (new JSONObject(refundData).getInt("BatchNo") == batchViewModel.getBatchNo()) { //void
-                    readCard(this, 0);
+                    readCard(this, amount, TransactionCode.VOID);
                     VoidFragment voidFragment = new VoidFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
-                    voidFragment.gibVoid(refNo);
+                    voidFragment.gibVoid(refNo, true);
                 } else {
                     Bundle refundBundle = new Bundle();
                     refundBundle.putInt(ExtraContentInfo.orgAmount, amount);
                     refundBundle.putInt(ExtraContentInfo.refAmount, amount);
                     refundBundle.putString(ExtraContentInfo.refNo, refNo);
                     refundBundle.putString(ExtraContentInfo.authCode, new JSONObject(refundData).getString("AuthCode"));
-                    refundBundle.putString(ExtraContentInfo.tranDate, date);
-                    readCard(this, amount);
+                    refundBundle.putString(ExtraContentInfo.tranDate, new JSONObject(refundData).getString("TranDate"));
                     RefundFragment refundFragment = new RefundFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
-                    refundFragment.gibRefund(refundBundle);
+                    refundFragment.cardReader(this, refundBundle, true);
                 }
             } catch (Exception e) {
-                callbackMessage(CardServiceResult.ERROR);
+                responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_error));
             }
         }
     }
 
     public void callbackMessage(CardServiceResult cardServiceResult) {
+        Bundle bundle = new Bundle();
+        Intent intent = new Intent();
         switch (cardServiceResult) {
             case USER_CANCELLED:
-                Toast.makeText(this,"Cancelled", Toast.LENGTH_LONG).show();
+                showInfoDialog(InfoDialog.InfoType.Warning, getString(R.string.cancelled), true);
                 break;
             case ERROR_TIMEOUT:
-                Toast.makeText(this,"Error Timeout", Toast.LENGTH_LONG).show();
+                showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.error_timeout), true);
                 break;
             case ERROR:
-                Toast.makeText(this,"Error", Toast.LENGTH_LONG).show();
+                showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.error), true);
                 break;
         }
-        finish();
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            bundle.putInt("ResponseCode", ResponseCode.CANCELLED.ordinal());
+            intent.putExtras(bundle);
+            setResult(Activity.RESULT_CANCELED, intent);
+            finish();
+        },2000);
+    }
+
+    public void responseMessage(ResponseCode responseCode, String message) {
+        Bundle bundle = new Bundle();
+        Intent intent = new Intent();
+        switch (responseCode) {
+            case ERROR:
+                if (!Objects.equals(message, "")) {
+                    showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.error) + ": "+ message, true);
+                } else {
+                    showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.error), true);
+                }
+                break;
+            case CANCELLED:
+                showInfoDialog(InfoDialog.InfoType.Warning, getString(R.string.cancelled), true);
+                break;
+            case OFFLINE_DECLINE:
+            case UNABLE_DECLINE:
+            case ONLINE_DECLINE:
+                showInfoDialog(InfoDialog.InfoType.Declined, getString(R.string.declined), true);
+                break;
+        }
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            bundle.putInt("ResponseCode", responseCode.ordinal());
+            intent.putExtras(bundle);
+            setResult(Activity.RESULT_CANCELED, intent);
+            finish();
+        },2000);
     }
 
     public InfoDialog showConfirmationDialog(InfoDialog.InfoType type, String title, String info, InfoDialog.InfoDialogButtons buttons, int arg, InfoDialogListener listener) {
@@ -295,8 +330,8 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     }
 
     @Override
-    public void confirmed(int i) {}
+    public void confirmed(int i) { }
 
     @Override
-    public void canceled(int i) {}
+    public void canceled(int i) { }
 }

@@ -148,7 +148,7 @@ public class SalePrintHelper extends BasePrintHelper{
             if (transactionCode != TransactionCode.CASH_REFUND) {
                 styledText.addTextToLine("İŞLEM TARİHİ: " + transactionEntity.getBaTranDate2(),PrinterDefinitions.Alignment.Center);
             } else {
-                styledText.addTextToLine("İŞLEM TARİHİ: " + transactionEntity.getBaDate(),PrinterDefinitions.Alignment.Center);
+                styledText.addTextToLine("İŞLEM TARİHİ: " + transactionEntity.getBaTranDate(), PrinterDefinitions.Alignment.Center);
             }
             styledText.newLine();
             styledText.addTextToLine("ORJ. İŞ YERİ NO: " + receipt.getMerchantID(),PrinterDefinitions.Alignment.Center);
@@ -170,12 +170,6 @@ public class SalePrintHelper extends BasePrintHelper{
                 styledText.newLine();
                 styledText.addTextToLine("İMZAYA GEREK YOKTUR", Alignment.Center);
             }
-            if (transactionEntity != null && transactionEntity.getbCardReadType() == CardReadType.QrPay.getType()) {
-                styledText.newLine();
-                styledText.addTextToLine("Bu işlem TR Karekod", Alignment.Center);
-                styledText.newLine();
-                styledText.addTextToLine("ile yapılmıştır", Alignment.Center);
-            }
         }
 
         styledText.setFontFace(PrinterDefinitions.Font_E.Sans_Bold);
@@ -196,9 +190,9 @@ public class SalePrintHelper extends BasePrintHelper{
         if (transactionEntity != null) {
             styledText.addTextToLine("GRUP NO:" + transactionEntity.getBatchNo());
             styledText.addTextToLine("REF NO: " + transactionEntity.getRefNo(), PrinterDefinitions.Alignment.Right);
-            if (transactionEntity.getbCardReadType() != CardReadType.QrPay.getType()) {
-                styledText.newLine();
-                styledText.addTextToLine("AID: " + transactionEntity.getAid());
+            styledText.newLine();
+            styledText.addTextToLine("AID: " + transactionEntity.getAid());
+            if (transactionEntity.getAidLabel() != null) {
                 styledText.addTextToLine(transactionEntity.getAidLabel(), PrinterDefinitions.Alignment.Right);
             }
         } else {

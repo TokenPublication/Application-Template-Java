@@ -4,8 +4,7 @@ import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 
 public class OnlineTransactionResponse {
     ResponseCode mResponseCode;
-    String mTextPrintCode1;
-    String mTextPrintCode2;
+    String mTextPrintCode;
     String mAuthCode;
     String mRefNo;
     String mDisplayData;
@@ -21,20 +20,12 @@ public class OnlineTransactionResponse {
         this.mResponseCode = mResponseCode;
     }
 
-    public String getmTextPrintCode1() {
-        return mTextPrintCode1;
+    public String getmTextPrintCode() {
+        return mTextPrintCode;
     }
 
-    public void setmTextPrintCode1(String mTextPrintCode1) {
-        this.mTextPrintCode1 = mTextPrintCode1;
-    }
-
-    public String getmTextPrintCode2() {
-        return mTextPrintCode2;
-    }
-
-    public void setmTextPrintCode2(String mTextPrintCode2) {
-        this.mTextPrintCode2 = mTextPrintCode2;
+    public void setmTextPrintCode(String mTextPrintCode) {
+        this.mTextPrintCode = mTextPrintCode;
     }
 
     public String getmAuthCode() {

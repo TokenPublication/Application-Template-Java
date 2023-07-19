@@ -4,8 +4,6 @@ import static com.token.uicomponents.CustomInput.EditTextInputType.Amount;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -132,7 +130,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
                         SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd", Locale.US);
                         return Integer.parseInt(sdf.format(now)) >= Integer.parseInt(date);
                     } catch (Exception e) {
-                        Toast.makeText(mainActivity, "Transaction Date Error", Toast.LENGTH_LONG).show();
+                        Toast.makeText(mainActivity, getString(R.string.tran_date_error), Toast.LENGTH_LONG).show();
                     }
                     return false;
                 }
@@ -142,7 +140,8 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         inputListFragment = InputListFragment.newInstance(inputList, getString(R.string.refund), list -> {
             amount = Integer.parseInt(list.get(1));
             this.transactionCode = transactionCode;
-            cardReader(inputListFragment, inputList);
+            Bundle refundInfo = bundleCreator(transactionCode, inputList);
+            cardReader(inputListFragment.getViewLifecycleOwner(), refundInfo, false);
         });
         mainActivity.replaceFragment(R.id.container, inputListFragment, true);
     }
@@ -162,7 +161,8 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         inputListFragment = InputListFragment.newInstance(inputList, getString(R.string.refund), list -> {
             amount = Integer.parseInt(list.get(0));
             transactionCode = TransactionCode.CASH_REFUND;
-            cardReader(inputListFragment, inputList);
+            Bundle refundInfo = bundleCreator(transactionCode, inputList);
+            cardReader(inputListFragment.getViewLifecycleOwner(), refundInfo, false);
         });
 
         mainActivity.replaceFragment(R.id.container, inputListFragment, true);
@@ -187,37 +187,31 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         mainActivity.replaceFragment(R.id.container, instFragment, true);
     }
 
-    private void cardReader(InputListFragment fragment, List<CustomInputFormat> inputList) {
-        mainActivity.readCard(fragment.getViewLifecycleOwner(), amount);
-        cardViewModel.getCardLiveData().observe(fragment.getViewLifecycleOwner(), card -> {
-            mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-            Bundle refundInfo = bundleCreator(transactionCode, inputList);
-            new Handler(Looper.getMainLooper()).postDelayed(() -> doRefund(card, transactionCode, refundInfo, fragment.getViewLifecycleOwner()), 2000);
-        });
+    public void cardReader(LifecycleOwner lifecycleOwner, Bundle refundInfo, Boolean isGIB) {
+        if (transactionCode == null) {
+            transactionCode = TransactionCode.MATCHED_REFUND;
+        }
+        amount = refundInfo.getInt(ExtraContentInfo.refAmount);
+        mainActivity.readCard(lifecycleOwner, amount, transactionCode);
+        cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> doRefund(card, transactionCode, refundInfo, lifecycleOwner, isGIB));
     }
 
-    public void gibRefund(Bundle refundInfo) {
-        cardViewModel.getCardLiveData().observe(mainActivity, card -> {
-            mainActivity.showInfoDialog(InfoDialog.InfoType.Confirmed, "Read Successful", false);
-            new Handler(Looper.getMainLooper()).postDelayed(() -> doRefund(card, TransactionCode.MATCHED_REFUND, refundInfo, mainActivity), 2000);
-        });
-    }
-
-    public void doRefund(ICCCard card, TransactionCode transactionCode, Bundle refundInfo, LifecycleOwner lifecycleOwner) {
+    public void doRefund(ICCCard card, TransactionCode transactionCode, Bundle refundInfo, LifecycleOwner lifecycleOwner, Boolean isGIB) {
         transactionViewModel.TransactionRoutine(card, null, mainActivity, null, refundInfo, transactionCode,
-                                                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository());
+                                                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), isGIB);
         transactionViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
-            if (Objects.equals(infoDialogData.getText(), "Progress")) {
+            if (Objects.equals(infoDialogData.getText(), getString(R.string.connecting))) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
             } else {
                 infoDialog.update(infoDialogData.getType(), infoDialogData.getText());
-                if (infoDialogData.getType() == InfoDialog.InfoType.Confirmed) {
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {}, 2000);
-                }
             }
         });
         transactionViewModel.getIntentLiveData().observe(lifecycleOwner, resultIntent -> {
-            mainActivity.setResult(Activity.RESULT_OK,resultIntent);
+            if (resultIntent != null) {
+                mainActivity.setResult(Activity.RESULT_OK, resultIntent);
+            } else {
+                mainActivity.setResult(Activity.RESULT_OK);
+            }
             mainActivity.finish();
         });
     }
@@ -250,9 +244,9 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
     }
 
     @Override
-    public void confirmed(int i) {}
+    public void confirmed(int i) { }
 
     @Override
-    public void canceled(int i) {}
+    public void canceled(int i) { }
 
 }
