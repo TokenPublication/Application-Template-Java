@@ -1,6 +1,5 @@
 package com.example.application_template_jmvvm.data.repository;
 
-
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -24,6 +23,10 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 
+/**
+ * This class combines Batch DAO operations with other functionalities
+ * for getting response and preparing batch intent data with batch slip.
+ */
 public class BatchRepository {
     private BatchDao batchDao;
 
@@ -45,13 +48,12 @@ public class BatchRepository {
 
     public String prepareSlip(MainActivity mainActivity, ActivationRepository activationRepository, BatchRepository batchRepository, List<TransactionEntity> transactionList) {
         BatchClosePrintHelper batchClosePrintHelper = new BatchClosePrintHelper();
-        return batchClosePrintHelper.batchText(mainActivity, String.valueOf(batchRepository.getBatchNo()), activationRepository, transactionList, true);
+        return batchClosePrintHelper.batchText(mainActivity, String.valueOf(batchRepository.getBatchNo()), activationRepository, transactionList, false);
     }
 
     public BatchCloseResponse prepareResponse(MainActivity mainActivity, BatchViewModel batchViewModel, BatchResult batchResult) {
         if (batchResult == BatchResult.SUCCESS) {   //Dummy response, always success
-            batchViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getString(R.string.batch_close) + " " +
-                                                                    mainActivity.getString(R.string.success)));
+            batchViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getString(R.string.batch_close) + " " + mainActivity.getString(R.string.success)));
         }
         SimpleDateFormat date = new SimpleDateFormat("dd-MM-yy HH:mm:ss", Locale.getDefault());
         return new BatchCloseResponse(batchResult, date);

@@ -19,8 +19,10 @@ import com.token.uicomponents.CustomInput.InputValidator;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This fragment includes CustomInputList types and methods
+ */
 public class CustomInputListFragment extends Fragment {
-
     private MainActivity mainActivity;
 
     public CustomInputListFragment(MainActivity mainActivity) {
@@ -69,5 +71,4 @@ public class CustomInputListFragment extends Fragment {
         mainActivity.replaceFragment(R.id.container, fragment, false);
         fragment.setActionLayout(getString(R.string.custom_input_list), true, null); // Fragment has a back button and a title
     }
-
 }

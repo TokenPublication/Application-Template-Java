@@ -24,8 +24,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This fragment is for Setting Configuration, it depends on Activation Database
+ */
 public class SettingsFragment extends Fragment {
-
     private MainActivity mainActivity;
     private ActivationViewModel activationViewModel;
     private String terminalId, merchantId, ipNo, portNo;
@@ -50,6 +52,10 @@ public class SettingsFragment extends Fragment {
         showMenu();
     }
 
+    /**
+     * This prepares menu, when user clicks Setup, Terminal ID & Merchant ID fragment will be opened
+     * If user clicks Host Settings user can change IP Port configuration with opening page.
+     */
     private void showMenu() {
         List<IListMenuItem> menuItems = new ArrayList<>();
         menuItems.add(new MenuItem(getString(R.string.setup), iListMenuItem -> addTidMidFragment()));
@@ -58,6 +64,10 @@ public class SettingsFragment extends Fragment {
         mainActivity.replaceFragment(R.id.container, mListMenuFragment,false);
     }
 
+    /** It shows a page with a fragment that contains Merchant and Terminal ID inputs
+     * These 2 input values comes from Activation database, when user click save button, their values are updating
+     * with respect to entering inputs.
+     * */
     private void addTidMidFragment() {
         List<CustomInputFormat> inputList = new ArrayList<>();
         inputList.add(new CustomInputFormat(mainActivity.getString(R.string.merchant_no), EditTextInputType.Number, 10, mainActivity.getString(R.string.invalid_merchant_no), input -> input.getText().length() == 10));
@@ -77,6 +87,10 @@ public class SettingsFragment extends Fragment {
         mainActivity.replaceFragment(R.id.container, TidMidFragment,true);
     }
 
+    /**
+     * This prepares IP, Port fragment with validator, it shows initial IP, Port number on the screen
+     * If user changes their values, these values are updated in database
+     */
     private void addIpFragment() {
         List<CustomInputFormat> inputList = new ArrayList<>();
         inputList.add(new CustomInputFormat("IP", EditTextInputType.IpAddress, null, mainActivity.getString(R.string.invalid_ip), customInputFormat -> {

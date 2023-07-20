@@ -5,7 +5,6 @@ import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.StyledString;
 
 public class BasePrintHelper {
-
     static void addText(StyledString styledText, String text, PrinterDefinitions.Alignment alignment) {
         addText(styledText, text, alignment, 11, 0);
     }
@@ -32,18 +31,5 @@ public class BasePrintHelper {
         styledText.setFontSize(12);
         styledText.setFontFace(PrinterDefinitions.Font_E.SourceSansPro);
         styledText.addTextToLine(receipt.getMerchantName(), PrinterDefinitions.Alignment.Center);
-
-        styledText.newLine();
-        styledText.setFontFace(PrinterDefinitions.Font_E.Sans_Semi_Bold);
-        styledText.addTextToLine("İŞYERİ NO:", PrinterDefinitions.Alignment.Left);
-        styledText.setFontFace(PrinterDefinitions.Font_E.SourceSansPro);
-        styledText.addTextToLine(receipt.getMerchantID(), PrinterDefinitions.Alignment.Right);
-
-        styledText.newLine();
-        styledText.setFontFace(PrinterDefinitions.Font_E.Sans_Semi_Bold);
-        styledText.addTextToLine("TERMİNAL NO:", PrinterDefinitions.Alignment.Left);
-        styledText.setFontFace(PrinterDefinitions.Font_E.SourceSansPro);
-        styledText.addTextToLine(receipt.getPosID(), PrinterDefinitions.Alignment.Right);
     }
-
 }

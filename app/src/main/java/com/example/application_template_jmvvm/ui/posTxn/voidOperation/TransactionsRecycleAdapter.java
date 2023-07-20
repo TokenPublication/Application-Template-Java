@@ -16,7 +16,6 @@ import com.example.application_template_jmvvm.R;
 import java.util.List;
 
 public class TransactionsRecycleAdapter extends RecyclerView.Adapter<TransactionsRecycleAdapter.MyHolder> {
-
     private List<TransactionEntity> transactionList;
     private VoidFragment voidFragment;
 
@@ -65,5 +64,4 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
             serial_no = itemView.findViewById(R.id.tvSN);
         }
     }
-
 }

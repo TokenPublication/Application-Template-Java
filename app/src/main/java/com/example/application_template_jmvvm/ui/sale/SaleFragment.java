@@ -45,8 +45,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SaleFragment extends Fragment implements InfoDialogListener {
+/**
+ * This Class is for Sale operations, It has dummy sale layout, which is the only view that we created.
+ * Other ui elements come from ui library.
+ */
 
+public class SaleFragment extends Fragment implements InfoDialogListener {
     int amount;
     String uuid;
     private ActivationViewModel activationViewModel;
@@ -79,6 +83,9 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         amount = bundle.getInt("Amount");
     }
 
+    /**
+     * This override method for handle onClickListeners for buttons and amount showed in screen
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -102,6 +109,9 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         return inflater.inflate(R.layout.fragment_sale, container, false);
     }
 
+    /**
+     * This method is for preparing Spinner on layout, Spinner contains 6 Payment Methods
+     */
     private void prepareSpinner(View view) {
         spinner = view.findViewById(R.id.spinner);
         String[] items = new String[] {
@@ -126,6 +136,10 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         public void onNothingSelected(AdapterView<?> parent) { }
     };
 
+    /**
+     * This method for getting choices of user for payment and slip After that, it calls onSaleResponseRetrieved
+     * method with this choices and dummy data for dummy sale.
+     */
     public void prepareDummyResponse(View view, ResponseCode code) {
         // Dummy response with payment type, for 1000TR device
         int paymentType = PaymentTypes.CREDITCARD.type;
@@ -159,6 +173,13 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         onSaleResponseRetrieved(amount, code, true, slipType, "1234 **** **** 7890", "OWNER NAME", paymentType);
     }
 
+    /**
+     * This method for call readCard method in mainActivity and observe the card data for operations
+     * like doSale or prepareSaleMenu
+     * Flow: if card read type is QR -> QrSale
+     * if card read type is ICC(read card part) -> PrepareSaleMenu
+     * else (card read type is different or ICC(continue_emv) part) -> doSale.
+     */
     public void cardReader(LifecycleOwner lifecycleOwner, int amount, boolean isGIB) {
         mainActivity.readCard(lifecycleOwner, amount, TransactionCode.SALE);
         cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> {
@@ -176,6 +197,10 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         });
     }
 
+    /**
+     * Flow: Clicking Sale Button > Read Card > On Card Data Received > (if card is ICC) -> here
+     * It is a sale menu, if user click sale it calls cardReader() method for call the read card again.
+     */
     private void prepareSaleMenu(ICCCard card, boolean isGIB) {
         boolean isInstallmentAllowed = false;
         boolean isLoyaltyAllowed = false;
@@ -207,6 +232,9 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         mainActivity.replaceFragment(R.id.container, listMenuFragment, false);
     }
 
+    /**
+     * This method for show installment count choice screen. After user selects instCount, it calls cardReader method for read card.
+     */
     private void showInstallments() {
         MenuItemClickListener<MenuItem> listener = menuItem -> {
             String itemName = menuItem.getName();
@@ -227,6 +255,9 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         mainActivity.replaceFragment(R.id.container, instFragment, true);
     }
 
+    /**
+     * This method for only dummy sale that did in Sale UI (success, error, declined)
+     */
     public void onSaleResponseRetrieved(Integer price, ResponseCode code, Boolean hasSlip, SlipType slipType, String cardNo, String ownerName, int paymentType) {
         transactionViewModel.prepareDummyResponse(activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(),
                                                 mainActivity, price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
@@ -243,6 +274,13 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         });
     }
 
+    /**
+     * Flow: Clicking Sale Button > Read Card > On Card Data Received > (if card is Contactless) -> here
+     * If card is ICC -> Prepare Sale Menu > Click Sale > here
+     * It calls transactionRoutine method in Transaction ViewModel for perform transaction.
+     * Also, it updates the UI with UI statements at ViewModel. Finally, it gets intent data from viewModel
+     * and finish the activity with this intent.
+     */
     public void doSale(ICCCard card, LifecycleOwner viewLifecycleOwner) {
         uuid = mainActivity.getIntent().getExtras().getString("UUID");
         if (instCount > 0) {
@@ -267,6 +305,9 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         });
     }
 
+    /**
+     * This method for shows the QR and perform dummy QR sale. Only updates the UI, not performing any sale operation.
+     */
     public void QrSale() {
         InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, getString(R.string.please_wait), true);
         new Handler(Looper.getMainLooper()).postDelayed(() -> {

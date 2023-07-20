@@ -2,6 +2,9 @@ package com.example.application_template_jmvvm.data.model.response;
 
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 
+/**
+ * This is a class for holding response data from coming from host.
+ */
 public class OnlineTransactionResponse {
     ResponseCode mResponseCode;
     String mTextPrintCode;
@@ -75,6 +78,4 @@ public class OnlineTransactionResponse {
     public void setDateTime(String dateTime) {
         this.dateTime = dateTime;
     }
-
-
 }

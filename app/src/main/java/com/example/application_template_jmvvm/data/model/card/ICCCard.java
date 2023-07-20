@@ -1,5 +1,8 @@
 package com.example.application_template_jmvvm.data.model.card;
 
+/**
+ * This is a class for keeping ICC card data.
+ */
 public class ICCCard implements ICard {
      int resultCode;
      int mCardReadType;

@@ -1,5 +1,8 @@
 package com.example.application_template_jmvvm.data.model.type;
 
+/**
+ * This is enum class for holding types of cards.
+ */
 public enum CardReadType {
     NONE(0),
     ICC(1),

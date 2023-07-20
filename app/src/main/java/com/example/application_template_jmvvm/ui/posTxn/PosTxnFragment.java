@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class PosTxnFragment extends Fragment implements InfoDialogListener {
-
     private ActivationViewModel activationViewModel;
     private BatchViewModel batchViewModel;
     private CardViewModel cardViewModel;

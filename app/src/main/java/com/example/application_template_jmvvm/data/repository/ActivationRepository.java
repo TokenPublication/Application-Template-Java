@@ -5,6 +5,11 @@ import com.example.application_template_jmvvm.data.database.activation.Activatio
 
 import javax.inject.Inject;
 
+/**
+ * This class for the operations in Activation like update.
+ * The ActivationDao parameter represents a Data Access Object
+ * injected through Dependency Injection using the @Inject annotation.
+ */
 public class ActivationRepository {
     private ActivationDao activationDao;
 
@@ -17,8 +22,11 @@ public class ActivationRepository {
     public void initializeActivation() {
         if (isTableEmpty()) {
             ActivationEntity activationEntity = new ActivationEntity();
+            activationEntity.setColMerchantId("3785971905");
+            activationEntity.setColTerminalId("94820525");
+            //TODO Developer, assigned temporary values for merchant and terminal ID for not getting null
             activationEntity.setColIP("195.87.189.169");
-            activationEntity.setColPort("1051");
+            activationEntity.setColPort("1000");
             activationDao.insertActivation(activationEntity);
         }
     }

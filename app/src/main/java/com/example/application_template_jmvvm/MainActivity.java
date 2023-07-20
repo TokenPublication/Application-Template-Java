@@ -16,7 +16,6 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
@@ -47,9 +46,13 @@ import java.util.Objects;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
+/**
+ * This is the Main Activity class, all operations are run here because this
+ * application is designed as a single-activity architecture
+ * It's @AndroidEntryPoint because, we get ViewModel inside of class,
+ */
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity implements InfoDialogListener {
-
     private FragmentManager fragmentManager;
     public ActivationViewModel activationViewModel;
     private CardViewModel cardViewModel;
@@ -58,6 +61,10 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private TriggerViewModel triggerViewModel;
     private InfoDialog infoDialog;
 
+    /**
+     * This is the onCreate method for create the viewModels and build config.
+     * Also, it binds the card service for after.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     /**
      * Firstly, added TR1000 and TR400 configurations to build.gradle file. After that,
      * related to Build Variant (400TRDebug or 1000TRDebug) the manifest file created with apk
-     * and the appname in manifest file will be 1000TR or 400TR.
+     * and the app name in manifest file will be 1000TR or 400TR.
     */
     private void buildConfigs() {
         if (BuildConfig.FLAVOR.equals("TR1000")) {
@@ -90,6 +97,9 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
     }
 
+    /**
+     * This function for call some operations or change the view with respect to action of the current intent
+     */
     private void actionControl(@Nullable String action) {
         if (Objects.equals(action, getString(R.string.Sale_Action))) {
             saleActionReceived();
@@ -133,6 +143,11 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
     }
 
+    /**
+     * This method for bind the card service. Also it has a 30 seconds timeout for handle onFailure
+     * at card service bind.
+     * @param lifecycleOwner for observe the cardServiceConnect liveData from CardViewModel.
+     */
     public void initializeCardService(LifecycleOwner lifecycleOwner) {
         final boolean[] isCancelled = {false};
         infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
@@ -163,6 +178,12 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         });
     }
 
+    /**
+     * This method for read card. But it has the null check for card service binding.
+     * If it is null, we initialize card service and call this method again.
+     * Also, we observe the card service result and response message live data for handle error,
+     * cancel cases etc.
+     */
     public void readCard(LifecycleOwner lifecycleOwner, int amount, TransactionCode transactionCode) {
         if (cardViewModel.getCardServiceBinding() != null) {
             cardViewModel.readCard(amount, transactionCode);
@@ -174,6 +195,14 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
     }
 
+    /**
+     * This function is called when action == "SALE". Action could be "SALE" in 3 different scenarios
+     * 1- When the customer clicks on credit card in pgw and then selects Application Template as a Banking Application
+     * ( If the device has only Application Template as a Banking Application, pgw automatically directs user to Application Template when clicking credit card)
+     * 2- When GiB sends a sale request
+     * 3- When the card is read by payment gateway and the Application Template is the only issuer of this card, in this situation
+     * payment gateway automatically directs the sale to Application Template and sale action received.
+     */
     private void saleActionReceived() {
         SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
         Bundle bundle = getIntent().getExtras();
@@ -197,6 +226,13 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
     }
 
+    /**
+     * This function only calls whenever Refund Action is received.
+     * If there is no RefundInfo on current intent, it will show info dialog with No Refund Intent for 2 seconds.
+     * else -> it transforms refundInfo to JSON object to parse it easily. Then get ReferenceNo and BatchNo
+     * Then it compares intent batch number with current Batch Number from database, if they are equal then start Void operation
+     * else start refund operation.
+     */
     private void refundActionReceived() {
         if (getIntent().getExtras() == null || getIntent().getExtras().getString("RefundInfo") == null) {
             responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_not_found));
@@ -225,6 +261,11 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
     }
 
+    /**
+     * It takes @param cardServiceResult and control it with switch case.
+     * Related to it's value, the info dialog shows in screen and activity will
+     * finish with intent contains response code.
+     */
     public void callbackMessage(CardServiceResult cardServiceResult) {
         Bundle bundle = new Bundle();
         Intent intent = new Intent();
@@ -247,6 +288,12 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         },2000);
     }
 
+    /**
+     * It takes @param responseCode and message and control it with switch case.
+     * Related to it's value, the info dialog shows in screen and activity will
+     * finish with intent contains response code. Also with message parameter, the
+     * error messages can seen at screen.
+     */
     public void responseMessage(ResponseCode responseCode, String message) {
         Bundle bundle = new Bundle();
         Intent intent = new Intent();
@@ -275,22 +322,30 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         },2000);
     }
 
+    /**
+     * Shows a dialog to the user which asks for a confirmation.
+     * Dialog will be dismissed automatically when user taps on to confirm/cancel button.
+     */
     public InfoDialog showConfirmationDialog(InfoDialog.InfoType type, String title, String info, InfoDialog.InfoDialogButtons buttons, int arg, InfoDialogListener listener) {
         InfoDialog dialog = InfoDialog.newInstance(type, title, info, buttons, arg, listener);
         dialog.show(getSupportFragmentManager(), "");
         return dialog;
     }
 
+    /**
+     * This is for showing infoDialog
+     */
     public InfoDialog showInfoDialog(InfoDialog.InfoType type, String text, boolean isCancelable) {
         InfoDialog fragment = InfoDialog.newInstance(type, text, isCancelable);
         fragment.show(getSupportFragmentManager(), "");
         return fragment;
     }
 
-    public InfoDialog getInfoDialog() {
-        return infoDialog;
-    }
-
+    /**
+     * This is for replacing the fragment or adding to the backstack.
+     * It's name is replaceFragment but it can be use for add the fragment to the backstack
+     * with @param addToBackStack
+     */
     public void replaceFragment(@IdRes Integer resourceId, Fragment fragment, Boolean addToBackStack) {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(resourceId, fragment);
@@ -305,10 +360,9 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         super.onDestroy();
     }
 
-    public void showDialog(InfoDialog infoDialog) {
-        infoDialog.show(fragmentManager, "");
-    }
-
+    /**
+     * It sets custom_emv_config.xml with setEMVConfiguration method in card service
+     */
     public void setConfig() {
         try {
             InputStream xmlStream = getApplicationContext().getAssets().open("custom_emv_config.xml");
@@ -326,6 +380,9 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
     }
 
+    /**
+     * It sets custom_emv_cl_config.xml with setEMVCLConfiguration method in card service
+     */
     public void setCLConfig() {
         try {
             InputStream xmlCLStream = getApplicationContext().getAssets().open("custom_emv_cl_config.xml");

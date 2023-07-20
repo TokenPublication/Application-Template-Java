@@ -1,5 +1,8 @@
 package com.example.application_template_jmvvm.data.model.code;
 
+/**
+ * This is enum class for holding types of Transaction.
+ */
 public enum TransactionCode {
     SALE(1),
     INSTALLMENT_SALE(2),

@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.di;
+package com.example.application_template_jmvvm.dependencyInjection;
 
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
@@ -15,10 +15,19 @@ import dagger.hilt.InstallIn;
 import dagger.hilt.android.components.ViewModelComponent;
 import dagger.hilt.android.scopes.ViewModelScoped;
 
+/**
+ * This is a module object for Dependency Injection with Hilt
+ * It defines the viewModel inside that object
+ * Because ViewModel's life is different than App's Life in lifecycle we have to define it another module
+ * @InstallIn(ViewModelComponent::class) means it's life as much as ViewModel's life
+ */
 @Module
 @InstallIn(ViewModelComponent.class)
 public class ViewModelModule {
 
+    /**
+     * It defines our viewModel with the app and repository gotten from DI.
+     */
     @Provides
     @ViewModelScoped
     public ActivationViewModel provideActivationViewModel(ActivationRepository repository) {

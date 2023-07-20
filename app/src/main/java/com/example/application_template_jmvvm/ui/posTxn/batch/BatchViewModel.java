@@ -30,7 +30,6 @@ import io.reactivex.schedulers.Schedulers;
 
 @HiltViewModel
 public class BatchViewModel extends ViewModel {
-
     public BatchRepository batchRepository;
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
     private MutableLiveData<InfoDialogData> infoDialogLiveData = new MutableLiveData<>();
@@ -133,5 +132,4 @@ public class BatchViewModel extends ViewModel {
     public void deleteAll() {
         batchRepository.deleteAll();
     }
-
 }

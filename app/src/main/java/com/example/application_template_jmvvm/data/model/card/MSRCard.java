@@ -39,4 +39,3 @@ public class MSRCard implements ICard {
         return mTranAmount1;
     }
 }
-

@@ -31,8 +31,11 @@ import com.tokeninc.deviceinfo.DeviceInfo;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This is the fragment for showing how to simulate examples on this device to developers
+ * This package can be deleted by the developer.
+ */
 public class ExampleFragment extends Fragment {
-
     private MainActivity mainActivity;
     private ListMenuFragment listMenuFragment;
     private CardViewModel cardViewModel;

@@ -22,8 +22,10 @@ import com.token.uicomponents.infodialog.InfoDialog;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This fragment includes InfoDialog types and methods
+ */
 public class InfoDialogFragment extends Fragment {
-
     static class InfoDialogItem implements IListMenuItem {
 
         private InfoDialog.InfoType mType;
@@ -86,10 +88,10 @@ public class InfoDialogFragment extends Fragment {
 
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Confirmed, getString(R.string.confirmed), listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Warning, getString(R.string.warning), listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Error, getString(R.string.error), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Error, getString(R.string.error_example), listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Info, getString(R.string.info), listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Declined, getString(R.string.declined), listener, null));
-        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Connecting, getString(R.string.connecting), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Declined, getString(R.string.declined_example), listener, null));
+        menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Connecting, getString(R.string.connecting_example), listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Downloading, getString(R.string.downloading), listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Uploading, getString(R.string.uploading), listener, null));
         menuItems.add(new InfoDialogItem(InfoDialog.InfoType.Processing, getString(R.string.processing), listener, null));
@@ -104,14 +106,4 @@ public class InfoDialogFragment extends Fragment {
         InfoDialog dialog = mainActivity.showInfoDialog(item.mType, item.mText, true);
         //Dismiss dialog by calling dialog.dismiss() when needed.
     }
-
-    public void onPosTxnResponse() {
-        Intent resultIntent = new Intent();
-        Bundle bundle = new Bundle();
-        //bundle.putString("ResponseCode", PosTxnResponse);
-        resultIntent.putExtras(bundle);
-        mainActivity.setResult(Activity.RESULT_OK, resultIntent);//PosTxn_Request_Code:13
-        mainActivity.finish();
-    }
-
 }

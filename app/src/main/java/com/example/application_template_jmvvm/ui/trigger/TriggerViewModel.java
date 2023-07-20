@@ -12,13 +12,6 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
-import com.example.application_template_jmvvm.data.model.card.ICCCard;
-import com.example.application_template_jmvvm.data.model.code.TransactionCode;
-import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
-import com.example.application_template_jmvvm.data.repository.ActivationRepository;
-import com.example.application_template_jmvvm.data.repository.BatchRepository;
-import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
 import com.token.uicomponents.infodialog.InfoDialog;
 
@@ -32,10 +25,13 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class TriggerViewModel extends ViewModel {
-
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
     private MutableLiveData<InfoDialogData> infoDialogLiveData = new MutableLiveData<>();
 
+    /**
+     * In this routine, dummy bin tables, allowed operations, supportedAIDs and clConfigFiles are sent to pgw
+     * as this template's parameters in payment gateway's trigger moment.
+     */
     public void parameterRoutine(MainActivity mainActivity, AssetManager assetManager) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
         setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getApplicationContext().getString(R.string.parameter_loading)));
@@ -94,7 +90,6 @@ public class TriggerViewModel extends ViewModel {
             };
             observable.subscribe(observer);
         }, 3000);
-
     }
 
     public MutableLiveData<Intent> getIntentLiveData() {
@@ -112,5 +107,4 @@ public class TriggerViewModel extends ViewModel {
     public void setInfoDialogLiveData(InfoDialogData infoDialogData) {
         infoDialogLiveData.postValue(infoDialogData);
     }
-
 }

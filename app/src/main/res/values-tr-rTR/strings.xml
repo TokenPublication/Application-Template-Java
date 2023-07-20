@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Application Template JMVVM</string>
+    <string name="app_name">Application Template Java MVVM</string>
     <string name="amount">Miktar</string>
     <string name="reports">Raporlar</string>
     <string name="please_wait">Lütfen Bekleyiniz</string>

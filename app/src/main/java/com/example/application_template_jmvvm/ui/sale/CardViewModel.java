@@ -1,8 +1,5 @@
 package com.example.application_template_jmvvm.ui.sale;
 
-import android.os.Handler;
-import android.os.Looper;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -19,6 +16,13 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 
+/**
+ * This viewModel contains LiveData variables and cardRepository for card operations.
+ * LiveData variables can be observable in UI elements (fragments, activity). This flow
+ * comes from MVVM architectural design. Also it is callback listener for RepositoryCallback
+ * interface in CardRepository
+ */
+
 @HiltViewModel
 public class CardViewModel extends ViewModel implements CardRepository.RepositoryCallback {
     private CardRepository cardRepository;
@@ -34,7 +38,7 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
     }
 
     public void initializeCardServiceBinding(MainActivity mainActivity) {
-        new Handler(Looper.getMainLooper()).postDelayed(() -> cardRepository.cardServiceBinder(mainActivity), 1000);
+        cardRepository.cardServiceBinder(mainActivity);
     }
 
     public void readCard(int amount, TransactionCode transactionCode) {
@@ -88,5 +92,4 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
     public void setGIB(boolean GIB) {
         cardRepository.setGIB(GIB);
     }
-
 }
