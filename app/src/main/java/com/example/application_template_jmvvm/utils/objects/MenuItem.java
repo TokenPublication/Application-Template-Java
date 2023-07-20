@@ -8,6 +8,9 @@ import com.token.uicomponents.ListMenuFragment.MenuItemClickListener;
 
 import java.util.List;
 
+/**
+ * This is the class for IListMenuItem component.
+ */
 public class MenuItem implements IListMenuItem {
     private String mTitle;
     private List<IListMenuItem> subMenuItemList;

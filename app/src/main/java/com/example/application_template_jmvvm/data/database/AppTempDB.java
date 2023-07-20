@@ -13,7 +13,7 @@ import com.example.application_template_jmvvm.data.database.batch.BatchDao;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionDao;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 
-@Database(entities = {TransactionEntity.class, BatchDB.class, ActivationEntity.class}, version = DatabaseInfo.DATABASEVERSION, exportSchema = false)
+@Database(entities = {TransactionEntity.class, BatchDB.class, ActivationEntity.class}, version = DatabaseInfo.DATABASE_VERSION, exportSchema = false)
 public abstract class AppTempDB extends RoomDatabase {
 
     public abstract TransactionDao transactionDao();
@@ -26,7 +26,7 @@ public abstract class AppTempDB extends RoomDatabase {
             synchronized (AppTempDB.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                                    AppTempDB.class, DatabaseInfo.DATABASENAME)
+                                    AppTempDB.class, DatabaseInfo.DATABASE_NAME)
                                 .allowMainThreadQueries()
                                 .build();
                 }

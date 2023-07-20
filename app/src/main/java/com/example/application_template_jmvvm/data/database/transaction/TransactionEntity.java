@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey;
 
 import com.example.application_template_jmvvm.data.database.DatabaseInfo;
 
-@Entity(tableName = DatabaseInfo.TRANSACTIONTABLE)
+@Entity(tableName = DatabaseInfo.TRANSACTION_TABLE)
 public class TransactionEntity {
     @ColumnInfo(name = TransactionCols.col_uuid)
     public String uuid;
@@ -349,5 +349,4 @@ public class TransactionEntity {
     public int getIsOnlinePIN() {
         return isOnlinePIN;
     }
-
 }

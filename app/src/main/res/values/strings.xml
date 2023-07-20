@@ -6,7 +6,7 @@
     <string name="Parameter_Action" translatable="false">Parameter_Action</string>
     <string name="PosTxn_Action" translatable="false">PosTxn_Action</string>
 
-    <string name="app_name">Application Template JMVVM</string>
+    <string name="app_name">Application Template Java MVVM</string>
     <string name="amount">Amount</string>
     <string name="reports">Reports</string>
     <string name="please_wait">Please Wait</string>
@@ -65,6 +65,12 @@
     <string name="error">Error</string>
     <string name="error_timeout">Error Timeout</string>
     <string name="declined">Declined</string>
+    <string name="success_example" translatable="false">Success</string>
+    <string name="cancelled_example" translatable="false">Cancelled</string>
+    <string name="error_example" translatable="false">Error</string>
+    <string name="connecting_example" translatable="false">Connecting</string>
+    <string name="declined_example" translatable="false">Declined</string>
+    <string name="confirmation_example" translatable="false">Confirmation</string>
     <string name="refund_info_not_found">Refund Info Not Found</string>
 
     <string name="card_number">Card Number</string>

@@ -34,8 +34,11 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 
+/**
+ * This class for handle the operations for Transaction like intent, slip and response
+ * Also it has Transaction DAO for perform database operations.
+ */
 public class TransactionRepository {
-
     private TransactionDao transactionDao;
 
     @Inject
@@ -75,6 +78,9 @@ public class TransactionRepository {
         transactionDao.deleteAll();
     }
 
+    /**
+     * It parses the response in a dummy way.
+     */
     public OnlineTransactionResponse parseResponse(TransactionViewModel transactionViewModel, MainActivity mainActivity) {
         OnlineTransactionResponse onlineTransactionResponse = new OnlineTransactionResponse();
         onlineTransactionResponse.setmResponseCode(ResponseCode.SUCCESS);
@@ -85,12 +91,14 @@ public class TransactionRepository {
         onlineTransactionResponse.setmKeySequenceNumber("3");
         onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
         if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS) { //Dummy Response, always success
-            transactionViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getString(R.string.confirmation_code)
-                                                                                                    + ": " + onlineTransactionResponse.getmAuthCode()));
+            transactionViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getString(R.string.confirmation_code) + ": " + onlineTransactionResponse.getmAuthCode()));
         }
         return onlineTransactionResponse;
     }
 
+    /**
+     * This method puts required values to TransactionEntity object for insert the transaction into Transaction DB
+     */
     public TransactionEntity entityCreator(ICCCard card, String uuid, Bundle bundle, OnlineTransactionResponse onlineTransactionResponse, TransactionCode transactionCode) {
         TransactionEntity transactionEntity = new TransactionEntity();
         transactionEntity.setUuid(uuid);
@@ -129,8 +137,7 @@ public class TransactionRepository {
                 transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
                 transactionEntity.setRefNo(bundle.getString(ExtraContentInfo.refNo));
                 transactionEntity.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
-                transactionEntity.setBaTranDate(bundle.getString(ExtraContentInfo.tranDate));
-                transactionEntity.setBaTranDate2(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date()));
+                transactionEntity.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
                 break;
             case CASH_REFUND:
                 transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
@@ -140,8 +147,7 @@ public class TransactionRepository {
                 transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
                 transactionEntity.setRefNo(bundle.getString(ExtraContentInfo.refNo));
                 transactionEntity.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
-                transactionEntity.setBaTranDate(bundle.getString(ExtraContentInfo.tranDate));
-                transactionEntity.setBaTranDate2(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date()));
+                transactionEntity.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
                 transactionEntity.setbInstCnt(bundle.getInt(ExtraContentInfo.instCount));
                 break;
             default:
@@ -150,6 +156,10 @@ public class TransactionRepository {
         return transactionEntity;
     }
 
+    /**
+     * This method puts required values to bundle (something like contentValues for data transferring).
+     * After that, an intent will be created with this bundle to provide communication between GiB and Application Template via IPC
+     */
     public Intent prepareSaleIntent(ActivationRepository activationRepository, BatchRepository batchRepository,
                                 MainActivity mainActivity, TransactionEntity transactionEntity,
                                 TransactionCode transactionCode, ResponseCode responseCode) {
@@ -159,7 +169,7 @@ public class TransactionRepository {
         SlipType slipType = SlipType.BOTH_SLIPS;
         String cardNo = transactionEntity.getBaPAN();
         bundle.putInt("ResponseCode", responseCode.ordinal()); // #1 Response Code
-        bundle.putString("CardOwner", "OWNER NAME"); // Optional
+        bundle.putString("CardOwner", transactionEntity.getBaCustomerName()); // Optional
         bundle.putString("CardNumber", cardNo); // Optional, Card No can be masked
         bundle.putInt("PaymentStatus", 0); // #2 Payment Status
         bundle.putInt("Amount", amount); // #3 Amount
@@ -176,12 +186,13 @@ public class TransactionRepository {
         SalePrintHelper salePrintHelper = new SalePrintHelper();
         if (responseCode == ResponseCode.CANCELLED || responseCode == ResponseCode.UNABLE_DECLINE || responseCode == ResponseCode.OFFLINE_DECLINE) {
             slipType = SlipType.NO_SLIP;
+            //TODO Developer, no slip or cancel slip.
         } else {
-            if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {  //TODO owner name null check,
-                bundle.putString("customerSlipData", salePrintHelper.getFormattedText(new SampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
+            if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
+                bundle.putString("customerSlipData", salePrintHelper.getFormattedText(new SampleReceipt(cardNo, transactionEntity.getBaCustomerName(), amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2));
             }
             if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-                bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(new SampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
+                bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(new SampleReceipt(cardNo, transactionEntity.getBaCustomerName(), amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2));
             }
             bundle.putString("RefundInfo", getRefundInfo(transactionEntity, cardNo, amount, activationRepository, batchRepository));
             if (transactionCode == TransactionCode.MATCHED_REFUND || transactionCode == TransactionCode.CASH_REFUND || transactionCode == TransactionCode.INSTALLMENT_REFUND || transactionCode == TransactionCode.VOID) {
@@ -189,11 +200,13 @@ public class TransactionRepository {
                 printSlip(bundle.getString("merchantSlipData"), mainActivity);
             }
         }
-
         intent.putExtras(bundle);
         return intent;
     }
 
+    /**
+     * It prepares refund and void intent for only gib and print slip
+     */
     public Intent prepareIntent(ActivationRepository activationRepository, BatchRepository batchRepository,
                                     MainActivity mainActivity, TransactionEntity transactionEntity,
                                     TransactionCode transactionCode, ResponseCode responseCode) {
@@ -205,13 +218,16 @@ public class TransactionRepository {
         return intent;
     }
 
+    /**
+     * It prepares and prints the slip.
+     */
     public void prepareSlip(ActivationRepository activationRepository, BatchRepository batchRepository,
                             MainActivity mainActivity, TransactionEntity transactionEntity, TransactionCode transactionCode) {
         SalePrintHelper salePrintHelper = new SalePrintHelper();
         String cardNo = transactionEntity.getBaPAN();
         int amount = transactionEntity.getUlAmount();
-        String customerSlipData = salePrintHelper.getFormattedText(new SampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2);
-        String merchantSlipData = salePrintHelper.getFormattedText(new SampleReceipt(cardNo, "OWNER NAME", amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2);
+        String customerSlipData = salePrintHelper.getFormattedText(new SampleReceipt(cardNo, transactionEntity.getBaCustomerName(), amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, 1, 2);
+        String merchantSlipData = salePrintHelper.getFormattedText(new SampleReceipt(cardNo, transactionEntity.getBaCustomerName(), amount, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, 1, 2);
         printSlip(customerSlipData, mainActivity);
         printSlip(merchantSlipData, mainActivity);
     }
@@ -257,6 +273,9 @@ public class TransactionRepository {
         transactionViewModel.setIntentLiveData(resultIntent);
     }
 
+    /**
+     * @return refundInfo which is Json with necessary components
+     */
     private String getRefundInfo(TransactionEntity transactionEntity, String cardNumber, int amount,
                                  ActivationRepository activationRepository, BatchRepository batchRepository) {
         JSONObject json = new JSONObject();

@@ -1,7 +1,5 @@
 package com.example.application_template_jmvvm.ui.trigger;
 
-import androidx.lifecycle.ViewModelProvider;
-
 import android.app.Activity;
 import android.content.res.AssetManager;
 import android.os.Bundle;
@@ -16,15 +14,10 @@ import android.view.ViewGroup;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
-import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 
-import java.util.Objects;
-
 public class TriggerFragment extends Fragment implements InfoDialogListener {
-
     private MainActivity mainActivity;
     private TriggerViewModel triggerViewModel;
     private InfoDialog infoDialog;
@@ -50,6 +43,10 @@ public class TriggerFragment extends Fragment implements InfoDialogListener {
         startDummyParameterUploading();
     }
 
+    /**
+     * This function uploads parameters in IO thread, and update UI in main thread dynamically while uploading parameters.
+     * After parameters are uploaded successfully it sends the result with intents to finish the main activity.
+     */
     private void startDummyParameterUploading() {
         AssetManager assetManager = mainActivity.getAssets();
         triggerViewModel.parameterRoutine(mainActivity, assetManager);

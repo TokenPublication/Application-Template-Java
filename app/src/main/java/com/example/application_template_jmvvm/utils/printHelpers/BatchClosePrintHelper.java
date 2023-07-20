@@ -11,7 +11,6 @@ import com.tokeninc.deviceinfo.DeviceInfo;
 import java.util.List;
 
 public class BatchClosePrintHelper extends BasePrintHelper {
-
     public String batchText(Context context, String batch_no, ActivationRepository activationRepository, List<TransactionEntity> transactions, boolean isCopy) {
         StyledString styledText = new StyledString();
         PrintHelper printHelper = new PrintHelper();
@@ -95,5 +94,4 @@ public class BatchClosePrintHelper extends BasePrintHelper {
 
         return styledText.toString();
     }
-
 }

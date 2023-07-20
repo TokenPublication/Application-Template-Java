@@ -20,6 +20,13 @@ import java.util.List;
 
 public class CheckSaleReceiver extends BroadcastReceiver {
 
+    /**
+     * This class for receive the UUID from successful transaction performed via
+     * battery run out flow. It takes UUID from @param intent and control the transaction
+     * is successful or not. If it's successful, it creates intent again and send to PGW
+     * for print it. When the sending intent, used sendBroadcast function for communicate
+     * with PGW.
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.hasExtra("UUID")) {
@@ -45,7 +52,6 @@ public class CheckSaleReceiver extends BroadcastReceiver {
                 bundle.putBoolean("IsSlip", true);
                 resultIntent.putExtras(bundle);
             }
-
             resultIntent.setAction("check_sale_result");
             resultIntent.setPackage("com.tokeninc.sardis.paymentgateway");
             Log.d("intent_control", resultIntent.toString());

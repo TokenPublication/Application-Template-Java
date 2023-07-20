@@ -4,6 +4,9 @@ import com.example.application_template_jmvvm.data.model.code.BatchResult;
 
 import java.text.SimpleDateFormat;
 
+/**
+ * This class is for holding data after batch close operation ends.
+ */
 public class BatchCloseResponse {
     private BatchResult batchResult;
     private SimpleDateFormat date;

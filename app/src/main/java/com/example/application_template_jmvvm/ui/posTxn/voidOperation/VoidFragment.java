@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class VoidFragment extends Fragment implements InfoDialogListener {
-
     private MainActivity mainActivity;
     private ActivationViewModel activationViewModel;
     private BatchViewModel batchViewModel;
@@ -125,5 +124,4 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
 
     @Override
     public void canceled(int i) { }
-
 }

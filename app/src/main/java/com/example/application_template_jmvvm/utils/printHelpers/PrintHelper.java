@@ -7,7 +7,6 @@ import com.token.printerlib.PrinterService;
 import com.token.printerlib.StyledString;
 
 public class PrintHelper extends BasePrintHelper {
-
     public static void PrintSuccess(Context context) {   // Print the success message
         StyledString styledText = new StyledString();
 

@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,7 +43,6 @@ import java.util.Locale;
 import java.util.Objects;
 
 public class RefundFragment extends Fragment implements InfoDialogListener {
-
     private ActivationViewModel activationViewModel;
     private CardViewModel cardViewModel;
     private TransactionViewModel transactionViewModel;
@@ -88,9 +86,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         menuItems.add(new MenuItem(getString(R.string.matched_refund), iListMenuItem -> showMatchedReturnFragment(TransactionCode.MATCHED_REFUND)));
         menuItems.add(new MenuItem(getString(R.string.installment_refund), iListMenuItem -> showInstallmentRefundFragment()));
         menuItems.add(new MenuItem(getString(R.string.cash_refund), iListMenuItem -> showReturnFragment()));
-        menuItems.add(new MenuItem(getString(R.string.loyalty_refund), iListMenuItem -> {       //TODO: Bakılacak.
-
-        }));
+        menuItems.add(new MenuItem(getString(R.string.loyalty_refund), iListMenuItem -> { }));
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.refund), true, R.drawable.token_logo_png);
         mainActivity.replaceFragment(R.id.container, mListMenuFragment,false);
     }
@@ -246,5 +242,4 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
 
     @Override
     public void canceled(int i) { }
-
 }

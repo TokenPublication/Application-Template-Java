@@ -36,9 +36,11 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
+/**
+ * This viewModel holds LiveData variables for communicate with UI layer and repository for Transaction operations.
+ */
 @HiltViewModel
 public class TransactionViewModel extends ViewModel {
-
     private TransactionRepository transactionRepository;
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
     private MutableLiveData<InfoDialogData> infoDialogLiveData = new MutableLiveData<>();
@@ -52,6 +54,16 @@ public class TransactionViewModel extends ViewModel {
         return transactionRepository;
     }
 
+    /**
+     * It runs functions in parallel while ui updating dynamically in main thread
+     * Additionally, in IO thread it parses the response and make it OnlineTransactionResponse
+     * then call Finish Transaction operation with that parameter.
+     * @param bundle can contain refundInfo. It can be null.
+     * @param transactionEntity comes from Void flow and it can be null.
+     * @param uuid comes from Payment Gateway in Sale Transaction. It can be null
+     * @param isGIB it is true in GIB operations and false for normal operations. For sale operation,
+     * it is null because of sale operations always send intents.
+     */
     public void TransactionRoutine(ICCCard card, String uuid, MainActivity mainActivity, TransactionEntity transactionEntity,
                                    Bundle bundle, TransactionCode transactionCode, ActivationRepository activationRepository,
                                    BatchRepository batchRepository, Boolean isGIB) {
@@ -91,14 +103,18 @@ public class TransactionViewModel extends ViewModel {
                 Log.i("Complete","Complete");
                 OnlineTransactionResponse onlineTransactionResponse = transactionRepository.parseResponse(transactionViewModel, mainActivity);
                 batchRepository.updateSTN();
-                Intent resultIntent = finishTransaction(card, uuid, mainActivity, transactionEntity, bundle, transactionCode,
-                                                        onlineTransactionResponse, activationRepository, batchRepository, isGIB);
+                Intent resultIntent = finishTransaction(card, uuid, mainActivity, transactionEntity, bundle, transactionCode, onlineTransactionResponse, activationRepository, batchRepository, isGIB);
                 mainHandler.post(() -> setIntentLiveData(resultIntent));
             }
         };
         observable.subscribe(observer);
     }
 
+    /**
+     * Create a entity respect to parameters, then if it is Void update transaction as changing isVoid and VoidDateAndTime
+     * else -> insert that entity to Transaction table and update Group Serial Number of batch table.
+     * Update dialog with confirmation code if database operations result without an error.
+     */
     private Intent finishTransaction(ICCCard card, String uuid, MainActivity mainActivity, TransactionEntity transactionEntity,
                                      Bundle bundle, TransactionCode transactionCode, OnlineTransactionResponse onlineTransactionResponse,
                                      ActivationRepository activationRepository, BatchRepository batchRepository, Boolean isGIB) {
@@ -107,7 +123,7 @@ public class TransactionViewModel extends ViewModel {
             transactionEntity.setUlSTN(batchRepository.getSTN());
             transactionEntity.setBatchNo(batchRepository.getBatchNo());
             transactionEntity.setUlGUP_SN(batchRepository.getGroupSN());
-            transactionRepository.insertTransaction(transactionEntity); //TODO isSignature CVM'den
+            transactionRepository.insertTransaction(transactionEntity);
             batchRepository.updateGUPSN();
         }
         else {
@@ -164,5 +180,4 @@ public class TransactionViewModel extends ViewModel {
     public boolean isTransactionListEmpty() {
         return transactionRepository.isEmpty();
     }
-
 }

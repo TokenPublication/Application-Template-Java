@@ -20,8 +20,10 @@ import com.token.uicomponents.infodialog.InfoDialogListener;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This fragment includes ConfirmationDialog types and methods
+ */
 public class ConfirmationDialogFragment extends Fragment implements InfoDialogListener {
-
     List<IListMenuItem> menuItems = new ArrayList<>();
     private MainActivity mainActivity;
 
@@ -43,37 +45,37 @@ public class ConfirmationDialogFragment extends Fragment implements InfoDialogLi
         super.onViewCreated(view, savedInstanceState);
 
         menuItems.add(new MenuItem(getString(R.string.confirmed), (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Confirmed, getString(R.string.confirmed), getString(R.string.confirmation) + ": " + getString(R.string.confirmed), InfoDialog.InfoDialogButtons.Both, 99, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Confirmed, getString(R.string.confirmed), getString(R.string.confirmation_example) + ": " + getString(R.string.confirmed), InfoDialog.InfoDialogButtons.Both, 99, this)));
 
         menuItems.add(new MenuItem(getString(R.string.warning), (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Warning, getString(R.string.warning), getString(R.string.confirmation) + ": " + getString(R.string.warning), InfoDialog.InfoDialogButtons.Both, 98, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Warning, getString(R.string.warning), getString(R.string.confirmation_example) + ": " + getString(R.string.warning), InfoDialog.InfoDialogButtons.Both, 98, this)));
 
-        menuItems.add(new MenuItem(getString(R.string.error), (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Error, getString(R.string.error), getString(R.string.confirmation) + ": " + getString(R.string.error), InfoDialog.InfoDialogButtons.Both, 97, this)));
+        menuItems.add(new MenuItem(getString(R.string.error_example), (menuItem) ->
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Error, getString(R.string.error_example), getString(R.string.confirmation_example) + ": " + getString(R.string.error_example), InfoDialog.InfoDialogButtons.Both, 97, this)));
 
         menuItems.add(new MenuItem(getString(R.string.info), (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Info, getString(R.string.info), getString(R.string.confirmation) + ": " + getString(R.string.info), InfoDialog.InfoDialogButtons.Both, 96, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Info, getString(R.string.info), getString(R.string.confirmation_example) + ": " + getString(R.string.info), InfoDialog.InfoDialogButtons.Both, 96, this)));
 
-        menuItems.add(new MenuItem(getString(R.string.declined), (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Declined, getString(R.string.declined), getString(R.string.confirmation) + ": " + getString(R.string.declined), InfoDialog.InfoDialogButtons.Both, 95, this)));
+        menuItems.add(new MenuItem(getString(R.string.declined_example), (menuItem) ->
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Declined, getString(R.string.declined_example), getString(R.string.confirmation_example) + ": " + getString(R.string.declined_example), InfoDialog.InfoDialogButtons.Both, 95, this)));
 
-        menuItems.add(new MenuItem(getString(R.string.connecting), (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), getString(R.string.confirmation) + ": " + getString(R.string.connecting), InfoDialog.InfoDialogButtons.Both, 94, this)));
+        menuItems.add(new MenuItem(getString(R.string.connecting_example), (menuItem) ->
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting_example), getString(R.string.confirmation_example) + ": " + getString(R.string.connecting_example), InfoDialog.InfoDialogButtons.Both, 94, this)));
 
         menuItems.add(new MenuItem(getString(R.string.downloading), (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Downloading, getString(R.string.downloading), getString(R.string.confirmation) + ": " + getString(R.string.downloading), InfoDialog.InfoDialogButtons.Both, 93, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Downloading, getString(R.string.downloading), getString(R.string.confirmation_example) + ": " + getString(R.string.downloading), InfoDialog.InfoDialogButtons.Both, 93, this)));
 
         menuItems.add(new MenuItem(getString(R.string.uploading), (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Uploading, getString(R.string.uploading), getString(R.string.confirmation) + ": " + getString(R.string.uploading), InfoDialog.InfoDialogButtons.Both, 92, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Uploading, getString(R.string.uploading), getString(R.string.confirmation_example) + ": " + getString(R.string.uploading), InfoDialog.InfoDialogButtons.Both, 92, this)));
 
         menuItems.add(new MenuItem(getString(R.string.processing), (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Processing, getString(R.string.processing), getString(R.string.confirmation) + ": " + getString(R.string.processing), InfoDialog.InfoDialogButtons.Both, 91, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Processing, getString(R.string.processing), getString(R.string.confirmation_example) + ": " + getString(R.string.processing), InfoDialog.InfoDialogButtons.Both, 91, this)));
 
         menuItems.add(new MenuItem(getString(R.string.progress), (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Progress, getString(R.string.progress), getString(R.string.confirmation) + ": " + getString(R.string.progress), InfoDialog.InfoDialogButtons.Both, 90, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.Progress, getString(R.string.progress), getString(R.string.confirmation_example) + ": " + getString(R.string.progress), InfoDialog.InfoDialogButtons.Both, 90, this)));
 
         menuItems.add(new MenuItem(getString(R.string.none), (menuItem) ->
-                mainActivity.showConfirmationDialog(InfoDialog.InfoType.None, getString(R.string.none), getString(R.string.confirmation) + ": " + getString(R.string.none), InfoDialog.InfoDialogButtons.Both, 89, this)));
+                mainActivity.showConfirmationDialog(InfoDialog.InfoType.None, getString(R.string.none), getString(R.string.confirmation_example) + ": " + getString(R.string.none), InfoDialog.InfoDialogButtons.Both, 89, this)));
 
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.confirmation_dialog), true, R.drawable.token_logo_png);
         mainActivity.replaceFragment(R.id.container, mListMenuFragment, false);
@@ -88,16 +90,16 @@ public class ConfirmationDialogFragment extends Fragment implements InfoDialogLi
             mainActivity.showInfoDialog(InfoDialog.InfoType.Warning, getString(R.string.warning) + "!", true);
         }
         if (arg == 97) {
-            mainActivity.showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.error) + "!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.error_example) + "!", true);
         }
         if (arg == 96) {
             mainActivity.showInfoDialog(InfoDialog.InfoType.Info, getString(R.string.info) + "!", true);
         }
         if (arg == 95) {
-            mainActivity.showInfoDialog(InfoDialog.InfoType.Declined, getString(R.string.declined) + "!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Declined, getString(R.string.declined_example) + "!", true);
         }
         if (arg == 94) {
-            mainActivity.showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting) + "!", true);
+            mainActivity.showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting_example) + "!", true);
         }
         if (arg == 93) {
             mainActivity.showInfoDialog(InfoDialog.InfoType.Downloading, getString(R.string.downloading) + "!", true);
@@ -123,5 +125,4 @@ public class ConfirmationDialogFragment extends Fragment implements InfoDialogLi
         }
         //else if (arg == ***) { Do something else... }
     }
-
 }

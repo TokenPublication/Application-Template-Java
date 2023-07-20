@@ -18,6 +18,11 @@ import org.json.JSONObject;
 
 import javax.inject.Inject;
 
+/**
+ * This class is for managing data related card operations
+ * It implements CardServiceListener interface's methods which are card service binding lib's methods.
+ * It implements RepositoryCallback interface for communicate with CardViewModel
+ */
 public class CardRepository implements CardServiceListener {
 
     public interface RepositoryCallback {
@@ -56,6 +61,9 @@ public class CardRepository implements CardServiceListener {
         return cardServiceBinding;
     }
 
+    /**
+     * This reads the card and shows card read screen with amount.
+     */
     public void readCard(int amount, TransactionCode transactionCode) {
         try {
             if (!isApprove) {
@@ -85,6 +93,11 @@ public class CardRepository implements CardServiceListener {
         }
     }
 
+    /**
+     * This method is triggered after reading card, if card couldn't be read successfully a callback message is arranged
+     * If card read successfully, it parses @param cardData and creates ICCCard object. Finally, communicate with CardViewModel
+     * for set cardLiveData to card object that we created before related to cardData.
+     */
     public void onCardDataReceived(String cardData) {
         Log.d("Card Data", cardData);
         try {
@@ -130,6 +143,9 @@ public class CardRepository implements CardServiceListener {
         }
     }
 
+    /**
+     * This method for read card with Continue_Emv.
+     */
     private void approveCard() {
         try {
             JSONObject obj = new JSONObject();
@@ -144,14 +160,17 @@ public class CardRepository implements CardServiceListener {
         }
     }
 
+    /**
+     * This method is putting some arguments to JSONObject for card read and calls getCard() method in cardService.
+     */
     private void getCard(int amount, String config) {
         try {
             JSONObject obj = new JSONObject(config);
             //TODO Developer, check from parameter
-            boolean isKeyInAllowed = false;
-            boolean isAskCVVAllowed = false;
-            boolean isFallbackAllowed = false;
-            boolean isQrPayAllowed = false;
+            boolean isKeyInAllowed = true;
+            boolean isAskCVVAllowed = true;
+            boolean isFallbackAllowed = true;
+            boolean isQrPayAllowed = true;
             obj.put("keyIn", isKeyInAllowed ? 1 : 0);
             obj.put("askCVV", isAskCVVAllowed ? 1 : 0);
             obj.put("fallback", isFallbackAllowed ? 1 : 0);
@@ -163,6 +182,10 @@ public class CardRepository implements CardServiceListener {
         }
     }
 
+    /**
+     * If card service connect successful, this function will be triggered and communicate with CardViewModel
+     * for set cardServiceResultLiveData to true.
+     */
     @Override
     public void onCardServiceConnected() {
         repositoryCallback.afterCardServiceConnected(true);

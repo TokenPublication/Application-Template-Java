@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey;
 
 import com.example.application_template_jmvvm.data.database.DatabaseInfo;
 
-@Entity(tableName = DatabaseInfo.ACTTABLE)
+@Entity(tableName = DatabaseInfo.ACT_TABLE)
 public class ActivationEntity {
     @ColumnInfo(name = ActivationCols.col_terminalID)
     private String colTerminalId;

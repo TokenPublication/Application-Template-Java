@@ -1,5 +1,8 @@
 package com.example.application_template_jmvvm.data.model.type;
 
+/**
+ * This is enum class for holding types of Payment.
+ */
 public enum PaymentTypes {
     CREDITCARD(3),
     TRQRCREDITCARD(23),

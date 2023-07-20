@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey;
 
 import com.example.application_template_jmvvm.data.database.DatabaseInfo;
 
-@Entity(tableName = DatabaseInfo.BATCHTABLE)
+@Entity(tableName = DatabaseInfo.BATCH_TABLE)
 public class BatchDB {
 
     @ColumnInfo(name = BatchCol.col_ulSTN)
