@@ -1,37 +1,34 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="Sale_Action">Sale_Action</string>
-    <string name="Settings_Action">Settings_Action</string>
-    <string name="Refund_Action">Refund_Action</string>
-    <string name="BatchClose_Action">BatchClose_Action</string>
-    <string name="Parameter_Action">Parameter_Action</string>
-    <string name="PosTxn_Action">PosTxn_Action</string>
+<resources>
+    <string name="Sale_Action" translatable="false">Sale_Action</string>
+    <string name="Settings_Action" translatable="false">Settings_Action</string>
+    <string name="Refund_Action" translatable="false">Refund_Action</string>
+    <string name="BatchClose_Action" translatable="false">BatchClose_Action</string>
+    <string name="Parameter_Action" translatable="false">Parameter_Action</string>
+    <string name="PosTxn_Action" translatable="false">PosTxn_Action</string>
 
-    <string name="app_name">Application Template</string>
-    <string name="title_activity_list_menu">ListMenuActivity</string>
+    <string name="app_name">Application Template Java MVVM</string>
     <string name="amount">Amount</string>
-    <string name="waiting">Waiting for a Response</string>
-    <string name="approved">Approved</string>
-
-    <string name="transactions">Transactions</string>
     <string name="reports">Reports</string>
-    <string name="void_transaction">Void</string>
-    <string name="insert_card">Please Insert Card</string>
-    <string name="button">Button</string>
+    <string name="please_wait">Please Wait</string>
+    <string name="approved">Approved</string>
+    <string name="device_info">Device Info</string>
+    <string name="show_qr" translatable="false">Show QR</string>
 
-    <string name="title_activity_start">StartActivity</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="void_transaction">Void</string>
 
     <string name="pos_operations">POS Operations</string>
     <string name="matched_refund">Matched Refund</string>
     <string name="cash_refund">Cash Refund</string>
     <string name="installment_refund">Installment Refund</string>
     <string name="loyalty_refund">Loyalty Refund</string>
+    <string name="previous_batch_slip">Previous Batch Slip</string>
 
     <string name="original_amount">Original Amount</string>
     <string name="refund_amount">Refund Amount</string>
     <string name="invalid_amount">Invalid Amount</string>
     <string name="ref_no">Ref No</string>
     <string name="ref_no_invalid_ten_digits">Ref No Invalid (10 digits)</string>
+    <string name="confirmation">Confirmation</string>
     <string name="confirmation_code">Confirmation Code</string>
     <string name="confirmation_code_invalid_six_digits">Confirmation Code is Invalid (6 Digits)</string>
     <string name="tran_date">Transaction Date</string>
@@ -40,22 +37,63 @@
     <string name="installment">Installment</string>
 
     <string name="connecting">Connecting</string>
+    <string name="connect_failed">Connect Failed</string>
     <string name="trans_successful">Transaction Successful</string>
     <string name="printing_the_receipt">Printing the receipt</string>
 
     <string name="no_trans_found">No Transactions Found</string>
-    <string name="trans_cancelling">Cancelling the Transaction</string>
-    <string name="trans_refunding">The Transaction is Being Refunded</string>
+    <string name="trans_not_found">Transaction Not Found</string>
+    <string name="card_service_error">Card Service Error</string>
 
     <string name="examples">Examples</string>
     <string name="batch_close">Batch Close</string>
+    <string name="batch_close_will_be_done">Batch Close Will Be Implemented</string>
+
+    <string name="info_dialog" translatable="false">Info Dialog</string>
+    <string name="confirmation_dialog" translatable="false">Confirmation Dialog</string>
+    <string name="custom_input_list" translatable="false">Custom Input List</string>
     <string name="success">Success</string>
+    <string name="confirmed" translatable="false">Confirmed</string>
+    <string name="warning" translatable="false">Warning</string>
+    <string name="info" translatable="false">Info</string>
+    <string name="downloading" translatable="false">Downloading</string>
+    <string name="uploading" translatable="false">Uploading</string>
+    <string name="processing" translatable="false">Processing</string>
+    <string name="progress" translatable="false">Progress</string>
+    <string name="none" translatable="false">None</string>
+    <string name="cancelled">Cancelled</string>
+    <string name="error">Error</string>
+    <string name="error_timeout">Error Timeout</string>
+    <string name="declined">Declined</string>
+    <string name="success_example" translatable="false">Success</string>
+    <string name="cancelled_example" translatable="false">Cancelled</string>
+    <string name="error_example" translatable="false">Error</string>
+    <string name="connecting_example" translatable="false">Connecting</string>
+    <string name="declined_example" translatable="false">Declined</string>
+    <string name="confirmation_example" translatable="false">Confirmation</string>
+    <string name="refund_info_not_found">Refund Info Not Found</string>
+
+    <string name="card_number">Card Number</string>
+    <string name="invalid_card_number">Invalid Card Number</string>
+    <string name="expire_date">Expire Date</string>
+    <string name="cvv">CVV</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
+    <string name="number" translatable="false">Number</string>
+    <string name="ip" translatable="false">IP</string>
+    <string name="password" translatable="false">Password</string>
+    <string name="num_password" translatable="false">Password (num)</string>
+    <string name="new_text" translatable="false">New Text</string>
+    <string name="invalid_text">Max Text Size is 10</string>
 
     <string name="sale">Sale</string>
     <string name="installment_sale">Installment Sale</string>
     <string name="loyalty_sale">Loyalty Sale</string>
     <string name="campaign_sale">Campaign Sale</string>
     <string name="sale_type">Sale Type</string>
+    <string name="please_read_qr">Please Read The QR Code</string>
+    <string name="waiting_qr_read">Waiting For the QR Code to Read</string>
+    <string name="qr_loading">QR Loading</string>
 
     <string name="setup">Setup</string>
     <string name="host_settings">Host Settings</string>
@@ -70,11 +108,13 @@
     <string name="terminal_no">Terminal No</string>
     <string name="invalid_terminal_no">Invalid Terminal No!</string>
 
+    <string name="print_functions">Print Functions</string>
+    <string name="setup_bank">Config Files Updated, Please Do Bank Setup</string>
     <string name="starting_activation">Starting Activation…</string>
-    <string name="parameter_loading">Parameter Loading</string>
+    <string name="parameter_loading">Parameter Loading…</string>
+    <string name="parameter_load_successful">Parameter Load Successful</string>
     <string name="member_act_completed">Member activation: Completed</string>
     <string name="rkl_loading">RKL Loading</string>
     <string name="rkl_loaded">RKL Loaded</string>
     <string name="key_block_loading">Key Block Loading</string>
-
 </resources>

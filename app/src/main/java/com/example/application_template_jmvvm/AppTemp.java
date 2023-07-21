@@ -4,6 +4,13 @@ import android.app.Application;
 
 import com.tokeninc.deviceinfo.DeviceInfo;
 
+import dagger.hilt.android.HiltAndroidApp;
+
+/**
+ * Hilt needs to know application, Application should be annotated with @HiltAndroidApp
+ * Also it set the device info contains Fiscal ID, cardRedirection and Device Mode there.
+ */
+@HiltAndroidApp
 public class AppTemp extends Application {
     private String currentDeviceMode = DeviceInfo.PosModeEnum.VUK507.name();
     private String currentFiscalID = null;
@@ -39,8 +46,15 @@ public class AppTemp extends Application {
         this.currentCardRedirection = currentCardRedirection;
     }
 
-    private void startDeviceInfo(){
+    private void startDeviceInfo() {
         DeviceInfo deviceInfo = new DeviceInfo(this);
+        deviceInfo.getFiscalId(new DeviceInfo.DeviceInfoResponseHandler() {
+            @Override
+            public void onSuccess(String s) { }
+
+            @Override
+            public void onFail(String s) { }
+        });
         deviceInfo.getFields(
                 fields -> {
                     if (fields == null) return;

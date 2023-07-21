@@ -4,6 +4,7 @@
     package="com.example.application_template_jmvvm">
 
     <application
+        android:name=".AppTemp"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -15,7 +16,7 @@
         android:logo="@drawable/token_logo"
         android:theme="@style/AppTheme.NoActionBar">
         <activity
-            android:name=".Uicomponents.MainActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -58,16 +59,22 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
-        <meta-data
-            android:name="app_name"
-            android:value="BNK_000_TMPLT"/>
+        <receiver android:name=".receivers.CheckSaleReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="check_sale" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
         <meta-data
             android:name="app_version"
             android:value="1" />
         <meta-data
             android:name="app_model_type"
-            android:value="400TR"/>
-        />
-    </application>
+            android:value="${MODEL_NAME}"/>
+        <meta-data
+            android:name="app_name"
+            android:value="${APP_NAME}"/>
+        </application>
 
 </manifest>
