@@ -18,6 +18,8 @@ import com.token.uicomponents.CustomInput.EditTextInputType;
 import com.token.uicomponents.CustomInput.InputListFragment;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
+import com.token.uicomponents.infodialog.InfoDialog;
+import com.token.uicomponents.infodialog.InfoDialogListener;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,9 +29,11 @@ import java.util.List;
 /**
  * This fragment is for Setting Configuration, it depends on Activation Database
  */
-public class SettingsFragment extends Fragment {
+public class SettingsFragment extends Fragment implements InfoDialogListener {
     private MainActivity mainActivity;
     private ActivationViewModel activationViewModel;
+    InfoDialog infoDialog;
+    InputListFragment tidMidFragment;
     private String terminalId, merchantId, ipNo, portNo;
 
     public SettingsFragment(MainActivity mainActivity, ActivationViewModel activationViewModel) {
@@ -77,14 +81,15 @@ public class SettingsFragment extends Fragment {
         inputList.get(0).setText(activationViewModel.getMerchantId());
         inputList.get(1).setText(activationViewModel.getTerminalId());
 
-        InputListFragment TidMidFragment = InputListFragment.newInstance(inputList, mainActivity.getString(R.string.save), list -> {
+        tidMidFragment = InputListFragment.newInstance(inputList, mainActivity.getString(R.string.save), list -> {
             merchantId = inputList.get(0).getText();
             terminalId = inputList.get(1).getText();
 
             activationViewModel.updateActivation(terminalId, merchantId, activationViewModel.getHostIP());
+            startActivation();
             mainActivity.getSupportFragmentManager().popBackStack();
         });
-        mainActivity.replaceFragment(R.id.container, TidMidFragment,true);
+        mainActivity.replaceFragment(R.id.container, tidMidFragment,true);
     }
 
     /**
@@ -120,4 +125,21 @@ public class SettingsFragment extends Fragment {
         });
         mainActivity.replaceFragment(R.id.container,IpFragment,true);
     }
+
+    private void startActivation() {
+        activationViewModel.setupRoutine(mainActivity);
+        activationViewModel.getInfoDialogLiveData().observe(mainActivity, infoDialogData -> {
+            if (infoDialogData.getType() == InfoDialog.InfoType.Processing) {
+                infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
+            } else {
+                infoDialog.update(infoDialogData.getType(), infoDialogData.getText());
+            }
+        });
+    }
+
+    @Override
+    public void confirmed(int i) { }
+
+    @Override
+    public void canceled(int i) { }
 }

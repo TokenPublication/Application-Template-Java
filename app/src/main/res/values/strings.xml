@@ -109,6 +109,7 @@
     <string name="invalid_terminal_no">Invalid Terminal No!</string>
 
     <string name="print_functions">Print Functions</string>
+    <string name="setup_bank">Config Files Updated, Please Do Bank Setup</string>
     <string name="starting_activation">Starting Activation…</string>
     <string name="parameter_loading">Parameter Loading…</string>
     <string name="parameter_load_successful">Parameter Load Successful</string>
