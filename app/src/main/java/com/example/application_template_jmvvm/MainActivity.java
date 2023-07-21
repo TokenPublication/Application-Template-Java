@@ -10,7 +10,9 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -174,6 +176,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             if (isConnected && !isCancelled[0]) {
                 timer.cancel();
                 infoDialog.dismiss();
+                setEMVConfiguration(true);
             }
         });
     }
@@ -358,6 +361,29 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    /**
+     * This function only works in installation, it calls setConfig and setCLConfig
+     * It also called from onCardServiceConnected method of Card Service Library, if Configs couldn't set in first_run
+     * (it is checked from sharedPreferences), again it setConfigurations, else do nothing.
+     */
+    public void setEMVConfiguration(boolean fromCardService) {
+        SharedPreferences sharedPreference = getSharedPreferences("myprefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreference.edit();
+        boolean firstTimeBoolean = sharedPreference.getBoolean("FIRST_RUN", false);
+
+        if (!firstTimeBoolean) {
+            if (fromCardService) {
+                Toast.makeText(getApplicationContext(), getString(R.string.setup_bank), Toast.LENGTH_LONG).show();
+            }
+
+            setConfig();
+            setCLConfig();
+            editor.putBoolean("FIRST_RUN", true);
+            Log.d("setEMVConfiguration", "ok");
+            editor.apply();
+        }
     }
 
     /**
