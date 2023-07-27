@@ -51,6 +51,12 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
         super.onCreate(savedInstanceState);
     }
 
+    /**
+     * Firstly, it controls the transaction list for getting non-void operations. If it is empty,
+     * showed No Transaction infoDialog.
+     * Else, run the readCard operation and get cardData with observer. After that, with cardData
+     * prepare transactionList and call setView() function for show them in screen.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_void, container, false);
@@ -72,6 +78,9 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
         return view;
     }
 
+    /**
+     * This method for show No Transaction info dialog and finish the activity with result cancelled.
+     */
     public void showNoTransaction() {
         infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Info, getString(R.string.no_trans_found), false);
         new Handler().postDelayed(() -> {
@@ -81,12 +90,19 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
         }, 2000);
     }
 
+    /**
+     * This method for set recyclerView with setAdapter function related to our transactions.
+     */
     public void setView(List<TransactionEntity> transactionList) {
-        TransactionsRecycleAdapter adapter = new TransactionsRecycleAdapter(transactionList, this);
+        TransactionsRecycleAdapter adapter = new TransactionsRecycleAdapter(transactionList, this, null);
         rvTransactions.setAdapter(adapter);
         rvTransactions.setLayoutManager(new LinearLayoutManager(mainActivity));
     }
 
+    /**
+     * This function is called after card reading, it finds the corresponding transaction by reference number and void it
+     * if the reading card and transaction's card numbers are matching.
+     */
     public void gibVoid(String refNo, Boolean isGIB) {
         cardViewModel.getCardLiveData().observe(mainActivity, card -> {
             List<TransactionEntity> transactionList = transactionViewModel.getTransactionsByRefNo(refNo);
@@ -101,6 +117,11 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
         });
     }
 
+    /**
+     * It starts void operation in parallel with TransactionRoutine method. It updates UI related to
+     * TransactionViewModel. Finally, if it is GIB void, we send a result with intent. Else, we only
+     * finish the activity.
+     */
     public void startVoid(LifecycleOwner lifecycleOwner, TransactionEntity transactionEntity, Boolean isGIB) {
         transactionViewModel.TransactionRoutine(null, null, mainActivity, transactionEntity, null, TransactionCode.VOID,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), isGIB);

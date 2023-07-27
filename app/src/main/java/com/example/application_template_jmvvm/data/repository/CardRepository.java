@@ -7,7 +7,6 @@ import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
-import com.example.application_template_jmvvm.data.model.card.MSRCard;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.data.model.type.EmvProcessType;
 import com.google.gson.Gson;
@@ -133,8 +132,8 @@ public class CardRepository implements CardServiceListener {
                     }
                     repositoryCallback.afterCardDataReceived(card);
                 } else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
-                    MSRCard msrCard = new Gson().fromJson(cardData, MSRCard.class);
-                    cardServiceBinding.getOnlinePIN(amount, msrCard.getCardNumber(), 0x0A01, 0, 4, 8, 30);
+                    String cardNo = json.getString("mCardNumber");
+                    cardServiceBinding.getOnlinePIN(amount, cardNo, 0x0A01, 0, 4, 8, 30);
                 }
             }
         } catch (Exception e) {

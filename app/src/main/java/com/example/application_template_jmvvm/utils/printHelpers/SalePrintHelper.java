@@ -18,7 +18,7 @@ import java.util.Locale;
 
 public class SalePrintHelper extends BasePrintHelper{
     public String getFormattedText(SampleReceipt receipt, TransactionEntity transactionEntity, TransactionCode transactionCode,
-                                   SlipType slipType, Context context, Integer ZNO, Integer ReceiptNo) {
+                                   SlipType slipType, Context context, Integer ZNO, Integer ReceiptNo, boolean isCopy) {
         StyledString styledText = new StyledString();
         styledText.setFontSize(12);
         if (slipType == SlipType.CARDHOLDER_SLIP) {
@@ -40,6 +40,10 @@ public class SalePrintHelper extends BasePrintHelper{
         styledText.addTextToLine("TERMİNAL NO:", PrinterDefinitions.Alignment.Left);
         styledText.setFontFace(PrinterDefinitions.Font_E.SourceSansPro);
         styledText.addTextToLine(receipt.getPosID(), PrinterDefinitions.Alignment.Right);
+
+        if (isCopy) {
+            addTextToNewLine(styledText, "İKİNCİ KOPYA", PrinterDefinitions.Alignment.Center);
+        }
 
         styledText.newLine();
         if (slipType == SlipType.CARDHOLDER_SLIP) {
