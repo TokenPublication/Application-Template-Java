@@ -18,6 +18,7 @@ import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
+import com.example.application_template_jmvvm.ui.posTxn.slip.SlipFragment;
 import com.example.application_template_jmvvm.ui.sale.CardViewModel;
 import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 import com.example.application_template_jmvvm.utils.objects.MenuItem;
@@ -33,6 +34,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * This is the class for Pos Operations.
+ */
 public class PosTxnFragment extends Fragment implements InfoDialogListener {
     private ActivationViewModel activationViewModel;
     private BatchViewModel batchViewModel;
@@ -61,19 +65,22 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
         return inflater.inflate(R.layout.fragment_postxn, container, false);
     }
 
+    /**
+     * This function prepares the Pos Operations Menu that contains Void, Refund, Batch Close, Examples and Slip Menu
+     */
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         List<IListMenuItem> menuItems = new ArrayList<>();
 
         menuItems.add(new MenuItem(getString(R.string.refund), iListMenuItem -> {
-            RefundFragment RefundFragment = new RefundFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
-            mainActivity.replaceFragment(R.id.container, RefundFragment, true);
+            RefundFragment refundFragment = new RefundFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
+            mainActivity.replaceFragment(R.id.container, refundFragment, true);
         }));
 
         menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {
-            VoidFragment VoidFragment = new VoidFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
-            mainActivity.replaceFragment(R.id.container, VoidFragment, false);
+            VoidFragment voidFragment = new VoidFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
+            mainActivity.replaceFragment(R.id.container, voidFragment, false);
         }));
 
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {
@@ -101,22 +108,24 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
         }));
 
         menuItems.add(new MenuItem(getString(R.string.examples), iListMenuItem -> {
-            ExampleFragment ExampleFragment = new ExampleFragment(this.mainActivity, cardViewModel);
-            mainActivity.replaceFragment(R.id.container, ExampleFragment, true);
+            ExampleFragment exampleFragment = new ExampleFragment(this.mainActivity, cardViewModel);
+            mainActivity.replaceFragment(R.id.container, exampleFragment, true);
         }));
 
-        menuItems.add(new MenuItem(getString(R.string.previous_batch_slip), iListMenuItem -> {
-            infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                batchViewModel.printPreviousBatchSlip(mainActivity);
-                infoDialog.dismiss();
-            }, 2000);
+        menuItems.add(new MenuItem(getString(R.string.slip_menu), iListMenuItem -> {
+            SlipFragment slipFragment = new SlipFragment(this.mainActivity, activationViewModel, transactionViewModel, batchViewModel);
+            mainActivity.replaceFragment(R.id.container, slipFragment, true);
         }));
 
         listMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.pos_operations), true, R.drawable.token_logo_png);
         mainActivity.replaceFragment(R.id.container, listMenuFragment, false);
     }
 
+    /**
+     * It starts batch close with BatchCloseRoutine which runs parallel in IO thread with Rx Java.
+     * It updates UI related to BatchViewModel and set result if it is AutoEndOfDay only. Finally,
+     * finish the activity.
+     */
     public void doBatchClose(LifecycleOwner lifecycleOwner, Boolean isAutoBatch) {
         batchViewModel.BatchCloseRoutine(mainActivity, activationViewModel.getActivationRepository(), transactionViewModel.getTransactionRepository(), isAutoBatch);
         batchViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
@@ -127,7 +136,9 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
             }
         });
         batchViewModel.getIntentLiveData().observe(lifecycleOwner, resultIntent -> {
-            mainActivity.setResult(Activity.RESULT_OK, resultIntent);
+            if (resultIntent != null) {
+                mainActivity.setResult(Activity.RESULT_OK, resultIntent);
+            }
             mainActivity.finish();
         });
     }
