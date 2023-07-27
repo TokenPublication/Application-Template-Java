@@ -46,9 +46,10 @@ public class BatchRepository {
         }
     }
 
-    public String prepareSlip(MainActivity mainActivity, ActivationRepository activationRepository, BatchRepository batchRepository, List<TransactionEntity> transactionList) {
+    public String prepareSlip(MainActivity mainActivity, ActivationRepository activationRepository, BatchRepository batchRepository,
+                              List<TransactionEntity> transactionList, boolean isCopy) {
         BatchClosePrintHelper batchClosePrintHelper = new BatchClosePrintHelper();
-        return batchClosePrintHelper.batchText(mainActivity, String.valueOf(batchRepository.getBatchNo()), activationRepository, transactionList, false);
+        return batchClosePrintHelper.batchText(mainActivity, String.valueOf(batchRepository.getBatchNo()), activationRepository, transactionList, isCopy);
     }
 
     public BatchCloseResponse prepareResponse(MainActivity mainActivity, BatchViewModel batchViewModel, BatchResult batchResult) {

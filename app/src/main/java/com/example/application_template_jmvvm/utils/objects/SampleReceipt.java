@@ -1,5 +1,6 @@
 package com.example.application_template_jmvvm.utils.objects;
 
+import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
 import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
@@ -16,15 +17,15 @@ public class SampleReceipt {
     private String serialNo;
     private String approvalCode;
 
-    public SampleReceipt (String cardNo, String ownerName, int amount, ActivationRepository activationRepository, BatchRepository batchRepository) {
+    public SampleReceipt (TransactionEntity transactionEntity, ActivationRepository activationRepository, BatchRepository batchRepository) {
         setMerchantName("TOKEN FINTECH");
         setMerchantID(activationRepository.getMerchantId());
         setPosID(activationRepository.getTerminalId());
-        setCardNo(StringHelper.maskCardNumber(cardNo));
-        setFullName(ownerName);
-        setAmount(StringHelper.getAmount(amount));
+        setCardNo(StringHelper.maskCardNumber(transactionEntity.getBaPAN()));
+        setFullName(transactionEntity.getBaCustomerName());
+        setAmount(StringHelper.getAmount(transactionEntity.getUlAmount()));
         setGroupNo(String.valueOf(batchRepository.getBatchNo()));
-        setAid("A0000000000031010");
+        setAid(transactionEntity.getAid());
         setSerialNo(String.valueOf(batchRepository.getGroupSN()));
         setApprovalCode(StringHelper.GenerateApprovalCode(String.valueOf(batchRepository.getBatchNo()), String.valueOf(batchRepository.getGroupSN()), String.valueOf(batchRepository.getGroupSN()-1)));
     }
