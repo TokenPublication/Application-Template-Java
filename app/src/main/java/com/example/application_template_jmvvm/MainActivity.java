@@ -4,7 +4,6 @@ import androidx.annotation.IdRes;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
@@ -38,6 +37,9 @@ import com.example.application_template_jmvvm.ui.trigger.TriggerViewModel;
 import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
+import com.tokeninc.deviceinfo.DeviceInfo;
+import com.tokeninc.libtokenkms.KMSWrapperInterface;
+import com.tokeninc.libtokenkms.TokenKMS;
 
 import org.json.JSONObject;
 
@@ -55,13 +57,13 @@ import dagger.hilt.android.AndroidEntryPoint;
  */
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity implements InfoDialogListener {
-    private FragmentManager fragmentManager;
     public ActivationViewModel activationViewModel;
     private CardViewModel cardViewModel;
     public BatchViewModel batchViewModel;
     private TransactionViewModel transactionViewModel;
     private TriggerViewModel triggerViewModel;
     private InfoDialog infoDialog;
+    private TokenKMS tokenKMS;
 
     /**
      * This is the onCreate method for create the viewModels and build config.
@@ -73,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         setContentView(R.layout.activity_main);
 
         buildConfigs();
-        fragmentManager = getSupportFragmentManager();
+        setDeviceInfo();
 
         activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);
         batchViewModel = new ViewModelProvider(this).get(BatchViewModel.class);
@@ -82,7 +84,52 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         triggerViewModel = new ViewModelProvider(this).get(TriggerViewModel.class);
 
         initializeCardService(this);
+        initializeKMSService();
+
         actionControl(getIntent().getAction());
+    }
+
+    /**
+     * This method for setting Device Info parameters like FiscalID, cardRedirection or deviceMode.
+     * It has timer, so if application cannot get information in 30 seconds, it shows a dialog and
+     * finishes activity. Else, cancel the timer and continue.
+     */
+    private void setDeviceInfo() {
+        AppTemp appTemp = (AppTemp) getApplicationContext();
+        DeviceInfo deviceInfo = new DeviceInfo(getApplicationContext());
+        CountDownTimer timer = new CountDownTimer(30000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) { }
+
+            @Override
+            public void onFinish() {
+                infoDialog = showInfoDialog(InfoDialog.InfoType.Error, "Device Info Service Error", false);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    infoDialog.dismiss();
+                    finish();
+                }, 2000);
+            }
+        };
+        timer.start();
+        deviceInfo.getFields(
+                fields -> {
+                    if (fields == null) {
+                        infoDialog = showInfoDialog(InfoDialog.InfoType.Error, "Device Info Service Error", false);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            infoDialog.dismiss();
+                            finish();
+                        }, 2000);
+                    }
+
+                    appTemp.setCurrentFiscalID(fields[0]);
+                    appTemp.setCurrentDeviceMode(fields[1]);
+                    appTemp.setCurrentCardRedirection(fields[2]);
+
+                    deviceInfo.unbind();
+                    timer.cancel();
+                },
+                DeviceInfo.Field.FISCAL_ID, DeviceInfo.Field.OPERATION_MODE, DeviceInfo.Field.CARD_REDIRECTION
+        );
     }
 
     /**
@@ -177,6 +224,30 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 timer.cancel();
                 infoDialog.dismiss();
                 setEMVConfiguration(true);
+            }
+        });
+    }
+
+    /**
+     * This method for bind KMSService object. It has initCallbacks method, so if connect failure,
+     * show a infoDialog and finish the activity. Else, log initSuccess and continue.
+     */
+    private void initializeKMSService() {
+        tokenKMS = new TokenKMS();
+        tokenKMS.init(getApplicationContext(), new KMSWrapperInterface.InitCallbacks() {
+            @Override
+            public void onInitSuccess() {
+                Log.v("Token KMS onInitSuccess", "KMS Init OK");
+                infoDialog.dismiss();
+            }
+            @Override
+            public void onInitFailed() {
+                Log.v("Token KMS onInitFailed", "KMS Init Failed");
+                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.kms_service_error));
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    infoDialog.dismiss();
+                    finish();
+                }, 2000);
             }
         });
     }
@@ -326,6 +397,13 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     }
 
     /**
+     * Method for get TokenKMS object out of this file.
+     */
+    public TokenKMS getTokenKMS() {
+        return tokenKMS;
+    }
+
+    /**
      * Shows a dialog to the user which asks for a confirmation.
      * Dialog will be dismissed automatically when user taps on to confirm/cancel button.
      */
@@ -377,7 +455,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             if (fromCardService) {
                 Toast.makeText(getApplicationContext(), getString(R.string.setup_bank), Toast.LENGTH_LONG).show();
             }
-
             setConfig();
             setCLConfig();
             editor.putBoolean("FIRST_RUN", true);
