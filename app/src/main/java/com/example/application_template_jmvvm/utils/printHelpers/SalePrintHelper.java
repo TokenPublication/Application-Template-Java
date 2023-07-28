@@ -145,8 +145,8 @@ public class SalePrintHelper extends BasePrintHelper{
 
         if (transactionCode == TransactionCode.VOID) {
             styledText.newLine();
-            styledText.addTextToLine(getFormattedDate(transactionEntity.getBaTranDate().substring(0, 8)));
-            styledText.addTextToLine(getFormattedTime(transactionEntity.getBaTranDate().substring(8)), PrinterDefinitions.Alignment.Right);
+            styledText.addTextToLine(DateUtil.getFormattedDate(transactionEntity.getBaTranDate().substring(0, 8)));
+            styledText.addTextToLine(DateUtil.getFormattedTime(transactionEntity.getBaTranDate().substring(8)), PrinterDefinitions.Alignment.Right);
         }
 
         styledText.setLineSpacing(1f);
@@ -194,7 +194,7 @@ public class SalePrintHelper extends BasePrintHelper{
             if (transactionCode != TransactionCode.CASH_REFUND) {
                 styledText.addTextToLine("ORJ. İŞLEM TARİHİ: " + transactionEntity.getBaTranDate2(),PrinterDefinitions.Alignment.Center);
             } else {
-                styledText.addTextToLine("ORJ. İŞLEM TARİHİ: " + getFormattedDate(transactionEntity.getBaTranDate().substring(0, 8)), PrinterDefinitions.Alignment.Center);
+                styledText.addTextToLine("ORJ. İŞLEM TARİHİ: " + DateUtil.getFormattedDate(transactionEntity.getBaTranDate().substring(0, 8)), PrinterDefinitions.Alignment.Center);
             }
             styledText.newLine();
             styledText.addTextToLine("ORJ. İŞ YERİ NO: " + receipt.getMerchantID(),PrinterDefinitions.Alignment.Center);
@@ -284,21 +284,5 @@ public class SalePrintHelper extends BasePrintHelper{
         styledText.printLogo(context);
         styledText.addSpace(100);
         return styledText.toString();
-    }
-
-    public static String getFormattedDate(String dateText) {
-        String year = dateText.substring(0, 4);
-        String month = dateText.substring(4, 6);
-        String day = dateText.substring(6, 8);
-
-        return day + "-" + month + "-" + year;
-    }
-
-    public static String getFormattedTime(String timeText) {
-        String hour = timeText.substring(0, 2);
-        String minute = timeText.substring(2, 4);
-        String second = timeText.substring(4, 6);
-
-        return hour + ":" + minute + ":" + second;
     }
 }

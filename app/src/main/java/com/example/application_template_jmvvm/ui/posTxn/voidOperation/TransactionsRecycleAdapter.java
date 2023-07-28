@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.ui.posTxn.slip.SlipFragment;
+import com.example.application_template_jmvvm.utils.printHelpers.DateUtil;
 import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
 import com.example.application_template_jmvvm.R;
 
@@ -41,7 +42,8 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
     public void onBindViewHolder(@NonNull MyHolder holder, int position) {
         TransactionEntity transaction = transactionList.get(position);
         holder.card_no.setText(StringHelper.MaskTheCardNo(transaction.getBaPAN()));
-        holder.process_time.setText(transaction.getBaTranDate());
+        String date = DateUtil.getFormattedDate(transaction.getBaTranDate().substring(0, 8)) + " " + DateUtil.getFormattedTime(transaction.getBaTranDate().substring(8));
+        holder.process_time.setText(date);
         if (transaction.getbTransCode() != TransactionCode.SALE.getType()) {
             holder.sale_amount.setText(StringHelper.getAmount(transaction.getUlAmount2()));
         } else {
