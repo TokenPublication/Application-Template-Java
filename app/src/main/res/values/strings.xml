@@ -45,6 +45,7 @@
     <string name="no_trans_found">No Transactions Found</string>
     <string name="trans_not_found">Transaction Not Found</string>
     <string name="card_service_error">Card Service Error</string>
+    <string name="device_info_service_Error">Device Info Service Error</string>
 
     <string name="examples">Examples</string>
     <string name="batch_close">Batch Close</string>

@@ -18,7 +18,7 @@ import java.util.Locale;
 
 public class SalePrintHelper extends BasePrintHelper{
     public String getFormattedText(SampleReceipt receipt, TransactionEntity transactionEntity, TransactionCode transactionCode,
-                                   SlipType slipType, Context context, Integer ZNO, Integer ReceiptNo, boolean isCopy) {
+                                   SlipType slipType, Context context, String ZNO, String receiptNo, boolean isCopy) {
         StyledString styledText = new StyledString();
         styledText.setFontSize(12);
         if (slipType == SlipType.CARDHOLDER_SLIP) {
@@ -263,7 +263,7 @@ public class SalePrintHelper extends BasePrintHelper{
                 if (((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.ECR.name())) {
                     styledText.newLine();
                     styledText.addTextToLine("Z NO: " + ZNO, Alignment.Right);
-                    styledText.addTextToLine("FİŞ NO: " + ReceiptNo, Alignment.Left);
+                    styledText.addTextToLine("FİŞ NO: " + receiptNo, Alignment.Left);
                 }
             }
 
