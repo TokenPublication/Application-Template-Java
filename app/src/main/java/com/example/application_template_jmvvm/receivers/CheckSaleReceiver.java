@@ -44,8 +44,8 @@ public class CheckSaleReceiver extends BroadcastReceiver {
                 bundle.putInt("ResponseCode", ResponseCode.SUCCESS.ordinal());
                 bundle.putInt("PaymentStatus", 0);
                 bundle.putInt("Amount", transaction.getUlAmount());
-                bundle.putString("customerSlipData", salePrintHelper.getFormattedText(new SampleReceipt(transaction, activationRepository, batchRepository), transaction, TransactionCode.SALE, SlipType.CARDHOLDER_SLIP, context, 1, 2, false));
-                bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(new SampleReceipt(transaction, activationRepository, batchRepository), transaction, TransactionCode.SALE, SlipType.MERCHANT_SLIP, context, 1, 2, false));
+                bundle.putString("customerSlipData", salePrintHelper.getFormattedText(new SampleReceipt(transaction, activationRepository, batchRepository), transaction, TransactionCode.SALE, SlipType.CARDHOLDER_SLIP, context, null, null, false));
+                bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(new SampleReceipt(transaction, activationRepository, batchRepository), transaction, TransactionCode.SALE, SlipType.MERCHANT_SLIP, context, null, null, false));
                 bundle.putInt("BatchNo", transaction.getBatchNo());
                 bundle.putInt("TxnNo", transaction.getUlGUP_SN());
                 bundle.putInt("SlipType", SlipType.BOTH_SLIPS.value);

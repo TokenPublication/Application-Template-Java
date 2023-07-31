@@ -53,6 +53,9 @@ import java.util.Objects;
 public class SaleFragment extends Fragment implements InfoDialogListener {
     int amount;
     String uuid;
+    String ZNO;
+    String receiptNo;
+    int instCount = 0;
     private ActivationViewModel activationViewModel;
     private TransactionViewModel transactionViewModel;
     private BatchViewModel batchViewModel;
@@ -62,7 +65,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     private ListMenuFragment instFragment;
     Spinner spinner;
     InfoDialog infoDialog;
-    int instCount = 0;
+    private TransactionCode transactionCode;
     private boolean QRisSuccess = true;
     private boolean isCancelable = true;
     private boolean isApprove = false;
@@ -282,16 +285,9 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
      * and finish the activity with this intent.
      */
     public void doSale(ICCCard card, LifecycleOwner viewLifecycleOwner) {
-        uuid = mainActivity.getIntent().getExtras().getString("UUID");
-        if (instCount > 0) {
-            Bundle bundle = new Bundle();
-            bundle.putInt(ExtraContentInfo.instCount, instCount);
-            transactionViewModel.TransactionRoutine(card, uuid, mainActivity, null, bundle, TransactionCode.INSTALLMENT_SALE,
-                    activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), null);
-        } else {
-            transactionViewModel.TransactionRoutine(card, uuid, mainActivity, null, null, TransactionCode.SALE,
-                    activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), null);
-        }
+        Bundle bundle = getInfo();
+        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, null, bundle, transactionCode,
+                activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), null);
         transactionViewModel.getInfoDialogLiveData().observe(viewLifecycleOwner, infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), mainActivity.getString(R.string.connecting))) {
                 infoDialog = mainActivity.showInfoDialog(infoDialogData.getType(), infoDialogData.getText(), false);
@@ -303,6 +299,28 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
             mainActivity.setResult(Activity.RESULT_OK, resultIntent);
             mainActivity.finish();
         });
+    }
+
+    /**
+     * This method for getting info like uuid, zno coming from PGW and create a bundle related to this
+     * data. Also, it updates transactionCode for sale operation related to instCount.
+     */
+    private Bundle getInfo() {
+        Bundle bundle = new Bundle();
+        uuid = mainActivity.getIntent().getExtras().getString("UUID");
+        ZNO = mainActivity.getIntent().getExtras().getString("ZNO");
+        receiptNo = mainActivity.getIntent().getExtras().getString("ReceiptNo");
+        if (ZNO != null && receiptNo != null) {
+            bundle.putString("ZNO", ZNO);
+            bundle.putString("ReceiptNo", receiptNo);
+        }
+        if (instCount > 0) {
+            transactionCode = TransactionCode.INSTALLMENT_SALE;
+            bundle.putInt(ExtraContentInfo.instCount, instCount);
+        } else {
+            transactionCode = TransactionCode.SALE;
+        }
+        return bundle;
     }
 
     /**

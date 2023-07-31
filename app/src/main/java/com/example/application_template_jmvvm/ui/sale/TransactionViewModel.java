@@ -138,7 +138,9 @@ public class TransactionViewModel extends ViewModel {
                 transactionRepository.prepareSlip(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, false);
             }
         } else {
-            return transactionRepository.prepareSaleIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
+            String ZNO = bundle.getString("ZNO");
+            String receiptNo = bundle.getString("ReceiptNo");
+            return transactionRepository.prepareSaleIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode(), ZNO, receiptNo);
         }
         return null;
     }
