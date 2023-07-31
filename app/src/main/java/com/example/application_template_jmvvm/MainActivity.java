@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             @Override
             public void onFinish() {
                 if (!isKMSSuccess) {
-                    infoDialog = showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.device_info_service_Error), false);
+                    infoDialog = showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.kms_service_error), false);
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
                         infoDialog.dismiss();
                         finish();
