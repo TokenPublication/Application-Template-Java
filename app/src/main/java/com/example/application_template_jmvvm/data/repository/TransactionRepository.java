@@ -111,7 +111,7 @@ public class TransactionRepository {
         if (card.getmCardReadType() != CardReadType.ICC.getType()) {
             transactionEntity.setBaTranDate(card.getDateTime());
         } else {
-            transactionEntity.setBaTranDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date()));
+            transactionEntity.setBaTranDate(new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + new SimpleDateFormat("HHmmss", Locale.getDefault()).format(new Date()));
         }
         transactionEntity.setBaTrack2(card.getmTrack2Data());
         transactionEntity.setBaRspCode(onlineTransactionResponse.getmResponseCode().ordinal());
