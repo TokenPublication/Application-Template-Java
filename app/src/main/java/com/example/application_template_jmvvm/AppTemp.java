@@ -19,7 +19,6 @@ public class AppTemp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        startDeviceInfo();
     }
 
     public String getCurrentDeviceMode() {
@@ -44,29 +43,5 @@ public class AppTemp extends Application {
 
     public void setCurrentCardRedirection(String currentCardRedirection) {
         this.currentCardRedirection = currentCardRedirection;
-    }
-
-    private void startDeviceInfo() {
-        DeviceInfo deviceInfo = new DeviceInfo(this);
-        deviceInfo.getFiscalId(new DeviceInfo.DeviceInfoResponseHandler() {
-            @Override
-            public void onSuccess(String s) { }
-
-            @Override
-            public void onFail(String s) { }
-        });
-        deviceInfo.getFields(
-                fields -> {
-                    if (fields == null) return;
-                    // fields is the string array that contains info in the requested order
-
-                    this.setCurrentFiscalID(fields[0]);
-                    this.setCurrentDeviceMode(fields[1]);
-                    this.setCurrentCardRedirection(fields[2]);
-
-                    deviceInfo.unbind();
-                },
-                DeviceInfo.Field.FISCAL_ID, DeviceInfo.Field.OPERATION_MODE, DeviceInfo.Field.CARD_REDIRECTION
-        );
     }
 }
