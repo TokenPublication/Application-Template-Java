@@ -13,13 +13,13 @@ public interface BatchDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insertBatch(BatchDB batch);
 
-    @Query("UPDATE " + DatabaseInfo.BATCH_TABLE + " SET " + BatchCol.col_ulSTN + " = " + BatchCol.col_ulSTN + " + 1 WHERE ROWID = (SELECT ROWID FROM " + DatabaseInfo.BATCH_TABLE + " LIMIT 1)")
+    @Query("UPDATE " + DatabaseInfo.BATCH_TABLE + " SET " + BatchCol.col_ulSTN + " = CASE WHEN " + BatchCol.col_ulSTN + " >= 9999 THEN 0 ELSE " + BatchCol.col_ulSTN + " + 1 END WHERE ROWID = (SELECT ROWID FROM " + DatabaseInfo.BATCH_TABLE + " LIMIT 1)")
     void updateSTN();
 
     @Query("UPDATE " + DatabaseInfo.BATCH_TABLE + " SET " + BatchCol.col_ulGUP_SN + " = " + BatchCol.col_ulGUP_SN + " + 1 WHERE ROWID = (SELECT ROWID FROM " + DatabaseInfo.BATCH_TABLE + " LIMIT 1)")
     void updateGUPSN();
 
-    @Query("UPDATE " + DatabaseInfo.BATCH_TABLE + " SET " + BatchCol.col_ulGUP_SN + " = 1, " + BatchCol.col_ulSTN + " = 0, " + BatchCol.col_batchNo + " = " + BatchCol.col_batchNo + "+ 1 WHERE ROWID = (SELECT ROWID FROM " + DatabaseInfo.BATCH_TABLE + " LIMIT 1)")
+    @Query("UPDATE " + DatabaseInfo.BATCH_TABLE + " SET " + BatchCol.col_ulGUP_SN + " = 1, " + BatchCol.col_batchNo + " = " + BatchCol.col_batchNo + "+ 1 WHERE ROWID = (SELECT ROWID FROM " + DatabaseInfo.BATCH_TABLE + " LIMIT 1)")
     void updateBatchNo();
 
     @Query("UPDATE " + DatabaseInfo.BATCH_TABLE + " SET " + BatchCol.col_previous_batch_slip + " = :batchSlip WHERE " + BatchCol.col_batchNo + " = :batchNo")

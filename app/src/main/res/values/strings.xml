@@ -22,6 +22,7 @@
     <string name="installment_refund">Installment Refund</string>
     <string name="loyalty_refund">Loyalty Refund</string>
     <string name="previous_batch_slip">Previous Batch Slip</string>
+    <string name="slip_menu">Slip Menu</string>
 
     <string name="original_amount">Original Amount</string>
     <string name="refund_amount">Refund Amount</string>
@@ -48,6 +49,7 @@
     <string name="examples">Examples</string>
     <string name="batch_close">Batch Close</string>
     <string name="batch_close_will_be_done">Batch Close Will Be Implemented</string>
+    <string name="transaction_list">Transaction List</string>
 
     <string name="info_dialog" translatable="false">Info Dialog</string>
     <string name="confirmation_dialog" translatable="false">Confirmation Dialog</string>
@@ -109,6 +111,7 @@
     <string name="invalid_terminal_no">Invalid Terminal No!</string>
 
     <string name="print_functions">Print Functions</string>
+    <string name="kms_service_error">KMS Service Error</string>
     <string name="setup_bank">Config Files Updated, Please Do Bank Setup</string>
     <string name="starting_activation">Starting Activation…</string>
     <string name="parameter_loading">Parameter Loading…</string>

@@ -39,6 +39,10 @@ public class BatchViewModel extends ViewModel {
         this.batchRepository = batchRepository;
     }
 
+    /**
+     * It runs functions in parallel while ui updating dynamically in main thread with InfoDialogs
+     * It also calls finishBatchClose functions in parallel in IO thread.
+     */
     public void BatchCloseRoutine(MainActivity mainActivity, ActivationRepository activationRepository,
                                   TransactionRepository transactionRepository, Boolean isAutoBatch) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -81,10 +85,16 @@ public class BatchViewModel extends ViewModel {
         observable.subscribe(observer);
     }
 
+    /**
+     * It gets all transactions from transactionViewModel, then makes up slip from printService.
+     * Lastly insert this slip to database, to print it again in next day. If it inserts it successfully, ui is updating
+     * with Success Message. Finally, update Batch number and resets group number and delete all transactions from Transaction Table.
+     * If it is AutoEndOfDay, we send intent to the result. Else, we do not need to prepare intent just slip.
+     */
     private Intent finishBatchClose(MainActivity mainActivity, ActivationRepository activationRepository, TransactionRepository transactionRepository, Boolean isAutoBatch) {
         List<TransactionEntity> transactionList = transactionRepository.getAllTransactions();
-        String slip = batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList);
-        batchRepository.updateBatchSlip(slip, batchRepository.getBatchNo());
+        String slip = batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList, false);
+        batchRepository.updateBatchSlip(batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList, true), batchRepository.getBatchNo());
         batchRepository.updateBatchNo();
         transactionRepository.deleteAll();
         BatchCloseResponse batchCloseResponse = batchRepository.prepareResponse(mainActivity, this, BatchResult.SUCCESS);
@@ -125,8 +135,19 @@ public class BatchViewModel extends ViewModel {
         return batchRepository.getPreviousBatchSlip();
     }
 
+    /**
+     * This method for print yesterday's batchClose. It runs in IO Thread for not locking the main thread.
+     */
     public void printPreviousBatchSlip(MainActivity mainActivity) {
-        batchRepository.printSlip(getPreviousBatchSlip(), mainActivity);
+        Observable<Integer> singleItemObservable = Observable.just(1);
+        Disposable disposable = singleItemObservable
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                        item -> batchRepository.printSlip(getPreviousBatchSlip(), mainActivity),
+                        throwable -> { },
+                        () -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, ""))
+                );
     }
 
     public void deleteAll() {
