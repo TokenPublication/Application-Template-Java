@@ -38,6 +38,7 @@
     <string name="no_trans_found">İşlem Bulunamadı</string>
     <string name="trans_not_found">İşlem Bulunamadı</string>
     <string name="card_service_error">Kart Servis Hatası</string>
+    <string name="device_info_service_Error">Cihaz Bilgisi Servis Hatası</string>
 
     <string name="examples">Örnekler</string>
     <string name="batch_close">Grup Kapama</string>

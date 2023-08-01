@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private TriggerViewModel triggerViewModel;
     private InfoDialog infoDialog;
     private TokenKMS tokenKMS;
+    private boolean isKMSSuccess = false;
 
     /**
      * This is the onCreate method for create the viewModels and build config.
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
 
         buildConfigs();
         setDeviceInfo();
+        initializeKMSService();
 
         activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);
         batchViewModel = new ViewModelProvider(this).get(BatchViewModel.class);
@@ -84,9 +86,22 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         triggerViewModel = new ViewModelProvider(this).get(TriggerViewModel.class);
 
         initializeCardService(this);
-        initializeKMSService();
 
         actionControl(getIntent().getAction());
+    }
+
+    /**
+     * Firstly, added TR1000 and TR400 configurations to build.gradle file. After that,
+     * related to Build Variant (400TRDebug or 1000TRDebug) the manifest file created with apk
+     * and the app name in manifest file will be 1000TR or 400TR.
+    */
+    private void buildConfigs() {
+        if (BuildConfig.FLAVOR.equals("TR1000")) {
+            Log.v("TR1000 APP", "Application Template for 1000TR");
+        }
+        if (BuildConfig.FLAVOR.equals("TR400")) {
+            Log.v("TR400 APP", "Application Template for 400TR");
+        }
     }
 
     /**
@@ -97,13 +112,14 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private void setDeviceInfo() {
         AppTemp appTemp = (AppTemp) getApplicationContext();
         DeviceInfo deviceInfo = new DeviceInfo(getApplicationContext());
+        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
         CountDownTimer timer = new CountDownTimer(30000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) { }
 
             @Override
             public void onFinish() {
-                infoDialog = showInfoDialog(InfoDialog.InfoType.Error, "Device Info Service Error", false);
+                infoDialog = showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.device_info_service_Error), false);
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     infoDialog.dismiss();
                     finish();
@@ -114,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         deviceInfo.getFields(
                 fields -> {
                     if (fields == null) {
-                        infoDialog = showInfoDialog(InfoDialog.InfoType.Error, "Device Info Service Error", false);
+                        infoDialog = showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.device_info_service_Error), false);
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
                             infoDialog.dismiss();
                             finish();
@@ -133,17 +149,79 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     }
 
     /**
-     * Firstly, added TR1000 and TR400 configurations to build.gradle file. After that,
-     * related to Build Variant (400TRDebug or 1000TRDebug) the manifest file created with apk
-     * and the app name in manifest file will be 1000TR or 400TR.
-    */
-    private void buildConfigs() {
-        if (BuildConfig.FLAVOR.equals("TR1000")) {
-            Log.v("TR1000 APP", "Application Template for 1000TR");
-        }
-        if (BuildConfig.FLAVOR.equals("TR400")) {
-            Log.v("TR400 APP", "Application Template for 400TR");
-        }
+     * This method for bind KMSService object. It has initCallbacks method, so if connect failure,
+     * show a infoDialog and finish the activity. Else, log initSuccess and continue.
+     */
+    private void initializeKMSService() {
+        tokenKMS = new TokenKMS();
+        CountDownTimer timer = new CountDownTimer(20000, 1) {
+            @Override
+            public void onTick(long millisUntilFinished) { }
+
+            @Override
+            public void onFinish() {
+                if (!isKMSSuccess) {
+                    infoDialog = showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.kms_service_error), false);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        infoDialog.dismiss();
+                        finish();
+                    }, 2000);
+                }
+            }
+        };
+        timer.start();
+        tokenKMS.init(getApplicationContext(), new KMSWrapperInterface.InitCallbacks() {
+            @Override
+            public void onInitSuccess() {
+                Log.v("Token KMS onInitSuccess", "KMS Init OK");
+                isKMSSuccess = true;
+                infoDialog.dismiss();
+            }
+            @Override
+            public void onInitFailed() {
+                Log.v("Token KMS onInitFailed", "KMS Init Failed");
+                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.kms_service_error));
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    infoDialog.dismiss();
+                    finish();
+                }, 2000);
+            }
+        });
+    }
+
+    /**
+     * This method for bind the card service. Also it has a 30 seconds timeout for handle onFailure
+     * at card service bind.
+     * @param lifecycleOwner for observe the cardServiceConnect liveData from CardViewModel.
+     */
+    public void initializeCardService(LifecycleOwner lifecycleOwner) {
+        final boolean[] isCancelled = {false};
+        CountDownTimer timer = new CountDownTimer(30000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) { }
+
+            @Override
+            public void onFinish() {
+                isCancelled[0] = true;
+                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.card_service_error));
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    if (infoDialog != null) {
+                        infoDialog.dismiss();
+                        finish();
+                    }
+                }, 2000);
+            }
+        };
+        timer.start();
+        cardViewModel.initializeCardServiceBinding(this);
+
+        cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
+            if (isConnected && !isCancelled[0]) {
+                timer.cancel();
+                infoDialog.dismiss();
+                setEMVConfiguration(true);
+            }
+        });
     }
 
     /**
@@ -190,66 +268,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             PosTxnFragment posTxnFragment = new PosTxnFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             replaceFragment(R.id.container, posTxnFragment, false);
         }
-    }
-
-    /**
-     * This method for bind the card service. Also it has a 30 seconds timeout for handle onFailure
-     * at card service bind.
-     * @param lifecycleOwner for observe the cardServiceConnect liveData from CardViewModel.
-     */
-    public void initializeCardService(LifecycleOwner lifecycleOwner) {
-        final boolean[] isCancelled = {false};
-        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
-        CountDownTimer timer = new CountDownTimer(30000, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) { }
-
-            @Override
-            public void onFinish() {
-                isCancelled[0] = true;
-                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.card_service_error));
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    if (infoDialog != null) {
-                        infoDialog.dismiss();
-                        finish();
-                    }
-                }, 2000);
-            }
-        };
-        timer.start();
-        cardViewModel.initializeCardServiceBinding(this);
-
-        cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
-            if (isConnected && !isCancelled[0]) {
-                timer.cancel();
-                infoDialog.dismiss();
-                setEMVConfiguration(true);
-            }
-        });
-    }
-
-    /**
-     * This method for bind KMSService object. It has initCallbacks method, so if connect failure,
-     * show a infoDialog and finish the activity. Else, log initSuccess and continue.
-     */
-    private void initializeKMSService() {
-        tokenKMS = new TokenKMS();
-        tokenKMS.init(getApplicationContext(), new KMSWrapperInterface.InitCallbacks() {
-            @Override
-            public void onInitSuccess() {
-                Log.v("Token KMS onInitSuccess", "KMS Init OK");
-                infoDialog.dismiss();
-            }
-            @Override
-            public void onInitFailed() {
-                Log.v("Token KMS onInitFailed", "KMS Init Failed");
-                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.kms_service_error));
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    infoDialog.dismiss();
-                    finish();
-                }, 2000);
-            }
-        });
     }
 
     /**
