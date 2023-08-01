@@ -135,7 +135,7 @@ public class TransactionViewModel extends ViewModel {
             if (isGIB) {
                 return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
             } else {
-                transactionRepository.prepareSlip(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode);
+                transactionRepository.prepareSlip(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, false);
             }
         } else {
             return transactionRepository.prepareSaleIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
@@ -171,6 +171,27 @@ public class TransactionViewModel extends ViewModel {
 
     public List<TransactionEntity> getTransactionsByRefNo(String refNo) {
         return transactionRepository.getTransactionsByRefNo(refNo);
+    }
+
+    public List<TransactionEntity> getAllTransactions() {
+        return transactionRepository.getAllTransactions();
+    }
+
+    /**
+     * This method for print slip related to transactionEntity and transactionCode.
+     * It runs in IO Thread for not locking the main thread.
+     */
+    public void prepareSlip(ActivationRepository activationRepository, BatchRepository batchRepository, MainActivity mainActivity,
+                                    TransactionEntity transactionEntity, TransactionCode transactionCode, boolean isCopy) {
+        Observable<Integer> singleItemObservable = Observable.just(1);
+        Disposable disposable = singleItemObservable
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                        item -> transactionRepository.prepareSlip(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, isCopy),
+                        throwable -> { },
+                        () -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, ""))
+                );
     }
 
     public boolean isVoidListEmpty() {

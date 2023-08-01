@@ -10,18 +10,25 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
+import com.example.application_template_jmvvm.ui.posTxn.slip.SlipFragment;
+import com.example.application_template_jmvvm.utils.printHelpers.DateUtil;
 import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
 import com.example.application_template_jmvvm.R;
 
 import java.util.List;
 
+/**
+ * This class for show Transactions with recyclerView.
+ */
 public class TransactionsRecycleAdapter extends RecyclerView.Adapter<TransactionsRecycleAdapter.MyHolder> {
     private List<TransactionEntity> transactionList;
     private VoidFragment voidFragment;
+    private SlipFragment slipFragment;
 
-    public TransactionsRecycleAdapter(List<TransactionEntity> transactionList, VoidFragment voidFragment) {
+    public TransactionsRecycleAdapter(List<TransactionEntity> transactionList, VoidFragment voidFragment, SlipFragment slipFragment) {
         this.transactionList = transactionList;
         this.voidFragment = voidFragment;
+        this.slipFragment = slipFragment;
     }
 
     @NonNull
@@ -35,7 +42,8 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
     public void onBindViewHolder(@NonNull MyHolder holder, int position) {
         TransactionEntity transaction = transactionList.get(position);
         holder.card_no.setText(StringHelper.MaskTheCardNo(transaction.getBaPAN()));
-        holder.process_time.setText(transaction.getBaTranDate());
+        String date = DateUtil.getFormattedDate(transaction.getBaTranDate().substring(0, 8)) + " " + DateUtil.getFormattedTime(transaction.getBaTranDate().substring(8));
+        holder.process_time.setText(date);
         if (transaction.getbTransCode() != TransactionCode.SALE.getType()) {
             holder.sale_amount.setText(StringHelper.getAmount(transaction.getUlAmount2()));
         } else {
@@ -43,7 +51,13 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         }
         holder.approval_code.setText(transaction.getAuthCode());
         holder.serial_no.setText(String.valueOf(transaction.getUlGUP_SN()));
-        holder.itemView.setOnClickListener(v -> voidFragment.startVoid(voidFragment.getViewLifecycleOwner(), transaction, false));
+        holder.itemView.setOnClickListener(v -> {
+            if (voidFragment != null) {
+                voidFragment.startVoid(voidFragment.getViewLifecycleOwner(), transaction, false);
+            } else {
+                slipFragment.prepareSlip(transaction);
+            }
+        });
     }
 
     @Override

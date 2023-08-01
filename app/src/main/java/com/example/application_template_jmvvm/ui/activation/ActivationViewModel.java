@@ -1,7 +1,5 @@
 package com.example.application_template_jmvvm.ui.activation;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -11,8 +9,6 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.data.model.code.ResponseCode;
-import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
 import com.example.application_template_jmvvm.utils.printHelpers.PrintHelper;
