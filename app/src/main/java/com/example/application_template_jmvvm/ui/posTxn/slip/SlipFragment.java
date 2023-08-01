@@ -5,8 +5,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,13 +20,9 @@ import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.posTxn.voidOperation.TransactionsRecycleAdapter;
 import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
-import com.example.application_template_jmvvm.utils.objects.MenuItem;
-import com.token.uicomponents.ListMenuFragment.IListMenuItem;
-import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,7 +34,6 @@ public class SlipFragment extends Fragment implements InfoDialogListener {
     private ActivationViewModel activationViewModel;
     private BatchViewModel batchViewModel;
     private TransactionViewModel transactionViewModel;
-    private ListMenuFragment listMenuFragment;
     private InfoDialog infoDialog;
     private RecyclerView rvTransactions;
     private TransactionCode transactionCode;
@@ -71,22 +64,18 @@ public class SlipFragment extends Fragment implements InfoDialogListener {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        view.findViewById(R.id.backButton).setOnClickListener(v -> mainActivity.getSupportFragmentManager().popBackStack());
+
         if (!transactionViewModel.isTransactionListEmpty()) {
             List<TransactionEntity> transactionList = transactionViewModel.getAllTransactions();
             setView(transactionList);
         }
 
-        List<IListMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(new MenuItem(getString(R.string.previous_batch_slip), iListMenuItem -> {
+        view.findViewById(R.id.btnBatch).setOnClickListener(v -> {
             infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
             batchViewModel.printPreviousBatchSlip(mainActivity);
-            batchViewModel.getInfoDialogLiveData().observe(listMenuFragment.getViewLifecycleOwner(), infoDialogData -> infoDialog.dismiss());
-        }));
-
-        menuItems.add(new MenuItem(getString(R.string.transaction_list), null));
-
-        listMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.slip_menu), true, R.drawable.token_logo_png);
-        replaceFragment(listMenuFragment);
+            batchViewModel.getInfoDialogLiveData().observe(mainActivity, infoDialogData -> infoDialog.dismiss());
+        });
     }
 
     /**
@@ -126,19 +115,7 @@ public class SlipFragment extends Fragment implements InfoDialogListener {
         }
         infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
         transactionViewModel.prepareSlip(activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), mainActivity, transactionEntity, transactionCode, true);
-        transactionViewModel.getInfoDialogLiveData().observe(listMenuFragment.getViewLifecycleOwner(), infoDialogData -> infoDialog.dismiss());
-    }
-
-    /**
-     * This method for replace ListMenuFragment with SlipFragment's container. It means for showing
-     * menu contains Batch Close and Transaction List.
-     */
-    public void replaceFragment(ListMenuFragment listMenuFragment) {
-        FragmentManager fragmentManager = getChildFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.container, listMenuFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        transactionViewModel.getInfoDialogLiveData().observe(getViewLifecycleOwner(), infoDialogData -> infoDialog.dismiss());
     }
 
     @Override
