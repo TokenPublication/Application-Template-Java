@@ -43,6 +43,7 @@
     <string name="examples">Örnekler</string>
     <string name="batch_close">Grup Kapama</string>
     <string name="batch_close_will_be_done">Grup Kapama Yapılacak</string>
+    <string name="batch_close_not_found">Gün Sonu Bulunamadı</string>
     <string name="transaction_list">İşlem Listesi</string>
 
     <string name="success">Başarılı</string>
@@ -51,6 +52,7 @@
     <string name="error_timeout">Zaman Aşımı</string>
     <string name="declined">Reddedildi</string>
     <string name="refund_info_not_found">İade Bilgisi Hatası</string>
+    <string name="offline_decline">Kart Numaraları Eşleşmedi</string>
 
     <string name="card_number">Kart Numarası</string>
     <string name="invalid_card_number">Kart Numarası Hatalı</string>

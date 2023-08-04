@@ -81,9 +81,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent intent = mainActivity.getIntent();
-        Bundle bundle = intent.getExtras();
-        amount = bundle.getInt("Amount");
+        amount = mainActivity.getIntent().getExtras().getInt("Amount");
     }
 
     /**
@@ -286,7 +284,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
      */
     public void doSale(ICCCard card, LifecycleOwner viewLifecycleOwner) {
         Bundle bundle = getInfo();
-        transactionViewModel.TransactionRoutine(card, uuid, mainActivity, null, bundle, transactionCode,
+        transactionViewModel.TransactionRoutine(card, mainActivity, null, bundle, transactionCode,
                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), null);
         transactionViewModel.getInfoDialogLiveData().observe(viewLifecycleOwner, infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), mainActivity.getString(R.string.connecting))) {
@@ -310,6 +308,16 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         uuid = mainActivity.getIntent().getExtras().getString("UUID");
         ZNO = mainActivity.getIntent().getExtras().getString("ZNO");
         receiptNo = mainActivity.getIntent().getExtras().getString("ReceiptNo");
+
+        //TODO Developer, check this variables from PGW.
+        boolean isOnlinePin = false;
+        boolean isOffline = false;
+        boolean pinByPass = false;
+        bundle.putInt("IsOnlinePin", isOnlinePin ? 1 : 0);
+        bundle.putInt("IsOffline", isOffline ? 1 : 0);
+        bundle.putInt("PinByPass", pinByPass ? 1 : 0);
+
+        bundle.putString("UUID", uuid);
         if (ZNO != null && receiptNo != null) {
             bundle.putString("ZNO", ZNO);
             bundle.putString("ReceiptNo", receiptNo);

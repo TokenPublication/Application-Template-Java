@@ -5,9 +5,9 @@ import android.os.Bundle;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.data.database.batch.BatchDB;
+import com.example.application_template_jmvvm.data.database.batch.Batch;
 import com.example.application_template_jmvvm.data.database.batch.BatchDao;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.database.transaction.Transaction;
 import com.example.application_template_jmvvm.data.model.code.BatchResult;
 import com.example.application_template_jmvvm.data.model.response.BatchCloseResponse;
 import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
@@ -33,23 +33,12 @@ public class BatchRepository {
     @Inject
     public BatchRepository(BatchDao batchDao) {
         this.batchDao = batchDao;
-        initializeBatch();
-    }
-
-    private void initializeBatch() {
-        if (batchDao.getAllBatch().isEmpty()) {
-            BatchDB batch = new BatchDB();
-            batch.setCol_ulSTN(0);
-            batch.setCol_ulGUP_SN(1);
-            batch.setCol_batchNo(1);
-            batchDao.insertBatch(batch);
-        }
     }
 
     public String prepareSlip(MainActivity mainActivity, ActivationRepository activationRepository, BatchRepository batchRepository,
-                              List<TransactionEntity> transactionList, boolean isCopy) {
+                              List<Transaction> transactionList, boolean isBatch, boolean isCopy) {
         BatchClosePrintHelper batchClosePrintHelper = new BatchClosePrintHelper();
-        return batchClosePrintHelper.batchText(mainActivity, String.valueOf(batchRepository.getBatchNo()), activationRepository, transactionList, isCopy);
+        return batchClosePrintHelper.batchText(mainActivity, String.valueOf(batchRepository.getBatchNo()), activationRepository, transactionList, isBatch, isCopy);
     }
 
     public BatchCloseResponse prepareResponse(MainActivity mainActivity, BatchViewModel batchViewModel, BatchResult batchResult) {
@@ -109,11 +98,7 @@ public class BatchRepository {
         batchDao.updateBatchSlip(batchSlip, batchNo);
     }
 
-    public List<BatchDB> getAllBatch() {
+    public List<Batch> getAllBatch() {
         return batchDao.getAllBatch();
-    }
-
-    public void deleteAll() {
-        batchDao.deleteAll();
     }
 }

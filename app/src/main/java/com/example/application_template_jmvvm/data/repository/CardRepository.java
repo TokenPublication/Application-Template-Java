@@ -27,7 +27,6 @@ public class CardRepository implements CardServiceListener {
     public interface RepositoryCallback {
         void afterCardDataReceived(ICCCard card);
         void afterCardServiceConnected(Boolean isConnected);
-        void setCallBackMessage(CardServiceResult cardServiceResult);
         void setResponseMessage(ResponseCode responseCode);
     }
 
@@ -105,36 +104,28 @@ public class CardRepository implements CardServiceListener {
 
             if (resultCode == CardServiceResult.USER_CANCELLED.resultCode()) {
                 Log.d("CardDataReceived","Card Result Code: User Cancelled");
-                repositoryCallback.setCallBackMessage(CardServiceResult.USER_CANCELLED);
+                repositoryCallback.setResponseMessage(ResponseCode.CANCELLED);
             }
 
             if (resultCode == CardServiceResult.ERROR_TIMEOUT.resultCode()) {
                 Log.d("CardDataReceived","Card Result Code: TIMEOUT");
-                repositoryCallback.setCallBackMessage(CardServiceResult.ERROR_TIMEOUT);
+                repositoryCallback.setResponseMessage(ResponseCode.ERROR);
             }
 
             if (resultCode == CardServiceResult.ERROR.resultCode()) {
                 Log.d("CardDataReceived","Card Result Code: ERROR");
-                repositoryCallback.setCallBackMessage(CardServiceResult.ERROR);
+                repositoryCallback.setResponseMessage(ResponseCode.ERROR);
             }
 
             if (resultCode == CardServiceResult.SUCCESS.resultCode()) {
                 int type = json.getInt("mCardReadType");
                 ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
-                if (type == CardReadType.QrPay.value) {
-                    repositoryCallback.afterCardDataReceived(card);
-                }
-                if (type == CardReadType.CLCard.value) {
-                    repositoryCallback.afterCardDataReceived(card);
-                } else if (type == CardReadType.ICC.value) {
+                if (type == CardReadType.ICC.value) {
                     if (!isApprove && transactionCode == TransactionCode.SALE) {
                         isApprove = true;
                     }
-                    repositoryCallback.afterCardDataReceived(card);
-                } else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
-                    String cardNo = json.getString("mCardNumber");
-                    cardServiceBinding.getOnlinePIN(amount, cardNo, 0x0A01, 0, 4, 8, 30);
                 }
+                repositoryCallback.afterCardDataReceived(card);
             }
         } catch (Exception e) {
             repositoryCallback.setResponseMessage(ResponseCode.ERROR);

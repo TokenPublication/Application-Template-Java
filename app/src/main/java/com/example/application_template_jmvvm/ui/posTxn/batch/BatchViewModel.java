@@ -10,7 +10,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.database.transaction.Transaction;
 import com.example.application_template_jmvvm.data.model.code.BatchResult;
 import com.example.application_template_jmvvm.data.model.response.BatchCloseResponse;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
@@ -92,9 +92,9 @@ public class BatchViewModel extends ViewModel {
      * If it is AutoEndOfDay, we send intent to the result. Else, we do not need to prepare intent just slip.
      */
     private Intent finishBatchClose(MainActivity mainActivity, ActivationRepository activationRepository, TransactionRepository transactionRepository, Boolean isAutoBatch) {
-        List<TransactionEntity> transactionList = transactionRepository.getAllTransactions();
-        String slip = batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList, false);
-        batchRepository.updateBatchSlip(batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList, true), batchRepository.getBatchNo());
+        List<Transaction> transactionList = transactionRepository.getAllTransactions();
+        String slip = batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList, true, false);
+        batchRepository.updateBatchSlip(batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList, true, true), batchRepository.getBatchNo());
         batchRepository.updateBatchNo();
         transactionRepository.deleteAll();
         BatchCloseResponse batchCloseResponse = batchRepository.prepareResponse(mainActivity, this, BatchResult.SUCCESS);
@@ -150,7 +150,20 @@ public class BatchViewModel extends ViewModel {
                 );
     }
 
-    public void deleteAll() {
-        batchRepository.deleteAll();
+    /**
+     * This method for print batchClose or transactionList slip.
+     */
+    public void prepareSlip(MainActivity mainActivity, ActivationRepository activationRepository, BatchRepository batchRepository,
+                            List<Transaction> transactionList, boolean isBatch, boolean isCopy) {
+        String slip = batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList, isBatch, isCopy);
+        Observable<Integer> singleItemObservable = Observable.just(1);
+        Disposable disposable = singleItemObservable
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                        item -> batchRepository.printSlip(slip, mainActivity),
+                        throwable -> { },
+                        () -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, ""))
+                );
     }
 }
