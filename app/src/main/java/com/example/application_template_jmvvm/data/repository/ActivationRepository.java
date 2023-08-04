@@ -1,7 +1,7 @@
 package com.example.application_template_jmvvm.data.repository;
 
+import com.example.application_template_jmvvm.data.database.activation.Activation;
 import com.example.application_template_jmvvm.data.database.activation.ActivationDao;
-import com.example.application_template_jmvvm.data.database.activation.ActivationEntity;
 
 import javax.inject.Inject;
 
@@ -16,19 +16,6 @@ public class ActivationRepository {
     @Inject
     public ActivationRepository(ActivationDao activationDao) {
         this.activationDao = activationDao;
-        initializeActivation();
-    }
-
-    public void initializeActivation() {
-        if (isTableEmpty()) {
-            ActivationEntity activationEntity = new ActivationEntity();
-            activationEntity.setColMerchantId("3785971905");
-            activationEntity.setColTerminalId("94820525");
-            //TODO Developer, assigned temporary values for merchant and terminal ID for not getting null
-            activationEntity.setColIP("195.87.189.169");
-            activationEntity.setColPort("1000");
-            activationDao.insertActivation(activationEntity);
-        }
     }
 
     public void updateConnection(String ip, String port, String old_ip) {
@@ -59,7 +46,4 @@ public class ActivationRepository {
         return activationDao.isTableEmpty() == 0;
     }
 
-    public void deleteAll() {
-        activationDao.deleteAll();
-    }
 }

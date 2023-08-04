@@ -5,8 +5,8 @@ import android.os.Bundle;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
+import com.example.application_template_jmvvm.data.database.transaction.Transaction;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionDao;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
@@ -46,28 +46,24 @@ public class TransactionRepository {
         this.transactionDao = transactionDao;
     }
 
-    public List<TransactionEntity> getAllTransactions() {
+    public List<Transaction> getAllTransactions() {
         return transactionDao.getAllTransactions();
     }
 
-    public List<TransactionEntity> getTransactionsByRefNo(String refNo) {
+    public List<Transaction> getTransactionsByRefNo(String refNo) {
         return transactionDao.getTransactionsByRefNo(refNo);
     }
 
-    public List<TransactionEntity> getTransactionsByCardNo(String cardNo) {
+    public List<Transaction> getTransactionsByCardNo(String cardNo) {
         return transactionDao.getTransactionsByCardNo(cardNo);
     }
 
-    public void insertTransaction(TransactionEntity transaction) {
+    public void insertTransaction(Transaction transaction) {
         transactionDao.insertTransaction(transaction);
     }
 
     public void setVoid(int gupSN, String date, String card_SID) {
         transactionDao.setVoid(gupSN, date, card_SID);
-    }
-
-    public boolean isEmptyVoid() {
-        return transactionDao.isEmptyVoid() == 0;
     }
 
     public boolean isEmpty() {
@@ -97,91 +93,98 @@ public class TransactionRepository {
     }
 
     /**
-     * This method puts required values to TransactionEntity object for insert the transaction into Transaction DB
+     * This method puts required values to Transaction object for insert the transaction into Transaction DB
      */
-    public TransactionEntity entityCreator(ICCCard card, String uuid, Bundle bundle, OnlineTransactionResponse onlineTransactionResponse, TransactionCode transactionCode) {
-        TransactionEntity transactionEntity = new TransactionEntity();
-        transactionEntity.setUuid(uuid);
-        transactionEntity.setUlAmount(card.getmTranAmount1());
-        transactionEntity.setbCardReadType(card.getmCardReadType());
-        transactionEntity.setbTransCode(transactionCode.getType());
-        transactionEntity.setBaPAN(card.getmCardNumber());
-        transactionEntity.setBaExpDate(card.getmExpireDate());
-        transactionEntity.setBaCustomerName(card.getmTrack1CustomerName());
+    public Transaction entityCreator(ICCCard card, Bundle bundle, OnlineTransactionResponse onlineTransactionResponse, TransactionCode transactionCode) {
+        Transaction transaction = new Transaction();
+        transaction.setUuid(bundle.getString("UUID"));
+        transaction.setReceiptNo(bundle.getString("ReceiptNo"));
+        transaction.setZNO(bundle.getString("ZNO"));
+        transaction.setUlAmount(card.getmTranAmount1());
+        transaction.setbCardReadType(card.getmCardReadType());
+        transaction.setbTransCode(transactionCode.getType());
+        transaction.setBaPAN(card.getmCardNumber());
+        transaction.setBaExpDate(card.getmExpireDate());
+        transaction.setBaCustomerName(card.getmTrack1CustomerName());
         if (card.getmCardReadType() != CardReadType.ICC.getType()) {
-            transactionEntity.setBaTranDate(card.getDateTime());
+            transaction.setBaTranDate(card.getDateTime());
         } else {
-            transactionEntity.setBaTranDate(new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + new SimpleDateFormat("HHmmss", Locale.getDefault()).format(new Date()));
+            transaction.setBaTranDate(new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + new SimpleDateFormat("HHmmss", Locale.getDefault()).format(new Date()));
         }
-        transactionEntity.setBaTrack2(card.getmTrack2Data());
-        transactionEntity.setBaRspCode(onlineTransactionResponse.getmResponseCode().ordinal());
-        transactionEntity.setIsVoid(0);
-        transactionEntity.setRefNo(onlineTransactionResponse.getmRefNo());
-        transactionEntity.setIsSignature(0);
-        transactionEntity.setStPrintData(onlineTransactionResponse.getmTextPrintCode());
-        transactionEntity.setAuthCode(onlineTransactionResponse.getmAuthCode());
-        transactionEntity.setAid(card.getAID2());
-        transactionEntity.setAidLabel(card.getAIDLabel());
-        transactionEntity.setPinByPass(0);
-        transactionEntity.setDisplayData(onlineTransactionResponse.getmDisplayData());
-        transactionEntity.setBaCVM(card.getCVM());
-        transactionEntity.setIsOffline(0);
-        transactionEntity.setSID(card.getSID());
-        transactionEntity.setIsOnlinePIN(0);
+        transaction.setBaTrack2(card.getmTrack2Data());
+        transaction.setBaRspCode(onlineTransactionResponse.getmResponseCode().ordinal());
+        transaction.setIsVoid(0);
+        transaction.setRefNo(onlineTransactionResponse.getmRefNo());
+        transaction.setIsSignature(0);
+        transaction.setStPrintData(onlineTransactionResponse.getmTextPrintCode());
+        transaction.setAuthCode(onlineTransactionResponse.getmAuthCode());
+        transaction.setAid(card.getAID2());
+        transaction.setAidLabel(card.getAIDLabel());
+        transaction.setPinByPass(bundle.getInt("PinByPass"));
+        transaction.setDisplayData(onlineTransactionResponse.getmDisplayData());
+        transaction.setBaCVM(card.getCVM());
+        transaction.setAC(card.getAC());
+        transaction.setCID(card.getCID());
+        transaction.setATC(card.getATC());
+        transaction.setTVR(card.getTVR());
+        transaction.setTSI(card.getTSI());
+        transaction.setAIP(card.getAIP());
+        transaction.setIsOffline(bundle.getInt("IsOffline"));
+        transaction.setSID(card.getSID());
+        transaction.setIsOnlinePIN(bundle.getInt("IsOnlinePin"));
         switch (transactionCode) {
             case INSTALLMENT_SALE:
-                transactionEntity.setbInstCnt(bundle.getInt(ExtraContentInfo.instCount));
+                transaction.setbInstCnt(bundle.getInt(ExtraContentInfo.instCount));
                 break;
             case MATCHED_REFUND:
-                transactionEntity.setUlAmount(bundle.getInt(ExtraContentInfo.orgAmount));
-                transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
-                transactionEntity.setRefNo(bundle.getString(ExtraContentInfo.refNo));
-                transactionEntity.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
-                transactionEntity.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
+                transaction.setUlAmount(bundle.getInt(ExtraContentInfo.orgAmount));
+                transaction.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
+                transaction.setRefNo(bundle.getString(ExtraContentInfo.refNo));
+                transaction.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
+                transaction.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
                 break;
             case CASH_REFUND:
-                transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
+                transaction.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
                 break;
             case INSTALLMENT_REFUND:
-                transactionEntity.setUlAmount(bundle.getInt(ExtraContentInfo.orgAmount));
-                transactionEntity.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
-                transactionEntity.setRefNo(bundle.getString(ExtraContentInfo.refNo));
-                transactionEntity.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
-                transactionEntity.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
-                transactionEntity.setbInstCnt(bundle.getInt(ExtraContentInfo.instCount));
+                transaction.setUlAmount(bundle.getInt(ExtraContentInfo.orgAmount));
+                transaction.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
+                transaction.setRefNo(bundle.getString(ExtraContentInfo.refNo));
+                transaction.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
+                transaction.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
+                transaction.setbInstCnt(bundle.getInt(ExtraContentInfo.instCount));
                 break;
             default:
                 break;
         }
-        return transactionEntity;
+        return transaction;
     }
 
     /**
      * This method puts required values to bundle (something like contentValues for data transferring).
      * After that, an intent will be created with this bundle to provide communication between GiB and Application Template via IPC
      */
-    public Intent prepareSaleIntent(ActivationRepository activationRepository, BatchRepository batchRepository,
-                                MainActivity mainActivity, TransactionEntity transactionEntity,
+    public Intent prepareSaleIntent(SampleReceipt receipt, MainActivity mainActivity, Transaction transaction,
                                 TransactionCode transactionCode, ResponseCode responseCode, String ZNO, String receiptNo) {
         Bundle bundle = new Bundle();
         Intent intent = new Intent();
-        int amount = transactionEntity.getUlAmount();
+        int amount = transaction.getUlAmount();
         SlipType slipType = SlipType.BOTH_SLIPS;
-        String cardNo = transactionEntity.getBaPAN();
+        String cardNo = transaction.getBaPAN();
         bundle.putInt("ResponseCode", responseCode.ordinal()); // #1 Response Code
-        bundle.putString("CardOwner", transactionEntity.getBaCustomerName()); // Optional
+        bundle.putString("CardOwner", transaction.getBaCustomerName()); // Optional
         bundle.putString("CardNumber", cardNo); // Optional, Card No can be masked
         bundle.putInt("PaymentStatus", 0); // #2 Payment Status
         bundle.putInt("Amount", amount); // #3 Amount
-        bundle.putInt("BatchNo", transactionEntity.getBatchNo());
-        bundle.putString("CardNo", StringHelper.MaskTheCardNo(transactionEntity.getBaPAN()));
-        bundle.putString("MID", activationRepository.getMerchantId()); //#6 Merchant ID
-        bundle.putString("TID", activationRepository.getTerminalId()); //#7 Terminal ID
-        bundle.putInt("TxnNo", transactionEntity.getUlGUP_SN());
+        bundle.putInt("BatchNo", transaction.getBatchNo());
+        bundle.putString("CardNo", StringHelper.MaskTheCardNo(transaction.getBaPAN()));
+        bundle.putString("MID", receipt.getMerchantID()); //#6 Merchant ID
+        bundle.putString("TID", receipt.getPosID()); //#7 Terminal ID
+        bundle.putInt("TxnNo", transaction.getUlGUP_SN());
         bundle.putInt("SlipType", slipType.value);
         bundle.putBoolean("IsSlip", true);
-        bundle.putString("RefNo", transactionEntity.getRefNo());
-        bundle.putString("AuthNo", transactionEntity.getAuthCode());
+        bundle.putString("RefNo", transaction.getRefNo());
+        bundle.putString("AuthNo", transaction.getAuthCode());
         bundle.putInt("PaymentType", PaymentTypes.CREDITCARD.getType());
         SalePrintHelper salePrintHelper = new SalePrintHelper();
         if (responseCode == ResponseCode.CANCELLED || responseCode == ResponseCode.UNABLE_DECLINE || responseCode == ResponseCode.OFFLINE_DECLINE) {
@@ -189,12 +192,12 @@ public class TransactionRepository {
             //TODO Developer, no slip or cancel slip.
         } else {
             if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
-                bundle.putString("customerSlipData", salePrintHelper.getFormattedText(new SampleReceipt(transactionEntity, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, ZNO, receiptNo, false));
+                bundle.putString("customerSlipData", salePrintHelper.getFormattedText(receipt, transaction, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, ZNO, receiptNo, false));
             }
             if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-                bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(new SampleReceipt(transactionEntity, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, ZNO, receiptNo, false));
+                bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(receipt, transaction, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, ZNO, receiptNo, false));
             }
-            bundle.putString("RefundInfo", getRefundInfo(transactionEntity, cardNo, amount, activationRepository, batchRepository));
+            bundle.putString("RefundInfo", getRefundInfo(transaction, cardNo, amount, receipt));
             if (transactionCode == TransactionCode.MATCHED_REFUND || transactionCode == TransactionCode.CASH_REFUND || transactionCode == TransactionCode.INSTALLMENT_REFUND || transactionCode == TransactionCode.VOID) {
                 printSlip(bundle.getString("customerSlipData"), mainActivity);
                 printSlip(bundle.getString("merchantSlipData"), mainActivity);
@@ -207,13 +210,12 @@ public class TransactionRepository {
     /**
      * It prepares refund and void intent for only gib and print slip
      */
-    public Intent prepareIntent(ActivationRepository activationRepository, BatchRepository batchRepository,
-                                    MainActivity mainActivity, TransactionEntity transactionEntity,
+    public Intent prepareIntent(SampleReceipt receipt, MainActivity mainActivity, Transaction transaction,
                                     TransactionCode transactionCode, ResponseCode responseCode) {
         Bundle bundle = new Bundle();
         Intent intent = new Intent();
         bundle.putInt("ResponseCode", responseCode.ordinal());
-        prepareSlip(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, false);
+        prepareSlip(receipt, mainActivity, transaction, transactionCode, false);
         intent.putExtras(bundle);
         return intent;
     }
@@ -221,11 +223,11 @@ public class TransactionRepository {
     /**
      * It prepares and prints the slip.
      */
-    public void prepareSlip(ActivationRepository activationRepository, BatchRepository batchRepository, MainActivity mainActivity,
-                                TransactionEntity transactionEntity, TransactionCode transactionCode, boolean isCopy) {
+    public void prepareSlip(SampleReceipt receipt, MainActivity mainActivity, Transaction transaction,
+                            TransactionCode transactionCode, boolean isCopy) {
         SalePrintHelper salePrintHelper = new SalePrintHelper();
-        String customerSlipData = salePrintHelper.getFormattedText(new SampleReceipt(transactionEntity, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, null, null, isCopy);
-        String merchantSlipData = salePrintHelper.getFormattedText(new SampleReceipt(transactionEntity, activationRepository, batchRepository), transactionEntity, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, null, null, isCopy);
+        String customerSlipData = salePrintHelper.getFormattedText(receipt, transaction, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, null, null, isCopy);
+        String merchantSlipData = salePrintHelper.getFormattedText(receipt, transaction, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, null, null, isCopy);
         printSlip(customerSlipData, mainActivity);
         printSlip(merchantSlipData, mainActivity);
     }
@@ -256,20 +258,20 @@ public class TransactionRepository {
         bundle.putString("TID", activationRepository.getTerminalId()); //#7 Terminal ID
         bundle.putInt("TxnNo", batchRepository.getGroupSN());
         bundle.putInt("SlipType", slipType.value);
-
-        bundle.putString("RefundInfo", getRefundInfo(null, cardNo, price, activationRepository, batchRepository));
+        Transaction transaction = new Transaction();
+        transaction.setBaPAN(cardNo);
+        transaction.setBaCustomerName(ownerName);
+        transaction.setUlAmount(price);
+        SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository);
+        bundle.putString("RefundInfo", getRefundInfo(null, cardNo, price, receipt));
         bundle.putString("RefNo", String.valueOf(32134323));
         bundle.putInt("PaymentType", paymentType);
         SalePrintHelper salePrintHelper = new SalePrintHelper();
-        TransactionEntity transactionEntity = new TransactionEntity();
-        transactionEntity.setBaPAN(cardNo);
-        transactionEntity.setBaCustomerName(ownerName);
-        transactionEntity.setUlAmount(price);
         if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(new SampleReceipt(transactionEntity, activationRepository, batchRepository), null, TransactionCode.SALE, SlipType.CARDHOLDER_SLIP, mainActivity, null, null, false));
+            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(receipt, null, TransactionCode.SALE, SlipType.CARDHOLDER_SLIP, mainActivity, null, null, false));
         }
         if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(new SampleReceipt(transactionEntity, activationRepository, batchRepository), null, TransactionCode.SALE, SlipType.MERCHANT_SLIP, mainActivity, null, null, false));
+            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(receipt, null, TransactionCode.SALE, SlipType.MERCHANT_SLIP, mainActivity, null, null, false));
         }
         resultIntent.putExtras(bundle);
         transactionViewModel.setIntentLiveData(resultIntent);
@@ -278,26 +280,24 @@ public class TransactionRepository {
     /**
      * @return refundInfo which is Json with necessary components
      */
-    private String getRefundInfo(TransactionEntity transactionEntity, String cardNumber, int amount,
-                                 ActivationRepository activationRepository, BatchRepository batchRepository) {
+    private String getRefundInfo(Transaction transaction, String cardNumber, int amount, SampleReceipt receipt) {
         JSONObject json = new JSONObject();
         try {
-            json.put("BatchNo", batchRepository.getBatchNo());
-            json.put("TxnNo", batchRepository.getGroupSN());
+            json.put("BatchNo", receipt.getGroupNo());
+            json.put("TxnNo", receipt.getSerialNo());
             json.put("Amount", amount);
-            json.put("MID", activationRepository.getMerchantId());
-            json.put("TID", activationRepository.getTerminalId());
+            json.put("MID", receipt.getMerchantID());
+            json.put("TID", receipt.getPosID());
             json.put("CardNo", StringHelper.MaskTheCardNo(cardNumber));
-            if (transactionEntity != null) {
-                json.put("RefNo", transactionEntity.getRefNo());
-                json.put("AuthCode", transactionEntity.getAuthCode());
-                json.put("TranDate", transactionEntity.getBaTranDate());
-                if (transactionEntity.getbInstCnt() > 0) {
-                    json.put("InstCount", transactionEntity.getbInstCnt());
-                    json.put("InstAmount", transactionEntity.getUlAmount2()/transactionEntity.getbInstCnt());
+            if (transaction != null) {
+                json.put("RefNo", transaction.getRefNo());
+                json.put("AuthCode", transaction.getAuthCode());
+                json.put("TranDate", transaction.getBaTranDate());
+                if (transaction.getbInstCnt() > 0) {
+                    json.put("InstCount", transaction.getbInstCnt());
+                    json.put("InstAmount", transaction.getUlAmount2()/ transaction.getbInstCnt());
                 } else {
                     json.put("InstCount", 0);
-                    json.put("InstAmount", 0);
                 }
             }
         } catch (JSONException e) {

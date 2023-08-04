@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey;
 import com.example.application_template_jmvvm.data.database.DatabaseInfo;
 
 @Entity(tableName = DatabaseInfo.ACT_TABLE)
-public class ActivationEntity {
+public class Activation {
     @ColumnInfo(name = ActivationCols.col_terminalID)
     private String colTerminalId;
 
@@ -21,7 +21,7 @@ public class ActivationEntity {
     private String colIP = "195.87.189.169";
 
     @ColumnInfo(name = ActivationCols.col_Port)
-    private String colPort;
+    private String colPort = "1000";
 
     public String getColTerminalId() {
         return colTerminalId;

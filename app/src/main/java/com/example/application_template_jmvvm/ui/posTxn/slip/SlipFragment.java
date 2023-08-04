@@ -8,13 +8,15 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.database.transaction.Transaction;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
@@ -58,30 +60,44 @@ public class SlipFragment extends Fragment implements InfoDialogListener {
     }
 
     /**
-     * This method for getting all transactions if it is not empty and setView. Then, prepare list menu
-     * for batch close and transaction list.
+     * This method for getting all transactions if it is not empty and setView. Then, it has clickListeners
+     * that does print Batch Close Repetition or Transaction List.
      */
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        List<Transaction> transactionList = transactionViewModel.getAllTransactions();
+        setView(transactionList);
+
         view.findViewById(R.id.backButton).setOnClickListener(v -> mainActivity.getSupportFragmentManager().popBackStack());
 
-        if (!transactionViewModel.isTransactionListEmpty()) {
-            List<TransactionEntity> transactionList = transactionViewModel.getAllTransactions();
-            setView(transactionList);
-        }
-
         view.findViewById(R.id.btnBatch).setOnClickListener(v -> {
-            infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
-            batchViewModel.printPreviousBatchSlip(mainActivity);
-            batchViewModel.getInfoDialogLiveData().observe(mainActivity, infoDialogData -> infoDialog.dismiss());
+            if (batchViewModel.getPreviousBatchSlip() != null) {
+                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
+                batchViewModel.printPreviousBatchSlip(mainActivity);
+                batchViewModel.getInfoDialogLiveData().observe(mainActivity, infoDialogData -> infoDialog.dismiss());
+            } else {
+                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Warning, mainActivity.getString(R.string.batch_close_not_found), false);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> infoDialog.dismiss(),2000);
+            }
+        });
+
+        view.findViewById(R.id.btnTransactionList).setOnClickListener(v -> {
+            if (!transactionViewModel.isTransactionListEmpty()) {
+                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
+                batchViewModel.prepareSlip(mainActivity, activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), transactionList, false, false);
+                batchViewModel.getInfoDialogLiveData().observe(mainActivity, infoDialogData -> infoDialog.dismiss());
+            }  else {
+                infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Warning, mainActivity.getString(R.string.trans_not_found), false);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> infoDialog.dismiss(),2000);
+            }
         });
     }
 
     /**
      * This method for set recyclerView with setAdapter function related to our transactions.
      */
-    public void setView(List<TransactionEntity> transactionList) {
+    public void setView(List<Transaction> transactionList) {
         TransactionsRecycleAdapter adapter = new TransactionsRecycleAdapter(transactionList, null, this);
         rvTransactions.setAdapter(adapter);
         rvTransactions.setLayoutManager(new LinearLayoutManager(mainActivity));
@@ -92,8 +108,8 @@ public class SlipFragment extends Fragment implements InfoDialogListener {
      * recyclerView. Firstly, it prepares TransactionCode of the transaction for getting slip correctly.
      * After that, it shows Printing the receipt screen and call prepareSlip which runs on IO thread.
      */
-    public void prepareSlip(TransactionEntity transactionEntity) {
-        switch (transactionEntity.getbTransCode()) {
+    public void prepareSlip(Transaction transaction) {
+        switch (transaction.getbTransCode()) {
             case 1:
                 transactionCode = TransactionCode.SALE;
                 break;
@@ -110,11 +126,11 @@ public class SlipFragment extends Fragment implements InfoDialogListener {
                 transactionCode = TransactionCode.INSTALLMENT_REFUND;
                 break;                
         }
-        if (transactionEntity.getIsVoid() == 1) {
+        if (transaction.getIsVoid() == 1) {
             transactionCode = TransactionCode.VOID;
         }
         infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
-        transactionViewModel.prepareSlip(activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), mainActivity, transactionEntity, transactionCode, true);
+        transactionViewModel.prepareSlip(activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), mainActivity, transaction, transactionCode, true);
         transactionViewModel.getInfoDialogLiveData().observe(getViewLifecycleOwner(), infoDialogData -> infoDialog.dismiss());
     }
 

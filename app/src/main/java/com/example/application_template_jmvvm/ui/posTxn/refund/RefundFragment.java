@@ -220,7 +220,7 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
      * In normal refunds, we do not need for send intent to result.
      */
     public void doRefund(ICCCard card, TransactionCode transactionCode, Bundle refundInfo, LifecycleOwner lifecycleOwner, Boolean isGIB) {
-        transactionViewModel.TransactionRoutine(card, null, mainActivity, null, refundInfo, transactionCode,
+        transactionViewModel.TransactionRoutine(card, mainActivity, null, refundInfo, transactionCode,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), isGIB);
         transactionViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), mainActivity.getApplicationContext().getString(R.string.connecting))) {
@@ -264,6 +264,13 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
             default:
                 break;
         }
+        //TODO Developer, check this variables from PGW.
+        boolean isOnlinePin = false;
+        boolean isOffline = false;
+        boolean pinByPass = false;
+        bundle.putInt("IsOnlinePin", isOnlinePin ? 1 : 0);
+        bundle.putInt("IsOffline", isOffline ? 1 : 0);
+        bundle.putInt("PinByPass", pinByPass ? 1 : 0);
         return bundle;
     }
 

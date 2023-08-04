@@ -1,6 +1,6 @@
 package com.example.application_template_jmvvm.utils.objects;
 
-import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.database.transaction.Transaction;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
 import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
@@ -14,19 +14,25 @@ public class SampleReceipt {
     private String amount;
     private String groupNo;
     private String aid;
+    private String aidLabel;
+    private String authCode;
+    private String refNo;
     private String serialNo;
     private String approvalCode;
 
-    public SampleReceipt (TransactionEntity transactionEntity, ActivationRepository activationRepository, BatchRepository batchRepository) {
+    public SampleReceipt (Transaction transaction, ActivationRepository activationRepository, BatchRepository batchRepository) {
         setMerchantName("TOKEN FINTECH");
         setMerchantID(activationRepository.getMerchantId());
         setPosID(activationRepository.getTerminalId());
-        setCardNo(StringHelper.maskCardNumber(transactionEntity.getBaPAN()));
-        setFullName(transactionEntity.getBaCustomerName());
-        setAmount(StringHelper.getAmount(transactionEntity.getUlAmount()));
+        setCardNo(StringHelper.maskCardNumber(transaction.getBaPAN()));
+        setFullName(transaction.getBaCustomerName());
+        setAmount(StringHelper.getAmount(transaction.getUlAmount()));
         setGroupNo(String.valueOf(batchRepository.getBatchNo()));
-        setAid(transactionEntity.getAid());
-        setSerialNo(String.valueOf(batchRepository.getGroupSN()));
+        setAid(transaction.getAid());
+        setAidLabel(transaction.getAidLabel());
+        setAuthCode(transaction.getAuthCode());
+        setRefNo(transaction.getRefNo());
+        setSerialNo(String.valueOf(transaction.getUlGUP_SN()));
         setApprovalCode(StringHelper.GenerateApprovalCode(String.valueOf(batchRepository.getBatchNo()), String.valueOf(batchRepository.getGroupSN()), String.valueOf(batchRepository.getGroupSN()-1)));
     }
 
@@ -90,6 +96,30 @@ public class SampleReceipt {
 
     public void setAid(String aid) {
         this.aid = aid;
+    }
+
+    public String getAidLabel() {
+        return aidLabel;
+    }
+
+    public void setAidLabel(String aidLabel) {
+        this.aidLabel = aidLabel;
+    }
+
+    public String getAuthCode() {
+        return authCode;
+    }
+
+    public void setAuthCode(String authCode) {
+        this.authCode = authCode;
+    }
+
+    public String getRefNo() {
+        return refNo;
+    }
+
+    public void setRefNo(String refNo) {
+        this.refNo = refNo;
     }
 
     public String getSerialNo() { return serialNo; }

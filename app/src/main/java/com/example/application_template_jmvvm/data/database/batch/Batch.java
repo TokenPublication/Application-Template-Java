@@ -7,19 +7,19 @@ import androidx.room.PrimaryKey;
 import com.example.application_template_jmvvm.data.database.DatabaseInfo;
 
 @Entity(tableName = DatabaseInfo.BATCH_TABLE)
-public class BatchDB {
+public class Batch {
 
-    @ColumnInfo(name = BatchCol.col_ulSTN)
-    private int col_ulSTN;
+    @ColumnInfo(name = BatchCols.col_ulSTN)
+    private int col_ulSTN = 0;
 
     @PrimaryKey
-    @ColumnInfo(name = BatchCol.col_batchNo)
+    @ColumnInfo(name = BatchCols.col_batchNo)
     private int col_batchNo = 1;
 
-    @ColumnInfo(name = BatchCol.col_ulGUP_SN)
+    @ColumnInfo(name = BatchCols.col_ulGUP_SN)
     private int col_ulGUP_SN = 1;
 
-    @ColumnInfo(name = BatchCol.col_previous_batch_slip)
+    @ColumnInfo(name = BatchCols.col_previous_batch_slip)
     private String col_previous_batch_slip;
 
     public int getCol_ulSTN() {
