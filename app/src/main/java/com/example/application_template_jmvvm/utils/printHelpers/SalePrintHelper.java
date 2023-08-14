@@ -249,8 +249,10 @@ public class SalePrintHelper extends BasePrintHelper{
             if (slipType == SlipType.MERCHANT_SLIP) {
                 if (((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.ECR.name())) {
                     styledText.newLine();
-                    styledText.addTextToLine("Z NO: " + ZNO, Alignment.Right);
-                    styledText.addTextToLine("FİŞ NO: " + receiptNo, Alignment.Left);
+                    if (ZNO != null && receiptNo != null) {
+                        styledText.addTextToLine("Z NO: " + ZNO, Alignment.Right);
+                        styledText.addTextToLine("FİŞ NO: " + receiptNo, Alignment.Left);
+                    }
                 }
             }
 

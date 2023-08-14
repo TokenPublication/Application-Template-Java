@@ -67,7 +67,6 @@ public class TransactionViewModel extends ViewModel {
     public void TransactionRoutine(ICCCard card, MainActivity mainActivity, Transaction transaction,
                                    Bundle bundle, TransactionCode transactionCode, ActivationRepository activationRepository,
                                    BatchRepository batchRepository, Boolean isGIB) {
-        TransactionViewModel transactionViewModel = this;
         Handler mainHandler = new Handler(Looper.getMainLooper());
         setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.connecting)));
         Observable<Boolean> observable = Observable.just(true)
@@ -88,7 +87,6 @@ public class TransactionViewModel extends ViewModel {
                         throw new RuntimeException(e);
                     }
                     final String progressText = mainActivity.getString(R.string.connecting) + " " + (i * 10);
-
                     mainHandler.post(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, progressText)));
                 }
             }
@@ -101,7 +99,7 @@ public class TransactionViewModel extends ViewModel {
             @Override
             public void onComplete() {
                 Log.i("Complete","Complete");
-                OnlineTransactionResponse onlineTransactionResponse = transactionRepository.parseResponse(transactionViewModel, mainActivity);
+                OnlineTransactionResponse onlineTransactionResponse = transactionRepository.parseResponse();
                 batchRepository.updateSTN();
                 Intent resultIntent = finishTransaction(card, mainActivity, transaction, bundle, transactionCode, onlineTransactionResponse, activationRepository, batchRepository, isGIB);
                 mainHandler.post(() -> setIntentLiveData(resultIntent));
@@ -118,29 +116,32 @@ public class TransactionViewModel extends ViewModel {
     private Intent finishTransaction(ICCCard card, MainActivity mainActivity, Transaction transaction,
                                      Bundle bundle, TransactionCode transactionCode, OnlineTransactionResponse onlineTransactionResponse,
                                      ActivationRepository activationRepository, BatchRepository batchRepository, Boolean isGIB) {
-        if (transactionCode != TransactionCode.VOID) {
-            transaction = transactionRepository.entityCreator(card, bundle, onlineTransactionResponse, transactionCode);
-            transaction.setUlSTN(batchRepository.getSTN());
-            transaction.setBatchNo(batchRepository.getBatchNo());
-            transaction.setUlGUP_SN(batchRepository.getGroupSN());
-            transactionRepository.insertTransaction(transaction);
-            batchRepository.updateGUPSN();
-        } else {
-            String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
-            transactionRepository.setVoid(transaction.getUlGUP_SN(), date, transaction.getSID());
-        }
-        SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository);
-        if (isGIB != null) {
-            new Handler(Looper.getMainLooper()).postDelayed(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt))), 1000);
-            if (isGIB) {
-                return transactionRepository.prepareIntent(receipt, mainActivity, transaction, transactionCode, onlineTransactionResponse.getmResponseCode());
+        if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS) {
+            setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getString(R.string.confirmation_code) + ": " + onlineTransactionResponse.getmAuthCode()));
+            if (transactionCode != TransactionCode.VOID) {
+                transaction = transactionRepository.entityCreator(card, bundle, onlineTransactionResponse, transactionCode);
+                transaction.setUlSTN(batchRepository.getSTN());
+                transaction.setBatchNo(batchRepository.getBatchNo());
+                transaction.setUlGUP_SN(batchRepository.getGroupSN());
+                transactionRepository.insertTransaction(transaction);
+                batchRepository.updateGUPSN();
             } else {
-                transactionRepository.prepareSlip(receipt, mainActivity, transaction, transactionCode, false);
+                String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+                transactionRepository.setVoid(transaction.getUlGUP_SN(), date, transaction.getSID());
             }
-        } else {
-            String ZNO = bundle.getString("ZNO");
-            String receiptNo = bundle.getString("ReceiptNo");
-            return transactionRepository.prepareSaleIntent(receipt, mainActivity, transaction, transactionCode, onlineTransactionResponse.getmResponseCode(), ZNO, receiptNo);
+            SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository);
+            if (isGIB != null) {
+                new Handler(Looper.getMainLooper()).postDelayed(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt))), 1000);
+                if (isGIB) {
+                    return transactionRepository.prepareIntent(receipt, mainActivity, transaction, transactionCode, onlineTransactionResponse.getmResponseCode());
+                } else {
+                    transactionRepository.prepareSlip(receipt, mainActivity, transaction, transactionCode, false);
+                }
+            } else {
+                String ZNO = bundle.getString("ZNO");
+                String receiptNo = bundle.getString("ReceiptNo");
+                return transactionRepository.prepareSaleIntent(receipt, mainActivity, transaction, transactionCode, onlineTransactionResponse.getmResponseCode(), ZNO, receiptNo);
+            }
         }
         return null;
     }
