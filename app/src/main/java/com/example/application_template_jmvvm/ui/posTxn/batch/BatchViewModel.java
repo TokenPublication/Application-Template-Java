@@ -12,6 +12,7 @@ import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.database.transaction.Transaction;
 import com.example.application_template_jmvvm.data.model.code.BatchResult;
+import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.response.BatchCloseResponse;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
@@ -65,7 +66,6 @@ public class BatchViewModel extends ViewModel {
                         throw new RuntimeException(e);
                     }
                     final String progressText = mainActivity.getString(R.string.connecting) + " " + (i * 10);
-
                     mainHandler.post(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, progressText)));
                 }
             }
@@ -78,7 +78,8 @@ public class BatchViewModel extends ViewModel {
             @Override
             public void onComplete() {
                 Log.i("Complete","Complete");
-                Intent resultIntent = finishBatchClose(mainActivity, activationRepository, transactionRepository, isAutoBatch);
+                BatchCloseResponse batchCloseResponse = batchRepository.prepareResponse(BatchResult.SUCCESS);
+                Intent resultIntent = finishBatchClose(mainActivity, batchCloseResponse, activationRepository, transactionRepository, isAutoBatch);
                 mainHandler.post(() -> setIntentLiveData(resultIntent));
             }
         };
@@ -91,18 +92,20 @@ public class BatchViewModel extends ViewModel {
      * with Success Message. Finally, update Batch number and resets group number and delete all transactions from Transaction Table.
      * If it is AutoEndOfDay, we send intent to the result. Else, we do not need to prepare intent just slip.
      */
-    private Intent finishBatchClose(MainActivity mainActivity, ActivationRepository activationRepository, TransactionRepository transactionRepository, Boolean isAutoBatch) {
-        List<Transaction> transactionList = transactionRepository.getAllTransactions();
-        String slip = batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList, true, false);
-        batchRepository.updateBatchSlip(batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList, true, true), batchRepository.getBatchNo());
-        batchRepository.updateBatchNo();
-        transactionRepository.deleteAll();
-        BatchCloseResponse batchCloseResponse = batchRepository.prepareResponse(mainActivity, this, BatchResult.SUCCESS);
-        new Handler(Looper.getMainLooper()).postDelayed(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt))), 1000);
-        if (isAutoBatch) {
-            return batchRepository.prepareBatchIntent(batchCloseResponse, mainActivity, slip);
-        } else {
-            batchRepository.printSlip(slip, mainActivity);
+    private Intent finishBatchClose(MainActivity mainActivity, BatchCloseResponse batchCloseResponse, ActivationRepository activationRepository, TransactionRepository transactionRepository, Boolean isAutoBatch) {
+        if (batchCloseResponse.getBatchResult().getResultCode() == ResponseCode.SUCCESS.ordinal()) {
+            setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getString(R.string.batch_close) + " " + mainActivity.getString(R.string.success)));
+            List<Transaction> transactionList = transactionRepository.getAllTransactions();
+            String slip = batchRepository.prepareSlip(mainActivity, activationRepository, transactionList, true, false);
+            batchRepository.updateBatchSlip(batchRepository.prepareSlip(mainActivity, activationRepository, transactionList, true, true), batchRepository.getBatchNo());
+            batchRepository.updateBatchNo();
+            transactionRepository.deleteAll();
+            new Handler(Looper.getMainLooper()).postDelayed(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt))), 1000);
+            if (isAutoBatch) {
+                return batchRepository.prepareBatchIntent(batchCloseResponse, mainActivity, slip);
+            } else {
+                batchRepository.printSlip(slip, mainActivity);
+            }
         }
         return null;
     }
@@ -153,9 +156,9 @@ public class BatchViewModel extends ViewModel {
     /**
      * This method for print batchClose or transactionList slip.
      */
-    public void prepareSlip(MainActivity mainActivity, ActivationRepository activationRepository, BatchRepository batchRepository,
+    public void prepareSlip(MainActivity mainActivity, ActivationRepository activationRepository,
                             List<Transaction> transactionList, boolean isBatch, boolean isCopy) {
-        String slip = batchRepository.prepareSlip(mainActivity, activationRepository, batchRepository, transactionList, isBatch, isCopy);
+        String slip = batchRepository.prepareSlip(mainActivity, activationRepository, transactionList, isBatch, isCopy);
         Observable<Integer> singleItemObservable = Observable.just(1);
         Disposable disposable = singleItemObservable
                 .observeOn(Schedulers.io())

@@ -2,20 +2,17 @@ package com.example.application_template_jmvvm.data.repository;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.database.batch.Batch;
 import com.example.application_template_jmvvm.data.database.batch.BatchDao;
 import com.example.application_template_jmvvm.data.database.transaction.Transaction;
 import com.example.application_template_jmvvm.data.model.code.BatchResult;
 import com.example.application_template_jmvvm.data.model.response.BatchCloseResponse;
-import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
 import com.example.application_template_jmvvm.utils.printHelpers.BatchClosePrintHelper;
-import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.token.printerlib.PrinterService;
 import com.token.printerlib.StyledString;
-import com.token.uicomponents.infodialog.InfoDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -35,15 +32,15 @@ public class BatchRepository {
         this.batchDao = batchDao;
     }
 
-    public String prepareSlip(MainActivity mainActivity, ActivationRepository activationRepository, BatchRepository batchRepository,
+    public String prepareSlip(MainActivity mainActivity, ActivationRepository activationRepository,
                               List<Transaction> transactionList, boolean isBatch, boolean isCopy) {
         BatchClosePrintHelper batchClosePrintHelper = new BatchClosePrintHelper();
-        return batchClosePrintHelper.batchText(mainActivity, String.valueOf(batchRepository.getBatchNo()), activationRepository, transactionList, isBatch, isCopy);
+        return batchClosePrintHelper.batchText(mainActivity, String.valueOf(getBatchNo()), activationRepository, transactionList, isBatch, isCopy);
     }
 
-    public BatchCloseResponse prepareResponse(MainActivity mainActivity, BatchViewModel batchViewModel, BatchResult batchResult) {
+    public BatchCloseResponse prepareResponse(BatchResult batchResult) {
         if (batchResult == BatchResult.SUCCESS) {   //Dummy response, always success
-            batchViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getString(R.string.batch_close) + " " + mainActivity.getString(R.string.success)));
+            Log.d("Batch Close Response:", "SUCCESS");
         }
         SimpleDateFormat date = new SimpleDateFormat("dd-MM-yy HH:mm:ss", Locale.getDefault());
         return new BatchCloseResponse(batchResult, date);

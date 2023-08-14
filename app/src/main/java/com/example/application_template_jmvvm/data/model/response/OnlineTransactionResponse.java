@@ -12,7 +12,6 @@ public class OnlineTransactionResponse {
     String mRefNo;
     String mDisplayData;
     String mKeySequenceNumber;
-    Integer insCount;
     String dateTime;
 
     public ResponseCode getmResponseCode() {
@@ -61,14 +60,6 @@ public class OnlineTransactionResponse {
 
     public void setmKeySequenceNumber(String mKeySequenceNumber) {
         this.mKeySequenceNumber = mKeySequenceNumber;
-    }
-
-    public Integer getInsCount() {
-        return insCount;
-    }
-
-    public void setInsCount(Integer insCount) {
-        this.insCount = insCount;
     }
 
     public String getDateTime() {

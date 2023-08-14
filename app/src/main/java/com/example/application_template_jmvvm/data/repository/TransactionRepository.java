@@ -2,9 +2,9 @@ package com.example.application_template_jmvvm.data.repository;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.database.transaction.Transaction;
 import com.example.application_template_jmvvm.data.database.transaction.TransactionDao;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
@@ -14,7 +14,6 @@ import com.example.application_template_jmvvm.data.model.response.OnlineTransact
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.type.PaymentTypes;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
-import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
 import com.example.application_template_jmvvm.utils.objects.SampleReceipt;
 import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
@@ -22,7 +21,6 @@ import com.example.application_template_jmvvm.utils.printHelpers.SalePrintHelper
 import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 import com.token.printerlib.PrinterService;
 import com.token.printerlib.StyledString;
-import com.token.uicomponents.infodialog.InfoDialog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -77,7 +75,7 @@ public class TransactionRepository {
     /**
      * It parses the response in a dummy way.
      */
-    public OnlineTransactionResponse parseResponse(TransactionViewModel transactionViewModel, MainActivity mainActivity) {
+    public OnlineTransactionResponse parseResponse() {
         OnlineTransactionResponse onlineTransactionResponse = new OnlineTransactionResponse();
         onlineTransactionResponse.setmResponseCode(ResponseCode.SUCCESS);
         onlineTransactionResponse.setmTextPrintCode("Test Print");
@@ -87,7 +85,7 @@ public class TransactionRepository {
         onlineTransactionResponse.setmKeySequenceNumber("3");
         onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
         if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS) { //Dummy Response, always success
-            transactionViewModel.setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getString(R.string.confirmation_code) + ": " + onlineTransactionResponse.getmAuthCode()));
+            Log.d("Confirmation Code:", onlineTransactionResponse.getmAuthCode());
         }
         return onlineTransactionResponse;
     }
@@ -226,8 +224,8 @@ public class TransactionRepository {
     public void prepareSlip(SampleReceipt receipt, MainActivity mainActivity, Transaction transaction,
                             TransactionCode transactionCode, boolean isCopy) {
         SalePrintHelper salePrintHelper = new SalePrintHelper();
-        String customerSlipData = salePrintHelper.getFormattedText(receipt, transaction, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, null, null, isCopy);
-        String merchantSlipData = salePrintHelper.getFormattedText(receipt, transaction, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, null, null, isCopy);
+        String customerSlipData = salePrintHelper.getFormattedText(receipt, transaction, transactionCode, SlipType.CARDHOLDER_SLIP, mainActivity, transaction.getZNO(), transaction.getReceiptNo(), isCopy);
+        String merchantSlipData = salePrintHelper.getFormattedText(receipt, transaction, transactionCode, SlipType.MERCHANT_SLIP, mainActivity, transaction.getZNO(), transaction.getReceiptNo(), isCopy);
         printSlip(customerSlipData, mainActivity);
         printSlip(merchantSlipData, mainActivity);
     }
@@ -295,7 +293,7 @@ public class TransactionRepository {
                 json.put("TranDate", transaction.getBaTranDate());
                 if (transaction.getbInstCnt() > 0) {
                     json.put("InstCount", transaction.getbInstCnt());
-                    json.put("InstAmount", transaction.getUlAmount2()/ transaction.getbInstCnt());
+                    json.put("InstAmount", transaction.getUlAmount()/transaction.getbInstCnt());
                 } else {
                     json.put("InstCount", 0);
                 }

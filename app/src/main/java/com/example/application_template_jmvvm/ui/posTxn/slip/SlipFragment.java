@@ -85,7 +85,7 @@ public class SlipFragment extends Fragment implements InfoDialogListener {
         view.findViewById(R.id.btnTransactionList).setOnClickListener(v -> {
             if (!transactionViewModel.isTransactionListEmpty()) {
                 infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
-                batchViewModel.prepareSlip(mainActivity, activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), transactionList, false, false);
+                batchViewModel.prepareSlip(mainActivity, activationViewModel.getActivationRepository(), transactionList, false, false);
                 batchViewModel.getInfoDialogLiveData().observe(mainActivity, infoDialogData -> infoDialog.dismiss());
             }  else {
                 infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Warning, mainActivity.getString(R.string.trans_not_found), false);
