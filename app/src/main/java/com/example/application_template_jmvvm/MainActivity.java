@@ -90,8 +90,9 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
 
     public void startActivity() {
         buildConfigs();
+
+        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
         setDeviceInfo();
-        initializeKMSService();
 
         activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);
         batchViewModel = new ViewModelProvider(this).get(BatchViewModel.class);
@@ -100,16 +101,16 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         triggerViewModel = new ViewModelProvider(this).get(TriggerViewModel.class);
 
         initializeCardService(this);
-        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
         tokenKMS = new TokenKMS();
         tokenKMS.init(getApplicationContext(), new KMSWrapperInterface.InitCallbacks() {
             @Override
             public void onInitSuccess() {
+                Log.d("KMS Init Success:", "Init Success");
                 actionControl(getIntent().getAction());
             }
-
             @Override
             public void onInitFailed() {
+                Log.v("Token KMS onInitFailed", "KMS Init Failed");
                 infoDialog.update(InfoDialog.InfoType.Error, getString(R.string.kms_service_error));
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     infoDialog.dismiss();
@@ -173,14 +174,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 },
                 DeviceInfo.Field.FISCAL_ID, DeviceInfo.Field.OPERATION_MODE, DeviceInfo.Field.CARD_REDIRECTION
         );
-    }
-
-    /**
-     * This method for bind KMSService object. It has initCallbacks method, so if connect failure,
-     * show a infoDialog and finish the activity. Else, log initSuccess and continue.
-     */
-    private void initializeKMSService() {
-
     }
 
     /**
