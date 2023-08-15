@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey;
 import com.example.application_template_jmvvm.data.database.DatabaseInfo;
 
 @Entity(tableName = DatabaseInfo.TRANSACTION_TABLE)
-public class TransactionEntity {
+public class Transaction {
     @ColumnInfo(name = TransactionCols.col_uuid)
     public String uuid;
 
@@ -20,6 +20,12 @@ public class TransactionEntity {
 
     @ColumnInfo(name = TransactionCols.col_batchNo)
     public int batchNo;
+
+    @ColumnInfo(name = TransactionCols.col_receiptNo)
+    public String receiptNo;
+
+    @ColumnInfo(name = TransactionCols.col_ZNO)
+    public String ZNO;
 
     @ColumnInfo(name = TransactionCols.col_bCardReadType)
     public int bCardReadType;
@@ -93,6 +99,24 @@ public class TransactionEntity {
     @ColumnInfo(name = TransactionCols.col_baCVM)
     public String baCVM;
 
+    @ColumnInfo(name = TransactionCols.col_AC)
+    private String AC;
+
+    @ColumnInfo(name = TransactionCols.Col_CID)
+    private String CID;
+
+    @ColumnInfo(name = TransactionCols.Col_ATC)
+    private String ATC;
+
+    @ColumnInfo(name = TransactionCols.Col_TVR)
+    private String TVR;
+
+    @ColumnInfo(name = TransactionCols.Col_TSI)
+    private String TSI;
+
+    @ColumnInfo(name = TransactionCols.Col_AIP)
+    private String AIP;
+
     @ColumnInfo(name = TransactionCols.col_isOffline)
     public int isOffline;
 
@@ -116,6 +140,22 @@ public class TransactionEntity {
 
     public void setBatchNo(int batchNo) {
         this.batchNo = batchNo;
+    }
+
+    public String getReceiptNo() {
+        return receiptNo;
+    }
+
+    public void setReceiptNo(String receiptNo) {
+        this.receiptNo = receiptNo;
+    }
+
+    public String getZNO() {
+        return ZNO;
+    }
+
+    public void setZNO(String ZNO) {
+        this.ZNO = ZNO;
     }
 
     public void setbCardReadType(int bCardReadType) {
@@ -336,6 +376,54 @@ public class TransactionEntity {
 
     public String getBaCVM() {
         return baCVM;
+    }
+
+    public String getAC() {
+        return AC;
+    }
+
+    public void setAC(String AC) {
+        this.AC = AC;
+    }
+
+    public String getCID() {
+        return CID;
+    }
+
+    public void setCID(String CID) {
+        this.CID = CID;
+    }
+
+    public String getATC() {
+        return ATC;
+    }
+
+    public void setATC(String ATC) {
+        this.ATC = ATC;
+    }
+
+    public String getTVR() {
+        return TVR;
+    }
+
+    public void setTVR(String TVR) {
+        this.TVR = TVR;
+    }
+
+    public String getTSI() {
+        return TSI;
+    }
+
+    public void setTSI(String TSI) {
+        this.TSI = TSI;
+    }
+
+    public String getAIP() {
+        return AIP;
+    }
+
+    public void setAIP(String AIP) {
+        this.AIP = AIP;
     }
 
     public int getIsOffline() {

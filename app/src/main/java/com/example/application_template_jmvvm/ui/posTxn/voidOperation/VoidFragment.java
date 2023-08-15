@@ -13,7 +13,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.database.transaction.Transaction;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.R;
@@ -60,20 +60,15 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_void, container, false);
-        boolean empty = transactionViewModel.isVoidListEmpty();
-        if (empty) {
-            showNoTransaction();
-        } else {
-            mainActivity.readCard(getViewLifecycleOwner(), amount, TransactionCode.VOID);
-            cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
-                List<TransactionEntity> transactionList = transactionViewModel.getTransactionsByCardNo(card.getCardNumber());
-                if (transactionList.size() == 0) {
-                    showNoTransaction();
-                } else {
-                    setView(transactionList);
-                }
-            });
-        }
+        mainActivity.readCard(getViewLifecycleOwner(), amount, TransactionCode.VOID);
+        cardViewModel.getCardLiveData().observe(getViewLifecycleOwner(), card -> {
+            List<Transaction> transactionList = transactionViewModel.getTransactionsByCardNo(card.getCardNumber());
+            if (transactionList.size() == 0) {
+                showNoTransaction();
+            } else {
+                setView(transactionList);
+            }
+        });
         rvTransactions = view.findViewById(R.id.rvTransactions);
         return view;
     }
@@ -93,7 +88,7 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
     /**
      * This method for set recyclerView with setAdapter function related to our transactions.
      */
-    public void setView(List<TransactionEntity> transactionList) {
+    public void setView(List<Transaction> transactionList) {
         TransactionsRecycleAdapter adapter = new TransactionsRecycleAdapter(transactionList, this, null);
         rvTransactions.setAdapter(adapter);
         rvTransactions.setLayoutManager(new LinearLayoutManager(mainActivity));
@@ -105,11 +100,11 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
      */
     public void gibVoid(String refNo, Boolean isGIB) {
         cardViewModel.getCardLiveData().observe(mainActivity, card -> {
-            List<TransactionEntity> transactionList = transactionViewModel.getTransactionsByRefNo(refNo);
-            TransactionEntity transaction = transactionList.get(0);
+            List<Transaction> transactionList = transactionViewModel.getTransactionsByRefNo(refNo);
+            Transaction transaction = transactionList.get(0);
             if (transaction != null) {
                 if (Objects.equals(card.getCardNumber(), transaction.getBaPAN())) {
-                    startVoid(mainActivity, transaction, isGIB);
+                    doVoid(mainActivity, transaction, isGIB);
                 }
             } else {
                 mainActivity.responseMessage(ResponseCode.ERROR, getString(R.string.trans_not_found));
@@ -122,8 +117,8 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
      * TransactionViewModel. Finally, if it is GIB void, we send a result with intent. Else, we only
      * finish the activity.
      */
-    public void startVoid(LifecycleOwner lifecycleOwner, TransactionEntity transactionEntity, Boolean isGIB) {
-        transactionViewModel.TransactionRoutine(null, null, mainActivity, transactionEntity, null, TransactionCode.VOID,
+    public void doVoid(LifecycleOwner lifecycleOwner, Transaction transaction, Boolean isGIB) {
+        transactionViewModel.TransactionRoutine(null, mainActivity, transaction, null, TransactionCode.VOID,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), isGIB);
         transactionViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), mainActivity.getApplicationContext().getString(R.string.connecting))) {

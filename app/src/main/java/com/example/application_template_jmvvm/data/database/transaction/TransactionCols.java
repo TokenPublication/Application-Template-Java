@@ -5,6 +5,8 @@ public class TransactionCols {
     public static final String col_ulSTN = "col_ulSTN";
     public static final String col_ulGUP_SN = "col_ulGUP_SN";
     public static final String col_batchNo = "col_batchNo";
+    public static final String col_receiptNo = "col_receiptNo";
+    public static final String col_ZNO = "col_ZNO";
     public static final String col_bCardReadType = "col_bCardReadType";
     public static final String col_bTransCode = "col_bTransCode";
     public static final String col_ulAmount = "col_ulAmount";
@@ -29,6 +31,12 @@ public class TransactionCols {
     public static final String col_pinByPass = "col_pinByPass";
     public static final String col_displayData = "col_displayData";
     public static final String col_baCVM = "col_baCVM";
+    public static final String col_AC = "col_AC";
+    public static final String Col_CID = "col_CID";
+    public static final String Col_ATC = "col_ATC";
+    public static final String Col_TVR = "col_TVR";
+    public static final String Col_TSI = "col_TSI";
+    public static final String Col_AIP = "col_AIP";
     public static final String col_isOffline = "col_isOffline";
     public static final String col_SID = "col_SID";
     public static final String col_is_onlinePIN = "col_is_onlinePIN";

@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.repository.CardRepository;
@@ -28,7 +27,6 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
     private CardRepository cardRepository;
     private MutableLiveData<ICCCard> cardLiveData = new MutableLiveData<>();
     private MutableLiveData<Boolean> isCardServiceConnect = new MutableLiveData<>(false);
-    private MutableLiveData<CardServiceResult> cardServiceResultLiveData = new MutableLiveData<>();
     private MutableLiveData<ResponseCode> responseMessageLiveData = new MutableLiveData<>();
 
     @Inject
@@ -52,15 +50,6 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
 
     public MutableLiveData<Boolean> getIsCardServiceConnect() {
         return isCardServiceConnect;
-    }
-
-    @Override
-    public void setCallBackMessage(CardServiceResult cardServiceResult) {
-        cardServiceResultLiveData.postValue(cardServiceResult);
-    }
-
-    public MutableLiveData<CardServiceResult> getCardServiceResultLiveData() {
-        return cardServiceResultLiveData;
     }
 
     @Override

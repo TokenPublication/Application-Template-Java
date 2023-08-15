@@ -71,10 +71,6 @@ public class ActivationViewModel extends ViewModel {
         return activationRepository.isTableEmpty();
     }
 
-    public void deleteAll() {
-        activationRepository.deleteAll();
-    }
-
     public MutableLiveData<InfoDialogData> getInfoDialogLiveData() {
         return infoDialogLiveData;
     }

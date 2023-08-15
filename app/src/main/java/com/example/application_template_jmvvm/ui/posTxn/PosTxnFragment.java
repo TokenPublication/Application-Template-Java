@@ -70,17 +70,19 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
      */
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        showMenu();
+    }
 
+    private void showMenu() {
         List<IListMenuItem> menuItems = new ArrayList<>();
+        menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {
+            VoidFragment voidFragment = new VoidFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
+            mainActivity.replaceFragment(R.id.container, voidFragment, false);
+        }));
 
         menuItems.add(new MenuItem(getString(R.string.refund), iListMenuItem -> {
             RefundFragment refundFragment = new RefundFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
             mainActivity.replaceFragment(R.id.container, refundFragment, true);
-        }));
-
-        menuItems.add(new MenuItem(getString(R.string.void_transaction), iListMenuItem -> {
-            VoidFragment voidFragment = new VoidFragment(this.mainActivity, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
-            mainActivity.replaceFragment(R.id.container, voidFragment, false);
         }));
 
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {
@@ -103,7 +105,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
 
                             @Override
                             public void canceled(int i) { }
-                    });
+                        });
             }
         }));
 

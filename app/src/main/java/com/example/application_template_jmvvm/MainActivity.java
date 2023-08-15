@@ -1,6 +1,7 @@
 package com.example.application_template_jmvvm;
 
 import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -12,6 +13,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -64,7 +66,16 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private TriggerViewModel triggerViewModel;
     private InfoDialog infoDialog;
     private TokenKMS tokenKMS;
-    private boolean isKMSSuccess = false;
+
+    /**
+     * This function is overwritten to continue the activity where it was left when
+     * the configuration is changed (i.e screen rotation)
+     */
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        startActivity();
+    }
 
     /**
      * This is the onCreate method for create the viewModels and build config.
@@ -74,10 +85,14 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        startActivity();
+    }
 
+    public void startActivity() {
         buildConfigs();
+
+        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
         setDeviceInfo();
-        initializeKMSService();
 
         activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);
         batchViewModel = new ViewModelProvider(this).get(BatchViewModel.class);
@@ -86,10 +101,24 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         triggerViewModel = new ViewModelProvider(this).get(TriggerViewModel.class);
 
         initializeCardService(this);
-
-        actionControl(getIntent().getAction());
+        tokenKMS = new TokenKMS();
+        tokenKMS.init(getApplicationContext(), new KMSWrapperInterface.InitCallbacks() {
+            @Override
+            public void onInitSuccess() {
+                Log.d("KMS Init Success:", "Init Success");
+                actionControl(getIntent().getAction());
+            }
+            @Override
+            public void onInitFailed() {
+                Log.v("Token KMS onInitFailed", "KMS Init Failed");
+                infoDialog.update(InfoDialog.InfoType.Error, getString(R.string.kms_service_error));
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    infoDialog.dismiss();
+                    finish();
+                }, 2000);
+            }
+        });
     }
-
     /**
      * Firstly, added TR1000 and TR400 configurations to build.gradle file. After that,
      * related to Build Variant (400TRDebug or 1000TRDebug) the manifest file created with apk
@@ -112,7 +141,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private void setDeviceInfo() {
         AppTemp appTemp = (AppTemp) getApplicationContext();
         DeviceInfo deviceInfo = new DeviceInfo(getApplicationContext());
-        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
         CountDownTimer timer = new CountDownTimer(30000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) { }
@@ -146,47 +174,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 },
                 DeviceInfo.Field.FISCAL_ID, DeviceInfo.Field.OPERATION_MODE, DeviceInfo.Field.CARD_REDIRECTION
         );
-    }
-
-    /**
-     * This method for bind KMSService object. It has initCallbacks method, so if connect failure,
-     * show a infoDialog and finish the activity. Else, log initSuccess and continue.
-     */
-    private void initializeKMSService() {
-        tokenKMS = new TokenKMS();
-        CountDownTimer timer = new CountDownTimer(20000, 1) {
-            @Override
-            public void onTick(long millisUntilFinished) { }
-
-            @Override
-            public void onFinish() {
-                if (!isKMSSuccess) {
-                    infoDialog = showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.kms_service_error), false);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        infoDialog.dismiss();
-                        finish();
-                    }, 2000);
-                }
-            }
-        };
-        timer.start();
-        tokenKMS.init(getApplicationContext(), new KMSWrapperInterface.InitCallbacks() {
-            @Override
-            public void onInitSuccess() {
-                Log.v("Token KMS onInitSuccess", "KMS Init OK");
-                isKMSSuccess = true;
-                infoDialog.dismiss();
-            }
-            @Override
-            public void onInitFailed() {
-                Log.v("Token KMS onInitFailed", "KMS Init Failed");
-                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.kms_service_error));
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    infoDialog.dismiss();
-                    finish();
-                }, 2000);
-            }
-        });
     }
 
     /**
@@ -279,8 +266,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     public void readCard(LifecycleOwner lifecycleOwner, int amount, TransactionCode transactionCode) {
         if (cardViewModel.getCardServiceBinding() != null) {
             cardViewModel.readCard(amount, transactionCode);
-            cardViewModel.getCardServiceResultLiveData().observe(lifecycleOwner, this::callbackMessage);
-            cardViewModel.getResponseMessageLiveData().observe(lifecycleOwner, responseCode -> responseMessage(responseCode, getString(R.string.card_service_error)));
+            cardViewModel.getResponseMessageLiveData().observe(lifecycleOwner, responseCode -> responseMessage(responseCode, ""));
         } else {
             initializeCardService(lifecycleOwner);
             readCard(lifecycleOwner, amount, transactionCode);
@@ -354,33 +340,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     }
 
     /**
-     * It takes @param cardServiceResult and control it with switch case.
-     * Related to it's value, the info dialog shows in screen and activity will
-     * finish with intent contains response code.
-     */
-    public void callbackMessage(CardServiceResult cardServiceResult) {
-        Bundle bundle = new Bundle();
-        Intent intent = new Intent();
-        switch (cardServiceResult) {
-            case USER_CANCELLED:
-                showInfoDialog(InfoDialog.InfoType.Warning, getString(R.string.cancelled), true);
-                break;
-            case ERROR_TIMEOUT:
-                showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.error_timeout), true);
-                break;
-            case ERROR:
-                showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.error), true);
-                break;
-        }
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            bundle.putInt("ResponseCode", ResponseCode.CANCELLED.ordinal());
-            intent.putExtras(bundle);
-            setResult(Activity.RESULT_CANCELED, intent);
-            finish();
-        },2000);
-    }
-
-    /**
      * It takes @param responseCode and message and control it with switch case.
      * Related to it's value, the info dialog shows in screen and activity will
      * finish with intent contains response code. Also with message parameter, the
@@ -401,6 +360,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 showInfoDialog(InfoDialog.InfoType.Warning, getString(R.string.cancelled), true);
                 break;
             case OFFLINE_DECLINE:
+                showInfoDialog(InfoDialog.InfoType.Warning, getString(R.string.offline_decline), true);
             case UNABLE_DECLINE:
             case ONLINE_DECLINE:
                 showInfoDialog(InfoDialog.InfoType.Declined, getString(R.string.declined), true);

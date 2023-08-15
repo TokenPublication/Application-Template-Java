@@ -8,7 +8,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.database.transaction.Transaction;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.ui.posTxn.slip.SlipFragment;
 import com.example.application_template_jmvvm.utils.printHelpers.DateUtil;
@@ -21,11 +21,11 @@ import java.util.List;
  * This class for show Transactions with recyclerView.
  */
 public class TransactionsRecycleAdapter extends RecyclerView.Adapter<TransactionsRecycleAdapter.MyHolder> {
-    private List<TransactionEntity> transactionList;
+    private List<Transaction> transactionList;
     private VoidFragment voidFragment;
     private SlipFragment slipFragment;
 
-    public TransactionsRecycleAdapter(List<TransactionEntity> transactionList, VoidFragment voidFragment, SlipFragment slipFragment) {
+    public TransactionsRecycleAdapter(List<Transaction> transactionList, VoidFragment voidFragment, SlipFragment slipFragment) {
         this.transactionList = transactionList;
         this.voidFragment = voidFragment;
         this.slipFragment = slipFragment;
@@ -40,7 +40,7 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
 
     @Override
     public void onBindViewHolder(@NonNull MyHolder holder, int position) {
-        TransactionEntity transaction = transactionList.get(position);
+        Transaction transaction = transactionList.get(position);
         holder.card_no.setText(StringHelper.MaskTheCardNo(transaction.getBaPAN()));
         String date = DateUtil.getFormattedDate(transaction.getBaTranDate().substring(0, 8)) + " " + DateUtil.getFormattedTime(transaction.getBaTranDate().substring(8));
         holder.process_time.setText(date);
@@ -53,7 +53,7 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         holder.serial_no.setText(String.valueOf(transaction.getUlGUP_SN()));
         holder.itemView.setOnClickListener(v -> {
             if (voidFragment != null) {
-                voidFragment.startVoid(voidFragment.getViewLifecycleOwner(), transaction, false);
+                voidFragment.doVoid(voidFragment.getViewLifecycleOwner(), transaction, false);
             } else {
                 slipFragment.prepareSlip(transaction);
             }
