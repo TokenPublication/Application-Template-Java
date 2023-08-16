@@ -1,5 +1,8 @@
 package com.example.application_template_jmvvm.data.model.card;
 
+import com.example.application_template_jmvvm.data.model.type.CardReadType;
+import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
+
 /**
  * This is a class for keeping ICC card data.
  */
@@ -25,6 +28,7 @@ public class ICCCard implements ICard {
      String DateTime;
      String UN;
      String IAD;
+     int OnlPINReq;
 
     public int getResultCode() {
         return resultCode;
@@ -118,5 +122,21 @@ public class ICCCard implements ICard {
     @Override
     public String getOwnerName() {
         return mTrack1CustomerName;
+    }
+
+    public int getOnlPINReq() {
+        return OnlPINReq;
+    }
+
+    public void setOnlPINReq(int onlPINReq) {
+        OnlPINReq = onlPINReq;
+    }
+
+    public boolean isPinByPass() {
+        if (mCardReadType == CardReadType.ICC.value) {
+            byte flag = (byte) StringHelper.hexStringtoAscii(TVR).charAt(2);
+            return (flag & 0x08) == (byte) 0x08 || (flag & 0x10) == (byte) 0x10 || (flag & 0x20) == (byte) 0x20;
+        }
+        return false;
     }
 }

@@ -88,7 +88,7 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
         menuItems.add(new MenuItem(getString(R.string.batch_close), iListMenuItem -> {
             if (transactionViewModel.isTransactionListEmpty()) {
                 InfoDialog infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Warning,
-                        getString(R.string.no_trans_found), false);
+                        mainActivity.getString(R.string.no_trans_found), false);
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     if (infoDialog != null) {
                         infoDialog.dismiss();

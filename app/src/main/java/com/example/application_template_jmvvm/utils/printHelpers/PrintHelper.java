@@ -95,6 +95,14 @@ public class PrintHelper extends BasePrintHelper {
         styledText.print(PrinterService.getService(context));
     }
 
+    static void addContactlessLogo(StyledString styledText, String cardType) {
+        addTextToNewLine(styledText, cardType + " CONTACTLESS", PrinterDefinitions.Alignment.Center);
+        if (cardType.equals("VISA")) {
+            styledText.newLine();
+            styledText.printBitmap("contactless32", 0);
+        }
+    }
+
     public static void PrintVisa(Context context) {
         StyledString styledText = new StyledString();
         styledText.printBitmap("visa-contactless", 0);

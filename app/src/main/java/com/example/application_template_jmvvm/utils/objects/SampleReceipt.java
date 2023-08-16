@@ -18,7 +18,6 @@ public class SampleReceipt {
     private String authCode;
     private String refNo;
     private String serialNo;
-    private String approvalCode;
 
     public SampleReceipt (Transaction transaction, ActivationRepository activationRepository, BatchRepository batchRepository) {
         setMerchantName("TOKEN FINTECH");
@@ -33,7 +32,6 @@ public class SampleReceipt {
         setAuthCode(transaction.getAuthCode());
         setRefNo(transaction.getRefNo());
         setSerialNo(String.valueOf(transaction.getUlGUP_SN()));
-        setApprovalCode(StringHelper.GenerateApprovalCode(String.valueOf(batchRepository.getBatchNo()), String.valueOf(batchRepository.getGroupSN()), String.valueOf(batchRepository.getGroupSN()-1)));
     }
 
     public String getMerchantName() {
@@ -126,11 +124,5 @@ public class SampleReceipt {
 
     public void setSerialNo(String serialNo) {
         this.serialNo = serialNo;
-    }
-
-    public String getApprovalCode() { return approvalCode; }
-
-    public void setApprovalCode(String approvalCode) {
-        this.approvalCode = approvalCode;
     }
 }
