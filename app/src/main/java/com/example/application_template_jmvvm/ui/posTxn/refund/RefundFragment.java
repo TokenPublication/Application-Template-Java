@@ -252,6 +252,9 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
                 break;
             case CASH_REFUND:
                 bundle.putInt(ExtraContentInfo.refAmount, Integer.parseInt(inputList.get(0).getText()));
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
+                String dateTime = sdf.format(Calendar.getInstance().getTime());
+                bundle.putString(ExtraContentInfo.tranDate, dateTime);
                 break;
             case INSTALLMENT_REFUND:
                 bundle.putInt(ExtraContentInfo.orgAmount, Integer.parseInt(inputList.get(0).getText()));
@@ -264,13 +267,6 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
             default:
                 break;
         }
-        //TODO Developer, check this variables from PGW.
-        boolean isOnlinePin = false;
-        boolean isOffline = false;
-        boolean pinByPass = false;
-        bundle.putInt("IsOnlinePin", isOnlinePin ? 1 : 0);
-        bundle.putInt("IsOffline", isOffline ? 1 : 0);
-        bundle.putInt("PinByPass", pinByPass ? 1 : 0);
         return bundle;
     }
 

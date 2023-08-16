@@ -72,9 +72,6 @@ public class Transaction {
     @ColumnInfo(name = TransactionCols.col_stChipData)
     public String stChipData;
 
-    @ColumnInfo(name = TransactionCols.col_isSignature)
-    public int isSignature;
-
     @ColumnInfo(name = TransactionCols.col_stPrintData)
     public String stPrintData;
 
@@ -218,10 +215,6 @@ public class Transaction {
         this.stChipData = stChipData;
     }
 
-    public void setIsSignature(int isSignature) {
-        this.isSignature = isSignature;
-    }
-
     public void setStPrintData(String stPrintData) {
         this.stPrintData = stPrintData;
     }
@@ -340,10 +333,6 @@ public class Transaction {
 
     public String getStChipData() {
         return stChipData;
-    }
-
-    public int getIsSignature() {
-        return isSignature;
     }
 
     public String getStPrintData() {

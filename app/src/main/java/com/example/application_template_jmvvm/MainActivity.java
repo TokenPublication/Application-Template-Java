@@ -21,7 +21,6 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
@@ -90,7 +89,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
 
     public void startActivity() {
         buildConfigs();
-
         infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
         setDeviceInfo();
 
