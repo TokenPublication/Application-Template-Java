@@ -1,7 +1,6 @@
 package com.example.application_template_jmvvm.ui.sale;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -308,14 +307,6 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         uuid = mainActivity.getIntent().getExtras().getString("UUID");
         ZNO = mainActivity.getIntent().getExtras().getString("ZNO");
         receiptNo = mainActivity.getIntent().getExtras().getString("ReceiptNo");
-
-        //TODO Developer, check this variables from PGW.
-        boolean isOnlinePin = false;
-        boolean isOffline = false;
-        boolean pinByPass = false;
-        bundle.putInt("IsOnlinePin", isOnlinePin ? 1 : 0);
-        bundle.putInt("IsOffline", isOffline ? 1 : 0);
-        bundle.putInt("PinByPass", pinByPass ? 1 : 0);
 
         bundle.putString("UUID", uuid);
         if (ZNO != null && receiptNo != null) {

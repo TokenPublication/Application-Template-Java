@@ -11,7 +11,6 @@ import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
-import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.type.PaymentTypes;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.utils.objects.SampleReceipt;
@@ -83,7 +82,7 @@ public class TransactionRepository {
         onlineTransactionResponse.setmRefNo(String.valueOf((long) (Math.random() * 900000000) + (1000000000L * (int) (Math.random() * 9) + 1)));
         onlineTransactionResponse.setmDisplayData("Display Data");
         onlineTransactionResponse.setmKeySequenceNumber("3");
-        onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+        onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + new SimpleDateFormat("HHmmss", Locale.getDefault()).format(new Date()));
         if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS) { //Dummy Response, always success
             Log.d("Confirmation Code:", onlineTransactionResponse.getmAuthCode());
         }
@@ -104,21 +103,16 @@ public class TransactionRepository {
         transaction.setBaPAN(card.getmCardNumber());
         transaction.setBaExpDate(card.getmExpireDate());
         transaction.setBaCustomerName(card.getmTrack1CustomerName());
-        if (card.getmCardReadType() != CardReadType.ICC.getType()) {
-            transaction.setBaTranDate(card.getDateTime());
-        } else {
-            transaction.setBaTranDate(new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + new SimpleDateFormat("HHmmss", Locale.getDefault()).format(new Date()));
-        }
+        transaction.setBaTranDate(onlineTransactionResponse.getDateTime());
         transaction.setBaTrack2(card.getmTrack2Data());
         transaction.setBaRspCode(onlineTransactionResponse.getmResponseCode().ordinal());
         transaction.setIsVoid(0);
         transaction.setRefNo(onlineTransactionResponse.getmRefNo());
-        transaction.setIsSignature(0);
         transaction.setStPrintData(onlineTransactionResponse.getmTextPrintCode());
         transaction.setAuthCode(onlineTransactionResponse.getmAuthCode());
         transaction.setAid(card.getAID2());
         transaction.setAidLabel(card.getAIDLabel());
-        transaction.setPinByPass(bundle.getInt("PinByPass"));
+        transaction.setPinByPass(card.isPinByPass() ? 1 : 0);
         transaction.setDisplayData(onlineTransactionResponse.getmDisplayData());
         transaction.setBaCVM(card.getCVM());
         transaction.setAC(card.getAC());
@@ -127,9 +121,9 @@ public class TransactionRepository {
         transaction.setTVR(card.getTVR());
         transaction.setTSI(card.getTSI());
         transaction.setAIP(card.getAIP());
-        transaction.setIsOffline(bundle.getInt("IsOffline"));
+        transaction.setIsOffline(0); //TODO Developer, check for offline transaction
         transaction.setSID(card.getSID());
-        transaction.setIsOnlinePIN(bundle.getInt("IsOnlinePin"));
+        transaction.setIsOnlinePIN(card.getOnlPINReq());
         switch (transactionCode) {
             case INSTALLMENT_SALE:
                 transaction.setbInstCnt(bundle.getInt(ExtraContentInfo.instCount));
@@ -143,6 +137,7 @@ public class TransactionRepository {
                 break;
             case CASH_REFUND:
                 transaction.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
+                transaction.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
                 break;
             case INSTALLMENT_REFUND:
                 transaction.setUlAmount(bundle.getInt(ExtraContentInfo.orgAmount));
@@ -243,7 +238,6 @@ public class TransactionRepository {
         Intent resultIntent = new Intent();
         Bundle bundle = new Bundle();
         bundle.putInt("ResponseCode", code.ordinal()); // #1 Response Code
-
         bundle.putString("CardOwner", ownerName); // Optional
         bundle.putString("CardNumber", cardNo); // Optional, Card No can be masked
         bundle.putInt("PaymentStatus", 0); // #2 Payment Status
@@ -266,10 +260,10 @@ public class TransactionRepository {
         bundle.putInt("PaymentType", paymentType);
         SalePrintHelper salePrintHelper = new SalePrintHelper();
         if (slipType == SlipType.CARDHOLDER_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("customerSlipData", salePrintHelper.getFormattedText(receipt, null, TransactionCode.SALE, SlipType.CARDHOLDER_SLIP, mainActivity, null, null, false));
+            bundle.putString("customerSlipData", salePrintHelper.getDummyFormattedText(receipt, TransactionCode.SALE, SlipType.CARDHOLDER_SLIP, mainActivity, "1", "1"));
         }
         if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
-            bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(receipt, null, TransactionCode.SALE, SlipType.MERCHANT_SLIP, mainActivity, null, null, false));
+            bundle.putString("merchantSlipData", salePrintHelper.getDummyFormattedText(receipt, TransactionCode.SALE, SlipType.MERCHANT_SLIP, mainActivity, "1", "1"));
         }
         resultIntent.putExtras(bundle);
         transactionViewModel.setIntentLiveData(resultIntent);

@@ -1,6 +1,5 @@
 package com.example.application_template_jmvvm.data.repository;
 
-import com.example.application_template_jmvvm.data.database.activation.Activation;
 import com.example.application_template_jmvvm.data.database.activation.ActivationDao;
 
 import javax.inject.Inject;
