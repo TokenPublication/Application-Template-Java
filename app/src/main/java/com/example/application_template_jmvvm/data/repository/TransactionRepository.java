@@ -11,7 +11,6 @@ import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
-import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.type.PaymentTypes;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.utils.objects.SampleReceipt;
@@ -83,7 +82,7 @@ public class TransactionRepository {
         onlineTransactionResponse.setmRefNo(String.valueOf((long) (Math.random() * 900000000) + (1000000000L * (int) (Math.random() * 9) + 1)));
         onlineTransactionResponse.setmDisplayData("Display Data");
         onlineTransactionResponse.setmKeySequenceNumber("3");
-        onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+        onlineTransactionResponse.setDateTime(new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + new SimpleDateFormat("HHmmss", Locale.getDefault()).format(new Date()));
         if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS) { //Dummy Response, always success
             Log.d("Confirmation Code:", onlineTransactionResponse.getmAuthCode());
         }
@@ -104,11 +103,7 @@ public class TransactionRepository {
         transaction.setBaPAN(card.getmCardNumber());
         transaction.setBaExpDate(card.getmExpireDate());
         transaction.setBaCustomerName(card.getmTrack1CustomerName());
-        if (card.getmCardReadType() != CardReadType.ICC.getType()) {
-            transaction.setBaTranDate(card.getDateTime());
-        } else {
-            transaction.setBaTranDate(new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date()) + new SimpleDateFormat("HHmmss", Locale.getDefault()).format(new Date()));
-        }
+        transaction.setBaTranDate(onlineTransactionResponse.getDateTime());
         transaction.setBaTrack2(card.getmTrack2Data());
         transaction.setBaRspCode(onlineTransactionResponse.getmResponseCode().ordinal());
         transaction.setIsVoid(0);
