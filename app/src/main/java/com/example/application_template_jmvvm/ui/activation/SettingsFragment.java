@@ -5,6 +5,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,6 +33,7 @@ import java.util.List;
 public class SettingsFragment extends Fragment implements InfoDialogListener {
     private MainActivity mainActivity;
     private ActivationViewModel activationViewModel;
+    private View view;
     InfoDialog infoDialog;
     InputListFragment tidMidFragment;
     private String terminalId, merchantId, ipNo, portNo;
@@ -48,7 +50,8 @@ public class SettingsFragment extends Fragment implements InfoDialogListener {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_settings, container, false);
+        view = inflater.inflate(R.layout.fragment_settings, container, false);
+        return view;
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -64,8 +67,17 @@ public class SettingsFragment extends Fragment implements InfoDialogListener {
         List<IListMenuItem> menuItems = new ArrayList<>();
         menuItems.add(new MenuItem(getString(R.string.setup), iListMenuItem -> addTidMidFragment()));
         menuItems.add(new MenuItem(getString(R.string.host_settings), iListMenuItem -> addIpFragment()));
+        menuItems.add(new MenuItem(getString(R.string.demo_mode), iListMenuItem -> getDemoView()));
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.settings), true, R.drawable.token_logo_png);
         mainActivity.replaceFragment(R.id.container, mListMenuFragment,false);
+    }
+
+    private void getDemoView() {
+        FragmentTransaction transaction = mainActivity.getSupportFragmentManager().beginTransaction();
+        DemoFragment demoFragment = new DemoFragment(mainActivity);
+        transaction.replace(R.id.container, demoFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     /** It shows a page with a fragment that contains Merchant and Terminal ID inputs

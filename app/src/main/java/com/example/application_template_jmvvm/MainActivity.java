@@ -281,12 +281,18 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
      */
     private void saleActionReceived() {
         SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
+        SharedPreferences sharedPreferences = getSharedPreferences("myprefs", Context.MODE_PRIVATE);
+        boolean isEnabled = sharedPreferences.getBoolean("demo_mode", false);
         Bundle bundle = getIntent().getExtras();
         String cardData = bundle != null ? bundle.getString("CardData") : null;
         int amount = getIntent().getExtras().getInt("Amount");
 
         if (cardData != null && !cardData.equals(" ")) {
-            replaceFragment(R.id.container, saleTxnFragment, false);
+            if (isEnabled) {
+                saleTxnFragment.cardReader(this, amount, false);
+            } else {
+                replaceFragment(R.id.container, saleTxnFragment, false);
+            }
         }
 
         if (getIntent().getExtras() != null) {
@@ -295,10 +301,18 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 cardViewModel.setGIB(true);
                 saleTxnFragment.cardReader(this, amount, true);
             } else {
-                replaceFragment(R.id.container, saleTxnFragment, false);
+                if (isEnabled) {
+                    saleTxnFragment.cardReader(this, amount, false);
+                } else {
+                    replaceFragment(R.id.container, saleTxnFragment, false);
+                }
             }
         } else {
-            replaceFragment(R.id.container, saleTxnFragment, false);
+            if (isEnabled) {
+                saleTxnFragment.cardReader(this, amount, false);
+            } else {
+                replaceFragment(R.id.container, saleTxnFragment, false);
+            }
         }
     }
 
@@ -455,6 +469,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             Toast.makeText(getApplicationContext(), "setEMVConfiguration res=" + setConfigResult, Toast.LENGTH_SHORT).show();
             Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
         } catch (Exception e) {
+            responseMessage(ResponseCode.ERROR, "EMV Configuration Error");
             e.printStackTrace();
         }
     }
@@ -475,6 +490,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             Toast.makeText(getApplicationContext(), "setEMVCLConfiguration res=" + setCLConfigResult, Toast.LENGTH_SHORT).show();
             Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
         } catch (Exception e) {
+            responseMessage(ResponseCode.ERROR, "EMV CL Configuration Error");
             e.printStackTrace();
         }
     }
