@@ -72,6 +72,9 @@
 
     <string name="setup">Kurulum</string>
     <string name="host_settings">Host Ayarları</string>
+    <string name="demo_mode">Demo Modu</string>
+    <string name="demo_mode_enabled">Demo Modu Açık</string>
+    <string name="demo_mode_disabled">Demo Modu Kapalı</string>
     <string name="settings">Ayarlar</string>
     <string name="invalid_ip">Geçersiz IP!</string>
     <string name="invalid_port">Geçersiz Port!</string>

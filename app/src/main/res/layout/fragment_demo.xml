@@ -6,6 +6,17 @@
     android:layout_height="match_parent"
     android:background="@color/dark_gray">
 
+    <TextView
+        android:id="@+id/demoStatusTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp" />
+
     <Button
         android:id="@+id/enableButton"
         android:layout_width="0dp"
@@ -14,7 +25,7 @@
         android:text="Enable"
         android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/demoStatusTextView"
         app:layout_constraintEnd_toStartOf="@+id/disableButton"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintHorizontal_bias="0.5"
@@ -30,7 +41,7 @@
         android:text="Disable"
         android:textColor="@color/white"
         app:layout_constraintStart_toEndOf="@+id/enableButton"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/demoStatusTextView"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
