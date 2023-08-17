@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
@@ -37,14 +37,26 @@ public class DemoFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         SharedPreferences sharedPreferences = mainActivity.getSharedPreferences("myprefs", Context.MODE_PRIVATE);
-        view.findViewById(R.id.enableButton).setOnClickListener(v -> changeMode(sharedPreferences, true));
-        view.findViewById(R.id.disableButton).setOnClickListener(v -> changeMode(sharedPreferences, false));
+        boolean isEnabled = sharedPreferences.getBoolean("demo_mode", false);
+        TextView demoStatus = view.findViewById(R.id.demoStatusTextView);
+        if (isEnabled) {
+            demoStatus.setText(mainActivity.getString(R.string.demo_mode_enabled));
+        } else {
+            demoStatus.setText(mainActivity.getString(R.string.demo_mode_disabled));
+        }
+        view.findViewById(R.id.enableButton).setOnClickListener(v -> {
+            changeMode(sharedPreferences, true);
+            demoStatus.setText(mainActivity.getString(R.string.demo_mode_enabled));
+        });
+        view.findViewById(R.id.disableButton).setOnClickListener(v -> {
+            changeMode(sharedPreferences, false);
+            demoStatus.setText(mainActivity.getString(R.string.demo_mode_disabled));
+        });
     }
 
     private void changeMode(SharedPreferences sharedPreferences, boolean isEnabled) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean("demo_mode", isEnabled);
-        Toast.makeText(mainActivity, mainActivity.getString(R.string.demo_mode) + ":" + isEnabled, Toast.LENGTH_SHORT).show();
         editor.apply();
     }
 }
