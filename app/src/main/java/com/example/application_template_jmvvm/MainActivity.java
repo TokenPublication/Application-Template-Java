@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
+import com.example.application_template_jmvvm.ui.ServiceViewModel;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
@@ -38,8 +39,6 @@ import com.example.application_template_jmvvm.ui.trigger.TriggerViewModel;
 import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
-import com.tokeninc.deviceinfo.DeviceInfo;
-import com.tokeninc.libtokenkms.KMSWrapperInterface;
 import com.tokeninc.libtokenkms.TokenKMS;
 
 import org.json.JSONObject;
@@ -63,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     public BatchViewModel batchViewModel;
     private TransactionViewModel transactionViewModel;
     private TriggerViewModel triggerViewModel;
+    private ServiceViewModel serviceViewModel;
     private InfoDialog infoDialog;
     private TokenKMS tokenKMS;
 
@@ -89,34 +89,24 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
 
     public void startActivity() {
         buildConfigs();
-        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
-        setDeviceInfo();
 
         activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);
         batchViewModel = new ViewModelProvider(this).get(BatchViewModel.class);
         cardViewModel = new ViewModelProvider(this).get(CardViewModel.class);
         transactionViewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
         triggerViewModel = new ViewModelProvider(this).get(TriggerViewModel.class);
+        serviceViewModel = new ViewModelProvider(this).get(ServiceViewModel.class);
 
-        initializeCardService(this);
-        tokenKMS = new TokenKMS();
-        tokenKMS.init(getApplicationContext(), new KMSWrapperInterface.InitCallbacks() {
-            @Override
-            public void onInitSuccess() {
-                Log.d("KMS Init Success:", "Init Success");
-                actionControl(getIntent().getAction());
-            }
-            @Override
-            public void onInitFailed() {
-                Log.v("Token KMS onInitFailed", "KMS Init Failed");
-                infoDialog.update(InfoDialog.InfoType.Error, getString(R.string.kms_service_error));
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    infoDialog.dismiss();
-                    finish();
-                }, 2000);
-            }
+        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
+        serviceViewModel.ServiceRoutine(this, getApplicationContext(), cardViewModel);
+        serviceViewModel.getInfoDialogLiveData().observe(this, infoDialogData -> infoDialog.update(infoDialogData.getType(), infoDialogData.getText()));
+        serviceViewModel.getIsConnectedLiveData().observe(this, isConnected -> {
+            setEMVConfiguration(true);
+            infoDialog.dismiss();
+            actionControl(getIntent().getAction());
         });
     }
+
     /**
      * Firstly, added TR1000 and TR400 configurations to build.gradle file. After that,
      * related to Build Variant (400TRDebug or 1000TRDebug) the manifest file created with apk
@@ -129,49 +119,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         if (BuildConfig.FLAVOR.equals("TR400")) {
             Log.v("TR400 APP", "Application Template for 400TR");
         }
-    }
-
-    /**
-     * This method for setting Device Info parameters like FiscalID, cardRedirection or deviceMode.
-     * It has timer, so if application cannot get information in 30 seconds, it shows a dialog and
-     * finishes activity. Else, cancel the timer and continue.
-     */
-    private void setDeviceInfo() {
-        AppTemp appTemp = (AppTemp) getApplicationContext();
-        DeviceInfo deviceInfo = new DeviceInfo(getApplicationContext());
-        CountDownTimer timer = new CountDownTimer(30000, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) { }
-
-            @Override
-            public void onFinish() {
-                infoDialog = showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.device_info_service_Error), false);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    infoDialog.dismiss();
-                    finish();
-                }, 2000);
-            }
-        };
-        timer.start();
-        deviceInfo.getFields(
-                fields -> {
-                    if (fields == null) {
-                        infoDialog = showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.device_info_service_Error), false);
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            infoDialog.dismiss();
-                            finish();
-                        }, 2000);
-                    }
-
-                    appTemp.setCurrentFiscalID(fields[0]);
-                    appTemp.setCurrentDeviceMode(fields[1]);
-                    appTemp.setCurrentCardRedirection(fields[2]);
-
-                    deviceInfo.unbind();
-                    timer.cancel();
-                },
-                DeviceInfo.Field.FISCAL_ID, DeviceInfo.Field.OPERATION_MODE, DeviceInfo.Field.CARD_REDIRECTION
-        );
     }
 
     /**

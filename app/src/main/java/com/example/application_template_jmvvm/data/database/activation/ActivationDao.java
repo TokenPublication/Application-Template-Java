@@ -30,7 +30,4 @@ public interface ActivationDao {
 
     @Query("SELECT " + ActivationCols.col_Port + " FROM " + DatabaseInfo.ACT_TABLE + " LIMIT 1")
     String getHostPort();
-
-    @Query("SELECT COUNT(*) FROM " + DatabaseInfo.ACT_TABLE)
-    int isTableEmpty();
 }

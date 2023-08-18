@@ -67,10 +67,6 @@ public class ActivationViewModel extends ViewModel {
         return activationRepository.getHostPort();
     }
 
-    public boolean isTableEmpty() {
-        return activationRepository.isTableEmpty();
-    }
-
     public MutableLiveData<InfoDialogData> getInfoDialogLiveData() {
         return infoDialogLiveData;
     }
