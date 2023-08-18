@@ -40,9 +40,4 @@ public class ActivationRepository {
     public String getHostPort() {
         return activationDao.getHostPort();
     }
-
-    public boolean isTableEmpty() {
-        return activationDao.isTableEmpty() == 0;
-    }
-
 }
