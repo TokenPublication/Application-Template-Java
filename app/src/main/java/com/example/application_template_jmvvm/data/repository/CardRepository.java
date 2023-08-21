@@ -1,7 +1,11 @@
 package com.example.application_template_jmvvm.data.repository;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
@@ -14,6 +18,10 @@ import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
 
 import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import javax.inject.Inject;
 
@@ -179,6 +187,70 @@ public class CardRepository implements CardServiceListener {
     @Override
     public void onCardServiceConnected() {
         repositoryCallback.afterCardServiceConnected(true);
+    }
+
+    /**
+     * This function only works in installation, it calls setConfig and setCLConfig
+     * It also called from onCardServiceConnected method of Card Service Library, if Configs couldn't set in first_run
+     * (it is checked from sharedPreferences), again it setConfigurations, else do nothing.
+     */
+    public void setEMVConfiguration(MainActivity mainActivity, boolean fromCardService) {
+        SharedPreferences sharedPreference = mainActivity.getSharedPreferences("myprefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreference.edit();
+        boolean firstTimeBoolean = sharedPreference.getBoolean("FIRST_RUN", false);
+
+        if (!firstTimeBoolean) {
+            if (fromCardService) {
+                Toast.makeText(mainActivity.getApplicationContext(), mainActivity.getString(R.string.setup_bank), Toast.LENGTH_LONG).show();
+            }
+            setConfig(mainActivity);
+            setCLConfig(mainActivity);
+            editor.putBoolean("FIRST_RUN", true);
+            Log.d("setEMVConfiguration", "ok");
+            editor.apply();
+        }
+    }
+
+    /**
+     * It sets custom_emv_config.xml with setEMVConfiguration method in card service
+     */
+    public void setConfig(MainActivity mainActivity) {
+        try {
+            InputStream xmlStream = mainActivity.getApplicationContext().getAssets().open("custom_emv_config.xml");
+            BufferedReader r = new BufferedReader(new InputStreamReader(xmlStream));
+            StringBuilder total = new StringBuilder();
+            for (String line; (line = r.readLine()) != null; ) {
+                Log.d("emv_config", "conf line: " + line);
+                total.append(line).append('\n');
+            }
+            int setConfigResult = getCardServiceBinding().setEMVConfiguration(total.toString());
+            Toast.makeText(mainActivity.getApplicationContext(), "setEMVConfiguration res=" + setConfigResult, Toast.LENGTH_SHORT).show();
+            Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
+        } catch (Exception e) {
+            mainActivity.responseMessage(ResponseCode.ERROR, "EMV Configuration Error");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * It sets custom_emv_cl_config.xml with setEMVCLConfiguration method in card service
+     */
+    public void setCLConfig(MainActivity mainActivity) {
+        try {
+            InputStream xmlCLStream = mainActivity.getApplicationContext().getAssets().open("custom_emv_cl_config.xml");
+            BufferedReader rCL = new BufferedReader(new InputStreamReader(xmlCLStream));
+            StringBuilder totalCL = new StringBuilder();
+            for (String line; (line = rCL.readLine()) != null; ) {
+                Log.d("emv_config", "conf line: " + line);
+                totalCL.append(line).append('\n');
+            }
+            int setCLConfigResult = getCardServiceBinding().setEMVCLConfiguration(totalCL.toString());
+            Toast.makeText(mainActivity.getApplicationContext(), "setEMVCLConfiguration res=" + setCLConfigResult, Toast.LENGTH_SHORT).show();
+            Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
+        } catch (Exception e) {
+            mainActivity.responseMessage(ResponseCode.ERROR, "EMV CL Configuration Error");
+            e.printStackTrace();
+        }
     }
 
     @Override

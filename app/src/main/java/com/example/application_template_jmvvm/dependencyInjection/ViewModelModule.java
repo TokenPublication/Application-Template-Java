@@ -4,7 +4,7 @@ import com.example.application_template_jmvvm.data.repository.ActivationReposito
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
 import com.example.application_template_jmvvm.data.repository.CardRepository;
 import com.example.application_template_jmvvm.data.repository.TransactionRepository;
-import com.example.application_template_jmvvm.ui.ServiceViewModel;
+import com.example.application_template_jmvvm.ui.service.ServiceViewModel;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
 import com.example.application_template_jmvvm.ui.sale.CardViewModel;
