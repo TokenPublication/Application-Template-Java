@@ -15,9 +15,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
@@ -93,12 +95,9 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         serviceViewModel = new ViewModelProvider(this).get(ServiceViewModel.class);
 
         infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
-        serviceViewModel.ServiceRoutine(this, cardViewModel);
+        serviceViewModel.ServiceRoutine(this);
         serviceViewModel.getInfoDialogLiveData().observe(this, infoDialogData -> infoDialog.update(infoDialogData.getType(), infoDialogData.getText()));
-        serviceViewModel.getIsConnectedLiveData().observe(this, isConnected -> {
-            infoDialog.dismiss();
-            actionControl(getIntent().getAction());
-        });
+        serviceViewModel.getIsConnectedLiveData().observe(this, isConnected -> initializeCardService(this));
     }
 
     /**
@@ -162,8 +161,45 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     }
 
     /**
+     * This method for bind the card service. Also it has a 30 seconds timeout for handle onFailure
+     * at card service bind.
+     * @param lifecycleOwner for observe the cardServiceConnect liveData from CardViewModel.
+     */
+    public void initializeCardService(LifecycleOwner lifecycleOwner) {
+        final boolean[] isCancelled = {false};
+        CountDownTimer timer = new CountDownTimer(30000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) { }
+
+            @Override
+            public void onFinish() {
+                isCancelled[0] = true;
+                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.card_service_error));
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    if (infoDialog != null) {
+                        infoDialog.dismiss();
+                        finish();
+                    }
+                }, 2000);
+            }
+        };
+        timer.start();
+        cardViewModel.initializeCardServiceBinding(this);
+
+        cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
+            if (isConnected && !isCancelled[0]) {
+                timer.cancel();
+                infoDialog.dismiss();
+                cardViewModel.setEMVConfiguration(this, true);
+                cardViewModel.getMessageLiveData().observe(this, message -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show());
+                actionControl(getIntent().getAction());
+            }
+        });
+    }
+
+    /**
      * This method for read card. But it has the null check for card service binding.
-     * If it is null, we initialize card service and call this method again.
+     * If it is null, we showed card service error to user.
      * Also, we observe the card service result and response message live data for handle error,
      * cancel cases etc.
      */

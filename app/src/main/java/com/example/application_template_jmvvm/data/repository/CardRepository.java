@@ -3,7 +3,6 @@ package com.example.application_template_jmvvm.data.repository;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
@@ -36,6 +35,7 @@ public class CardRepository implements CardServiceListener {
         void afterCardDataReceived(ICCCard card);
         void afterCardServiceConnected(Boolean isConnected);
         void setResponseMessage(ResponseCode responseCode);
+        void setMessage(String message);
     }
 
     private RepositoryCallback repositoryCallback;
@@ -201,7 +201,7 @@ public class CardRepository implements CardServiceListener {
 
         if (!firstTimeBoolean) {
             if (fromCardService) {
-                Toast.makeText(mainActivity.getApplicationContext(), mainActivity.getString(R.string.setup_bank), Toast.LENGTH_LONG).show();
+                repositoryCallback.setMessage(mainActivity.getString(R.string.setup_bank));
             }
             setConfig(mainActivity);
             setCLConfig(mainActivity);
@@ -224,7 +224,7 @@ public class CardRepository implements CardServiceListener {
                 total.append(line).append('\n');
             }
             int setConfigResult = getCardServiceBinding().setEMVConfiguration(total.toString());
-            Toast.makeText(mainActivity.getApplicationContext(), "setEMVConfiguration res=" + setConfigResult, Toast.LENGTH_SHORT).show();
+            repositoryCallback.setMessage("setEMVConfiguration res=" + setConfigResult);
             Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
         } catch (Exception e) {
             mainActivity.responseMessage(ResponseCode.ERROR, "EMV Configuration Error");
@@ -245,7 +245,7 @@ public class CardRepository implements CardServiceListener {
                 totalCL.append(line).append('\n');
             }
             int setCLConfigResult = getCardServiceBinding().setEMVCLConfiguration(totalCL.toString());
-            Toast.makeText(mainActivity.getApplicationContext(), "setEMVCLConfiguration res=" + setCLConfigResult, Toast.LENGTH_SHORT).show();
+            repositoryCallback.setMessage("setEMVCLConfiguration res=" + setCLConfigResult);
             Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
         } catch (Exception e) {
             mainActivity.responseMessage(ResponseCode.ERROR, "EMV CL Configuration Error");
