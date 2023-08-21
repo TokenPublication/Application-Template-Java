@@ -38,6 +38,7 @@ public class CardRepository implements CardServiceListener {
         void setMessage(String message);
     }
 
+    private MainActivity mainActivity;
     private RepositoryCallback repositoryCallback;
     private CardServiceBinding cardServiceBinding;
     private CardServiceListener cardServiceListener;
@@ -56,6 +57,7 @@ public class CardRepository implements CardServiceListener {
     }
 
     public void cardServiceBinder(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
         this.cardServiceBinding = new CardServiceBinding(mainActivity, cardServiceListener);
     }
 
@@ -186,6 +188,7 @@ public class CardRepository implements CardServiceListener {
      */
     @Override
     public void onCardServiceConnected() {
+        setEMVConfiguration(true);
         repositoryCallback.afterCardServiceConnected(true);
     }
 
@@ -194,7 +197,7 @@ public class CardRepository implements CardServiceListener {
      * It also called from onCardServiceConnected method of Card Service Library, if Configs couldn't set in first_run
      * (it is checked from sharedPreferences), again it setConfigurations, else do nothing.
      */
-    public void setEMVConfiguration(MainActivity mainActivity, boolean fromCardService) {
+    public void setEMVConfiguration(boolean fromCardService) {
         SharedPreferences sharedPreference = mainActivity.getSharedPreferences("myprefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreference.edit();
         boolean firstTimeBoolean = sharedPreference.getBoolean("FIRST_RUN", false);
@@ -203,8 +206,8 @@ public class CardRepository implements CardServiceListener {
             if (fromCardService) {
                 repositoryCallback.setMessage(mainActivity.getString(R.string.setup_bank));
             }
-            setConfig(mainActivity);
-            setCLConfig(mainActivity);
+            setConfig();
+            setCLConfig();
             editor.putBoolean("FIRST_RUN", true);
             Log.d("setEMVConfiguration", "ok");
             editor.apply();
@@ -214,7 +217,7 @@ public class CardRepository implements CardServiceListener {
     /**
      * It sets custom_emv_config.xml with setEMVConfiguration method in card service
      */
-    public void setConfig(MainActivity mainActivity) {
+    public void setConfig() {
         try {
             InputStream xmlStream = mainActivity.getApplicationContext().getAssets().open("custom_emv_config.xml");
             BufferedReader r = new BufferedReader(new InputStreamReader(xmlStream));
@@ -235,7 +238,7 @@ public class CardRepository implements CardServiceListener {
     /**
      * It sets custom_emv_cl_config.xml with setEMVCLConfiguration method in card service
      */
-    public void setCLConfig(MainActivity mainActivity) {
+    public void setCLConfig() {
         try {
             InputStream xmlCLStream = mainActivity.getApplicationContext().getAssets().open("custom_emv_cl_config.xml");
             BufferedReader rCL = new BufferedReader(new InputStreamReader(xmlCLStream));
