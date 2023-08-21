@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.ui;
+package com.example.application_template_jmvvm.ui.service;
 
 import android.content.Context;
 import android.os.CountDownTimer;
@@ -28,7 +28,8 @@ public class ServiceViewModel extends ViewModel {
     @Inject
     public ServiceViewModel() { }
 
-    public void ServiceRoutine(MainActivity mainActivity, Context context, CardViewModel cardViewModel) {
+    public void ServiceRoutine(MainActivity mainActivity, CardViewModel cardViewModel) {
+        Context context = mainActivity.getApplicationContext();
         AppTemp appTemp = (AppTemp) context;
         DeviceInfo deviceInfo = new DeviceInfo(context);
         TokenKMS tokenKMS = new TokenKMS();
@@ -77,6 +78,7 @@ public class ServiceViewModel extends ViewModel {
                                 if (isConnected && !isCancelled[0]) {
                                     Log.d("Card Service Bind:", "Success");
                                     cardServiceTimer.cancel();
+                                    cardViewModel.setEMVConfiguration(mainActivity, true);
                                     setIsConnectedLiveData(true);
                                 }
                             });

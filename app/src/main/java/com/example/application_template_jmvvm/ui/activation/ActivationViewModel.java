@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
+import com.example.application_template_jmvvm.ui.sale.CardViewModel;
 import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
 import com.example.application_template_jmvvm.utils.printHelpers.PrintHelper;
 import com.token.uicomponents.infodialog.InfoDialog;
@@ -75,10 +76,11 @@ public class ActivationViewModel extends ViewModel {
         infoDialogLiveData.postValue(infoDialogData);
     }
 
-    /** It runs functions in parallel while ui updating dynamically in main thread
+    /**
+     * It runs functions in parallel while ui updating dynamically in main thread
      * Additionally, in IO coroutine thread make setEMVConfiguration method
      */
-    public void setupRoutine(MainActivity mainActivity) {
+    public void setupRoutine(MainActivity mainActivity, CardViewModel cardViewModel) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
         setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Processing, mainActivity.getApplicationContext().getString(R.string.starting_activation)));
         Observable<Boolean> observable = Observable.just(true)
@@ -92,7 +94,7 @@ public class ActivationViewModel extends ViewModel {
 
             @Override
             public void onNext(Boolean bool) {
-                mainActivity.setEMVConfiguration(false);
+                cardViewModel.setEMVConfiguration(mainActivity, false);
             }
 
             @Override
