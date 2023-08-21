@@ -1,7 +1,10 @@
 package com.example.application_template_jmvvm.data.repository;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
@@ -14,6 +17,10 @@ import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
 
 import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import javax.inject.Inject;
 
@@ -28,8 +35,10 @@ public class CardRepository implements CardServiceListener {
         void afterCardDataReceived(ICCCard card);
         void afterCardServiceConnected(Boolean isConnected);
         void setResponseMessage(ResponseCode responseCode);
+        void setMessage(String message);
     }
 
+    private MainActivity mainActivity;
     private RepositoryCallback repositoryCallback;
     private CardServiceBinding cardServiceBinding;
     private CardServiceListener cardServiceListener;
@@ -48,6 +57,7 @@ public class CardRepository implements CardServiceListener {
     }
 
     public void cardServiceBinder(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
         this.cardServiceBinding = new CardServiceBinding(mainActivity, cardServiceListener);
     }
 
@@ -178,7 +188,72 @@ public class CardRepository implements CardServiceListener {
      */
     @Override
     public void onCardServiceConnected() {
+        setEMVConfiguration(true);
         repositoryCallback.afterCardServiceConnected(true);
+    }
+
+    /**
+     * This function only works in installation, it calls setConfig and setCLConfig
+     * It also called from onCardServiceConnected method of Card Service Library, if Configs couldn't set in first_run
+     * (it is checked from sharedPreferences), again it setConfigurations, else do nothing.
+     */
+    public void setEMVConfiguration(boolean fromCardService) {
+        SharedPreferences sharedPreference = mainActivity.getSharedPreferences("myprefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreference.edit();
+        boolean firstTimeBoolean = sharedPreference.getBoolean("FIRST_RUN", false);
+
+        if (!firstTimeBoolean) {
+            if (fromCardService) {
+                repositoryCallback.setMessage(mainActivity.getString(R.string.setup_bank));
+            }
+            setConfig();
+            setCLConfig();
+            editor.putBoolean("FIRST_RUN", true);
+            Log.d("setEMVConfiguration", "ok");
+            editor.apply();
+        }
+    }
+
+    /**
+     * It sets custom_emv_config.xml with setEMVConfiguration method in card service
+     */
+    public void setConfig() {
+        try {
+            InputStream xmlStream = mainActivity.getApplicationContext().getAssets().open("custom_emv_config.xml");
+            BufferedReader r = new BufferedReader(new InputStreamReader(xmlStream));
+            StringBuilder total = new StringBuilder();
+            for (String line; (line = r.readLine()) != null; ) {
+                Log.d("emv_config", "conf line: " + line);
+                total.append(line).append('\n');
+            }
+            int setConfigResult = getCardServiceBinding().setEMVConfiguration(total.toString());
+            repositoryCallback.setMessage("setEMVConfiguration res=" + setConfigResult);
+            Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
+        } catch (Exception e) {
+            mainActivity.responseMessage(ResponseCode.ERROR, "EMV Configuration Error");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * It sets custom_emv_cl_config.xml with setEMVCLConfiguration method in card service
+     */
+    public void setCLConfig() {
+        try {
+            InputStream xmlCLStream = mainActivity.getApplicationContext().getAssets().open("custom_emv_cl_config.xml");
+            BufferedReader rCL = new BufferedReader(new InputStreamReader(xmlCLStream));
+            StringBuilder totalCL = new StringBuilder();
+            for (String line; (line = rCL.readLine()) != null; ) {
+                Log.d("emv_config", "conf line: " + line);
+                totalCL.append(line).append('\n');
+            }
+            int setCLConfigResult = getCardServiceBinding().setEMVCLConfiguration(totalCL.toString());
+            repositoryCallback.setMessage("setEMVCLConfiguration res=" + setCLConfigResult);
+            Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
+        } catch (Exception e) {
+            mainActivity.responseMessage(ResponseCode.ERROR, "EMV CL Configuration Error");
+            e.printStackTrace();
+        }
     }
 
     @Override

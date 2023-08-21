@@ -29,6 +29,8 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
     private MutableLiveData<Boolean> isCardServiceConnect = new MutableLiveData<>(false);
     private MutableLiveData<ResponseCode> responseMessageLiveData = new MutableLiveData<>();
 
+    private MutableLiveData<String> messageLiveData = new MutableLiveData<>();
+
     @Inject
     public CardViewModel(CardRepository cardRepository) {
         this.cardRepository = cardRepository;
@@ -37,6 +39,10 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
 
     public void initializeCardServiceBinding(MainActivity mainActivity) {
         cardRepository.cardServiceBinder(mainActivity);
+    }
+
+    public void setEMVConfiguration(boolean fromCardService) {
+        cardRepository.setEMVConfiguration(fromCardService);
     }
 
     public void readCard(int amount, TransactionCode transactionCode) {
@@ -59,6 +65,15 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
 
     public MutableLiveData<ResponseCode> getResponseMessageLiveData() {
         return responseMessageLiveData;
+    }
+
+    @Override
+    public void setMessage(String message) {
+        messageLiveData.postValue(message);
+    }
+
+    public MutableLiveData<String> getMessageLiveData() {
+        return messageLiveData;
     }
 
     @Override

@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
+import com.example.application_template_jmvvm.ui.service.ServiceViewModel;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
@@ -38,15 +39,10 @@ import com.example.application_template_jmvvm.ui.trigger.TriggerViewModel;
 import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
-import com.tokeninc.deviceinfo.DeviceInfo;
-import com.tokeninc.libtokenkms.KMSWrapperInterface;
 import com.tokeninc.libtokenkms.TokenKMS;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Objects;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -63,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     public BatchViewModel batchViewModel;
     private TransactionViewModel transactionViewModel;
     private TriggerViewModel triggerViewModel;
+    private ServiceViewModel serviceViewModel;
     private InfoDialog infoDialog;
     private TokenKMS tokenKMS;
 
@@ -89,34 +86,24 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
 
     public void startActivity() {
         buildConfigs();
-        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
-        setDeviceInfo();
 
         activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);
         batchViewModel = new ViewModelProvider(this).get(BatchViewModel.class);
         cardViewModel = new ViewModelProvider(this).get(CardViewModel.class);
         transactionViewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
         triggerViewModel = new ViewModelProvider(this).get(TriggerViewModel.class);
+        serviceViewModel = new ViewModelProvider(this).get(ServiceViewModel.class);
 
-        initializeCardService(this);
-        tokenKMS = new TokenKMS();
-        tokenKMS.init(getApplicationContext(), new KMSWrapperInterface.InitCallbacks() {
-            @Override
-            public void onInitSuccess() {
-                Log.d("KMS Init Success:", "Init Success");
-                actionControl(getIntent().getAction());
-            }
-            @Override
-            public void onInitFailed() {
-                Log.v("Token KMS onInitFailed", "KMS Init Failed");
-                infoDialog.update(InfoDialog.InfoType.Error, getString(R.string.kms_service_error));
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    infoDialog.dismiss();
-                    finish();
-                }, 2000);
-            }
+        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
+        serviceViewModel.ServiceRoutine(this);
+        serviceViewModel.getInfoDialogLiveData().observe(this, infoDialogData -> infoDialog.update(infoDialogData.getType(), infoDialogData.getText()));
+        serviceViewModel.getIsConnectedLiveData().observe(this, isConnected -> {
+            infoDialog.dismiss();
+            actionControl(getIntent().getAction());
+            initializeCardService(this);
         });
     }
+
     /**
      * Firstly, added TR1000 and TR400 configurations to build.gradle file. After that,
      * related to Build Variant (400TRDebug or 1000TRDebug) the manifest file created with apk
@@ -129,84 +116,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         if (BuildConfig.FLAVOR.equals("TR400")) {
             Log.v("TR400 APP", "Application Template for 400TR");
         }
-    }
-
-    /**
-     * This method for setting Device Info parameters like FiscalID, cardRedirection or deviceMode.
-     * It has timer, so if application cannot get information in 30 seconds, it shows a dialog and
-     * finishes activity. Else, cancel the timer and continue.
-     */
-    private void setDeviceInfo() {
-        AppTemp appTemp = (AppTemp) getApplicationContext();
-        DeviceInfo deviceInfo = new DeviceInfo(getApplicationContext());
-        CountDownTimer timer = new CountDownTimer(30000, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) { }
-
-            @Override
-            public void onFinish() {
-                infoDialog = showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.device_info_service_Error), false);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    infoDialog.dismiss();
-                    finish();
-                }, 2000);
-            }
-        };
-        timer.start();
-        deviceInfo.getFields(
-                fields -> {
-                    if (fields == null) {
-                        infoDialog = showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.device_info_service_Error), false);
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            infoDialog.dismiss();
-                            finish();
-                        }, 2000);
-                    }
-
-                    appTemp.setCurrentFiscalID(fields[0]);
-                    appTemp.setCurrentDeviceMode(fields[1]);
-                    appTemp.setCurrentCardRedirection(fields[2]);
-
-                    deviceInfo.unbind();
-                    timer.cancel();
-                },
-                DeviceInfo.Field.FISCAL_ID, DeviceInfo.Field.OPERATION_MODE, DeviceInfo.Field.CARD_REDIRECTION
-        );
-    }
-
-    /**
-     * This method for bind the card service. Also it has a 30 seconds timeout for handle onFailure
-     * at card service bind.
-     * @param lifecycleOwner for observe the cardServiceConnect liveData from CardViewModel.
-     */
-    public void initializeCardService(LifecycleOwner lifecycleOwner) {
-        final boolean[] isCancelled = {false};
-        CountDownTimer timer = new CountDownTimer(30000, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) { }
-
-            @Override
-            public void onFinish() {
-                isCancelled[0] = true;
-                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.card_service_error));
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    if (infoDialog != null) {
-                        infoDialog.dismiss();
-                        finish();
-                    }
-                }, 2000);
-            }
-        };
-        timer.start();
-        cardViewModel.initializeCardServiceBinding(this);
-
-        cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
-            if (isConnected && !isCancelled[0]) {
-                timer.cancel();
-                infoDialog.dismiss();
-                setEMVConfiguration(true);
-            }
-        });
     }
 
     /**
@@ -236,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
 
         else if (Objects.equals(action, getString(R.string.Settings_Action))) {
-            SettingsFragment settingsFragment = new SettingsFragment(this, activationViewModel);
+            SettingsFragment settingsFragment = new SettingsFragment(this, activationViewModel, cardViewModel);
             replaceFragment(R.id.container, settingsFragment, false);
         }
 
@@ -256,8 +165,42 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     }
 
     /**
+     * This method for bind the card service. Also it has a 30 seconds timeout for handle onFailure
+     * at card service bind.
+     * @param lifecycleOwner for observe the cardServiceConnect liveData from CardViewModel.
+     */
+    public void initializeCardService(LifecycleOwner lifecycleOwner) {
+        final boolean[] isCancelled = {false};
+        CountDownTimer timer = new CountDownTimer(30000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) { }
+
+            @Override
+            public void onFinish() {
+                isCancelled[0] = true;
+                infoDialog.update(InfoDialog.InfoType.Declined, getString(R.string.card_service_error));
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    if (infoDialog != null) {
+                        infoDialog.dismiss();
+                        finish();
+                    }
+                }, 2000);
+            }
+        };
+        timer.start();
+        cardViewModel.initializeCardServiceBinding(this);
+        cardViewModel.getMessageLiveData().observe(this, message -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show());
+
+        cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
+            if (isConnected && !isCancelled[0]) {
+                timer.cancel();
+            }
+        });
+    }
+
+    /**
      * This method for read card. But it has the null check for card service binding.
-     * If it is null, we initialize card service and call this method again.
+     * If it is null, we showed card service error to user.
      * Also, we observe the card service result and response message live data for handle error,
      * cancel cases etc.
      */
@@ -429,70 +372,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     @Override
     protected void onDestroy() {
         super.onDestroy();
-    }
-
-    /**
-     * This function only works in installation, it calls setConfig and setCLConfig
-     * It also called from onCardServiceConnected method of Card Service Library, if Configs couldn't set in first_run
-     * (it is checked from sharedPreferences), again it setConfigurations, else do nothing.
-     */
-    public void setEMVConfiguration(boolean fromCardService) {
-        SharedPreferences sharedPreference = getSharedPreferences("myprefs", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreference.edit();
-        boolean firstTimeBoolean = sharedPreference.getBoolean("FIRST_RUN", false);
-
-        if (!firstTimeBoolean) {
-            if (fromCardService) {
-                Toast.makeText(getApplicationContext(), getString(R.string.setup_bank), Toast.LENGTH_LONG).show();
-            }
-            setConfig();
-            setCLConfig();
-            editor.putBoolean("FIRST_RUN", true);
-            Log.d("setEMVConfiguration", "ok");
-            editor.apply();
-        }
-    }
-
-    /**
-     * It sets custom_emv_config.xml with setEMVConfiguration method in card service
-     */
-    public void setConfig() {
-        try {
-            InputStream xmlStream = getApplicationContext().getAssets().open("custom_emv_config.xml");
-            BufferedReader r = new BufferedReader(new InputStreamReader(xmlStream));
-            StringBuilder total = new StringBuilder();
-            for (String line; (line = r.readLine()) != null; ) {
-                Log.d("emv_config", "conf line: " + line);
-                total.append(line).append('\n');
-            }
-            int setConfigResult = cardViewModel.getCardServiceBinding().setEMVConfiguration(total.toString());
-            Toast.makeText(getApplicationContext(), "setEMVConfiguration res=" + setConfigResult, Toast.LENGTH_SHORT).show();
-            Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
-        } catch (Exception e) {
-            responseMessage(ResponseCode.ERROR, "EMV Configuration Error");
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * It sets custom_emv_cl_config.xml with setEMVCLConfiguration method in card service
-     */
-    public void setCLConfig() {
-        try {
-            InputStream xmlCLStream = getApplicationContext().getAssets().open("custom_emv_cl_config.xml");
-            BufferedReader rCL = new BufferedReader(new InputStreamReader(xmlCLStream));
-            StringBuilder totalCL = new StringBuilder();
-            for (String line; (line = rCL.readLine()) != null; ) {
-                Log.d("emv_config", "conf line: " + line);
-                totalCL.append(line).append('\n');
-            }
-            int setCLConfigResult = cardViewModel.getCardServiceBinding().setEMVCLConfiguration(totalCL.toString());
-            Toast.makeText(getApplicationContext(), "setEMVCLConfiguration res=" + setCLConfigResult, Toast.LENGTH_SHORT).show();
-            Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
-        } catch (Exception e) {
-            responseMessage(ResponseCode.ERROR, "EMV CL Configuration Error");
-            e.printStackTrace();
-        }
     }
 
     @Override
