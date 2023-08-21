@@ -97,7 +97,10 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
         serviceViewModel.ServiceRoutine(this);
         serviceViewModel.getInfoDialogLiveData().observe(this, infoDialogData -> infoDialog.update(infoDialogData.getType(), infoDialogData.getText()));
-        serviceViewModel.getIsConnectedLiveData().observe(this, isConnected -> initializeCardService(this));
+        serviceViewModel.getIsConnectedLiveData().observe(this, isConnected -> {
+            actionControl(getIntent().getAction());
+            initializeCardService(this);
+        });
     }
 
     /**
@@ -190,9 +193,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             if (isConnected && !isCancelled[0]) {
                 timer.cancel();
                 infoDialog.dismiss();
-                cardViewModel.setEMVConfiguration(this, true);
                 cardViewModel.getMessageLiveData().observe(this, message -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show());
-                actionControl(getIntent().getAction());
             }
         });
     }
@@ -208,7 +209,8 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             cardViewModel.readCard(amount, transactionCode);
             cardViewModel.getResponseMessageLiveData().observe(lifecycleOwner, responseCode -> responseMessage(responseCode, ""));
         } else {
-            responseMessage(ResponseCode.ERROR, getString(R.string.card_service_error));
+            initializeCardService(lifecycleOwner);
+            readCard(lifecycleOwner, amount, transactionCode);
         }
     }
 

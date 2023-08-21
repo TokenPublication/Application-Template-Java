@@ -94,7 +94,7 @@ public class ActivationViewModel extends ViewModel {
 
             @Override
             public void onNext(Boolean bool) {
-                cardViewModel.setEMVConfiguration(mainActivity, false);
+                cardViewModel.setEMVConfiguration(false);
             }
 
             @Override
