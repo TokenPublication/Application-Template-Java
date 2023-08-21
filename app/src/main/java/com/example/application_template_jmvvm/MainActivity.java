@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         serviceViewModel.ServiceRoutine(this);
         serviceViewModel.getInfoDialogLiveData().observe(this, infoDialogData -> infoDialog.update(infoDialogData.getType(), infoDialogData.getText()));
         serviceViewModel.getIsConnectedLiveData().observe(this, isConnected -> {
+            infoDialog.dismiss();
             actionControl(getIntent().getAction());
             initializeCardService(this);
         });
@@ -188,12 +189,11 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         };
         timer.start();
         cardViewModel.initializeCardServiceBinding(this);
+        cardViewModel.getMessageLiveData().observe(this, message -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show());
 
         cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
             if (isConnected && !isCancelled[0]) {
                 timer.cancel();
-                infoDialog.dismiss();
-                cardViewModel.getMessageLiveData().observe(this, message -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show());
             }
         });
     }
