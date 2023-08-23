@@ -131,8 +131,6 @@ public class TransactionRepository {
             case MATCHED_REFUND:
                 transaction.setUlAmount(bundle.getInt(ExtraContentInfo.orgAmount));
                 transaction.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
-                transaction.setRefNo(bundle.getString(ExtraContentInfo.refNo));
-                transaction.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
                 transaction.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
                 break;
             case CASH_REFUND:
@@ -142,8 +140,6 @@ public class TransactionRepository {
             case INSTALLMENT_REFUND:
                 transaction.setUlAmount(bundle.getInt(ExtraContentInfo.orgAmount));
                 transaction.setUlAmount2(bundle.getInt(ExtraContentInfo.refAmount));
-                transaction.setRefNo(bundle.getString(ExtraContentInfo.refNo));
-                transaction.setAuthCode(bundle.getString(ExtraContentInfo.authCode));
                 transaction.setBaTranDate2(bundle.getString(ExtraContentInfo.tranDate));
                 transaction.setbInstCnt(bundle.getInt(ExtraContentInfo.instCount));
                 break;
@@ -254,7 +250,7 @@ public class TransactionRepository {
         transaction.setBaPAN(cardNo);
         transaction.setBaCustomerName(ownerName);
         transaction.setUlAmount(price);
-        SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository);
+        SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository, null);
         bundle.putString("RefundInfo", getRefundInfo(null, cardNo, price, receipt));
         bundle.putString("RefNo", String.valueOf(32134323));
         bundle.putInt("PaymentType", paymentType);

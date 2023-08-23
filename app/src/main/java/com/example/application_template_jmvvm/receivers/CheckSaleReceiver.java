@@ -38,7 +38,7 @@ public class CheckSaleReceiver extends BroadcastReceiver {
             SalePrintHelper salePrintHelper = new SalePrintHelper();
             List<Transaction> transactionList = db.transactionDao().getTransactionsByUUID(uuid);
             Transaction transaction = transactionList.get(0);
-            SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository);
+            SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository, null);
             Intent resultIntent = new Intent();
             if (transaction != null) {
                 Bundle bundle = new Bundle();
