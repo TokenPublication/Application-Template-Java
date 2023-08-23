@@ -1,4 +1,4 @@
-package com.example.application_template_jmvvm.ui.activation;
+package com.example.application_template_jmvvm.ui.posTxn.demoMode;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -39,7 +39,7 @@ public class DemoFragment extends Fragment {
         boolean isEnabled = sharedPreferences.getBoolean("demo_mode", false);
         SwitchCompat demoStatus = view.findViewById(R.id.demoSwitch);
         demoStatus.setChecked(isEnabled);
-        view.findViewById(R.id.demoSwitch).setOnClickListener(v -> changeMode(sharedPreferences, !isEnabled));
+        view.findViewById(R.id.demoSwitch).setOnClickListener(v -> changeMode(sharedPreferences, demoStatus.isChecked()));
     }
 
     private void changeMode(SharedPreferences sharedPreferences, boolean isEnabled) {

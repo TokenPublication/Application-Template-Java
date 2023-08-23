@@ -3,6 +3,7 @@ package com.example.application_template_jmvvm.utils.printHelpers;
 import android.content.Context;
 
 import com.example.application_template_jmvvm.data.database.transaction.Transaction;
+import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.StyledString;
@@ -70,7 +71,13 @@ public class BatchClosePrintHelper extends BasePrintHelper {
             addText(styledText, transaction.getBaExpDate(), PrinterDefinitions.Alignment.Right);
             addTextToNewLine(styledText, transaction.getRefNo(), PrinterDefinitions.Alignment.Left);
 
-            int amount = transaction.getUlAmount();
+            int amount;
+            if (transaction.getbTransCode() == TransactionCode.MATCHED_REFUND.getType() ||
+                    transaction.getbTransCode() == TransactionCode.INSTALLMENT_REFUND.getType()) {
+                amount = transaction.getUlAmount2();
+            } else {
+                amount = transaction.getUlAmount();
+            }
             totalAmount += amount;
             addText(styledText, StringHelper.getAmount(amount), PrinterDefinitions.Alignment.Right);
             styledText.newLine();

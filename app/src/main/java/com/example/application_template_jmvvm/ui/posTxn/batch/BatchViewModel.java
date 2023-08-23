@@ -34,6 +34,7 @@ public class BatchViewModel extends ViewModel {
     public BatchRepository batchRepository;
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
     private MutableLiveData<InfoDialogData> infoDialogLiveData = new MutableLiveData<>();
+    private MutableLiveData<Boolean> isPrintedLiveData = new MutableLiveData<>();
 
     @Inject
     public BatchViewModel(BatchRepository batchRepository) {
@@ -134,6 +135,14 @@ public class BatchViewModel extends ViewModel {
         infoDialogLiveData.postValue(infoDialogData);
     }
 
+    public MutableLiveData<Boolean> getIsPrintedLiveData() {
+        return isPrintedLiveData;
+    }
+
+    public void setIsPrintedLiveData(boolean isPrinted) {
+        isPrintedLiveData.postValue(isPrinted);
+    }
+
     public String getPreviousBatchSlip() {
         return batchRepository.getPreviousBatchSlip();
     }
@@ -149,7 +158,7 @@ public class BatchViewModel extends ViewModel {
                 .subscribe(
                         item -> batchRepository.printSlip(getPreviousBatchSlip(), mainActivity),
                         throwable -> { },
-                        () -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, ""))
+                        () -> setIsPrintedLiveData(true)
                 );
     }
 
@@ -166,7 +175,7 @@ public class BatchViewModel extends ViewModel {
                 .subscribe(
                         item -> batchRepository.printSlip(slip, mainActivity),
                         throwable -> { },
-                        () -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, ""))
+                        () -> setIsPrintedLiveData(true)
                 );
     }
 }

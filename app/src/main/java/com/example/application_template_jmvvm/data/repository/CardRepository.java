@@ -188,7 +188,7 @@ public class CardRepository implements CardServiceListener {
      */
     @Override
     public void onCardServiceConnected() {
-        setEMVConfiguration(true);
+        setEMVConfiguration();
         repositoryCallback.afterCardServiceConnected(true);
     }
 
@@ -197,15 +197,12 @@ public class CardRepository implements CardServiceListener {
      * It also called from onCardServiceConnected method of Card Service Library, if Configs couldn't set in first_run
      * (it is checked from sharedPreferences), again it setConfigurations, else do nothing.
      */
-    public void setEMVConfiguration(boolean fromCardService) {
+    public void setEMVConfiguration() {
         SharedPreferences sharedPreference = mainActivity.getSharedPreferences("myprefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreference.edit();
         boolean firstTimeBoolean = sharedPreference.getBoolean("FIRST_RUN", false);
 
         if (!firstTimeBoolean) {
-            if (fromCardService) {
-                repositoryCallback.setMessage(mainActivity.getString(R.string.setup_bank));
-            }
             setConfig();
             setCLConfig();
             editor.putBoolean("FIRST_RUN", true);
