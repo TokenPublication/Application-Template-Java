@@ -78,7 +78,9 @@ public class BatchClosePrintHelper extends BasePrintHelper {
             } else {
                 amount = transaction.getUlAmount();
             }
-            totalAmount += amount;
+            if (transaction.isVoid == 0) {
+                totalAmount += amount;
+            }
             addText(styledText, StringHelper.getAmount(amount), PrinterDefinitions.Alignment.Right);
             styledText.newLine();
         }

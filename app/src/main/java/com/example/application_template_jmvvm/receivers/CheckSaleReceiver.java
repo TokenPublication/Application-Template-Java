@@ -14,7 +14,7 @@ import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
 import com.example.application_template_jmvvm.utils.objects.SampleReceipt;
-import com.example.application_template_jmvvm.utils.printHelpers.SalePrintHelper;
+import com.example.application_template_jmvvm.utils.printHelpers.TransactionPrintHelper;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class CheckSaleReceiver extends BroadcastReceiver {
             AppTempDB db = AppTempDB.getDatabase(context);
             ActivationRepository activationRepository = new ActivationRepository(db.activationDao());
             BatchRepository batchRepository = new BatchRepository(db.batchDao());
-            SalePrintHelper salePrintHelper = new SalePrintHelper();
+            TransactionPrintHelper transactionPrintHelper = new TransactionPrintHelper();
             List<Transaction> transactionList = db.transactionDao().getTransactionsByUUID(uuid);
             Transaction transaction = transactionList.get(0);
             SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository, null);
@@ -45,8 +45,8 @@ public class CheckSaleReceiver extends BroadcastReceiver {
                 bundle.putInt("ResponseCode", ResponseCode.SUCCESS.ordinal());
                 bundle.putInt("PaymentStatus", 0);
                 bundle.putInt("Amount", transaction.getUlAmount());
-                bundle.putString("customerSlipData", salePrintHelper.getFormattedText(receipt, transaction, TransactionCode.SALE, SlipType.CARDHOLDER_SLIP, context, null, null, false));
-                bundle.putString("merchantSlipData", salePrintHelper.getFormattedText(receipt, transaction, TransactionCode.SALE, SlipType.MERCHANT_SLIP, context, null, null, false));
+                bundle.putString("customerSlipData", transactionPrintHelper.getFormattedText(receipt, transaction, TransactionCode.SALE, SlipType.CARDHOLDER_SLIP, context, null, null, false));
+                bundle.putString("merchantSlipData", transactionPrintHelper.getFormattedText(receipt, transaction, TransactionCode.SALE, SlipType.MERCHANT_SLIP, context, null, null, false));
                 bundle.putInt("BatchNo", transaction.getBatchNo());
                 bundle.putInt("TxnNo", transaction.getUlGUP_SN());
                 bundle.putInt("SlipType", SlipType.BOTH_SLIPS.value);
