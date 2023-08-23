@@ -70,17 +70,8 @@ public class SettingsFragment extends Fragment implements InfoDialogListener {
         List<IListMenuItem> menuItems = new ArrayList<>();
         menuItems.add(new MenuItem(getString(R.string.setup), iListMenuItem -> addTidMidFragment()));
         menuItems.add(new MenuItem(getString(R.string.host_settings), iListMenuItem -> addIpFragment()));
-        menuItems.add(new MenuItem(getString(R.string.demo_mode), iListMenuItem -> getDemoView()));
         ListMenuFragment mListMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.settings), true, R.drawable.token_logo_png);
         mainActivity.replaceFragment(R.id.container, mListMenuFragment,false);
-    }
-
-    private void getDemoView() {
-        FragmentTransaction transaction = mainActivity.getSupportFragmentManager().beginTransaction();
-        DemoFragment demoFragment = new DemoFragment(mainActivity);
-        transaction.replace(R.id.container, demoFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
     }
 
     /** It shows a page with a fragment that contains Merchant and Terminal ID inputs

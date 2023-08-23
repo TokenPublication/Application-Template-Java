@@ -45,6 +45,7 @@ public class TransactionViewModel extends ViewModel {
     private TransactionRepository transactionRepository;
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
     private MutableLiveData<InfoDialogData> infoDialogLiveData = new MutableLiveData<>();
+    private MutableLiveData<Boolean> isPrintedLiveData = new MutableLiveData<>();
 
     @Inject
     public TransactionViewModel(TransactionRepository transactionRepository) {
@@ -129,7 +130,7 @@ public class TransactionViewModel extends ViewModel {
                 String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
                 transactionRepository.setVoid(transaction.getUlGUP_SN(), date, transaction.getSID());
             }
-            SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository);
+            SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository, onlineTransactionResponse);
             if (isGIB != null) {
                 new Handler(Looper.getMainLooper()).postDelayed(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt))), 1000);
                 if (isGIB) {
@@ -168,6 +169,14 @@ public class TransactionViewModel extends ViewModel {
         infoDialogLiveData.postValue(infoDialogData);
     }
 
+    public MutableLiveData<Boolean> getIsPrintedLiveData() {
+        return isPrintedLiveData;
+    }
+
+    public void setIsPrintedLiveData(boolean isPrinted) {
+        isPrintedLiveData.postValue(isPrinted);
+    }
+
     public List<Transaction> getTransactionsByCardNo(String cardNo) {
         return transactionRepository.getTransactionsByCardNo(cardNo);
     }
@@ -187,14 +196,14 @@ public class TransactionViewModel extends ViewModel {
     public void prepareSlip(ActivationRepository activationRepository, BatchRepository batchRepository, MainActivity mainActivity,
                             Transaction transaction, TransactionCode transactionCode, boolean isCopy) {
         Observable<Integer> singleItemObservable = Observable.just(1);
-        SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository);
+        SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository, null);
         Disposable disposable = singleItemObservable
                 .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.io())
                 .subscribe(
                         item -> transactionRepository.prepareSlip(receipt, mainActivity, transaction, transactionCode, isCopy),
                         throwable -> { },
-                        () -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, ""))
+                        () -> setIsPrintedLiveData(true)
                 );
     }
 

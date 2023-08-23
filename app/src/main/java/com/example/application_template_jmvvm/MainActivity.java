@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         serviceViewModel.getIsConnectedLiveData().observe(this, isConnected -> {
             infoDialog.dismiss();
             actionControl(getIntent().getAction());
-            initializeCardService(this);
+            initializeCardService(this, false);
         });
     }
 
@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
      * at card service bind.
      * @param lifecycleOwner for observe the cardServiceConnect liveData from CardViewModel.
      */
-    public void initializeCardService(LifecycleOwner lifecycleOwner) {
+    public void initializeCardService(LifecycleOwner lifecycleOwner, boolean fromActivation) {
         final boolean[] isCancelled = {false};
         CountDownTimer timer = new CountDownTimer(30000, 1000) {
             @Override
@@ -182,14 +182,18 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     if (infoDialog != null) {
                         infoDialog.dismiss();
-                        finish();
                     }
                 }, 2000);
             }
         };
         timer.start();
         cardViewModel.initializeCardServiceBinding(this);
-        cardViewModel.getMessageLiveData().observe(this, message -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show());
+        cardViewModel.getMessageLiveData().observe(this, message -> {
+            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+            if (!fromActivation) {
+                Toast.makeText(getApplicationContext(), getString(R.string.setup_bank), Toast.LENGTH_LONG).show();
+            }
+        });
 
         cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
             if (isConnected && !isCancelled[0]) {
@@ -209,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             cardViewModel.readCard(amount, transactionCode);
             cardViewModel.getResponseMessageLiveData().observe(lifecycleOwner, responseCode -> responseMessage(responseCode, ""));
         } else {
-            initializeCardService(lifecycleOwner);
+            initializeCardService(lifecycleOwner, false);
             readCard(lifecycleOwner, amount, transactionCode);
         }
     }
