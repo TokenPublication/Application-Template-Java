@@ -45,6 +45,7 @@ public class TransactionViewModel extends ViewModel {
     private TransactionRepository transactionRepository;
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
     private MutableLiveData<InfoDialogData> infoDialogLiveData = new MutableLiveData<>();
+    private MutableLiveData<Boolean> isPrintedLiveData = new MutableLiveData<>();
 
     @Inject
     public TransactionViewModel(TransactionRepository transactionRepository) {
@@ -168,6 +169,14 @@ public class TransactionViewModel extends ViewModel {
         infoDialogLiveData.postValue(infoDialogData);
     }
 
+    public MutableLiveData<Boolean> getIsPrintedLiveData() {
+        return isPrintedLiveData;
+    }
+
+    public void setIsPrintedLiveData(boolean isPrinted) {
+        isPrintedLiveData.postValue(isPrinted);
+    }
+
     public List<Transaction> getTransactionsByCardNo(String cardNo) {
         return transactionRepository.getTransactionsByCardNo(cardNo);
     }
@@ -194,7 +203,7 @@ public class TransactionViewModel extends ViewModel {
                 .subscribe(
                         item -> transactionRepository.prepareSlip(receipt, mainActivity, transaction, transactionCode, isCopy),
                         throwable -> { },
-                        () -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, ""))
+                        () -> setIsPrintedLiveData(true)
                 );
     }
 

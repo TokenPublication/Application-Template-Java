@@ -44,7 +44,7 @@ public class TransactionsRecycleAdapter extends RecyclerView.Adapter<Transaction
         holder.card_no.setText(StringHelper.MaskTheCardNo(transaction.getBaPAN()));
         String date = DateUtil.getFormattedDate(transaction.getBaTranDate().substring(0, 8)) + " " + DateUtil.getFormattedTime(transaction.getBaTranDate().substring(8));
         holder.process_time.setText(date);
-        if (transaction.getbTransCode() != TransactionCode.SALE.getType()) {
+        if (transaction.getbTransCode() != TransactionCode.SALE.getType() && transaction.getbTransCode() != TransactionCode.INSTALLMENT_SALE.getType()) {
             holder.sale_amount.setText(StringHelper.getAmount(transaction.getUlAmount2()));
         } else {
             holder.sale_amount.setText(StringHelper.getAmount(transaction.getUlAmount()));

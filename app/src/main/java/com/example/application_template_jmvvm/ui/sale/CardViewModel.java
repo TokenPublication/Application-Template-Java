@@ -41,8 +41,8 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
         cardRepository.cardServiceBinder(mainActivity);
     }
 
-    public void setEMVConfiguration(boolean fromCardService) {
-        cardRepository.setEMVConfiguration(fromCardService);
+    public void setEMVConfiguration() {
+        cardRepository.setEMVConfiguration();
     }
 
     public void readCard(int amount, TransactionCode transactionCode) {

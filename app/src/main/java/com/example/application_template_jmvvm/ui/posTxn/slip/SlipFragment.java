@@ -75,7 +75,7 @@ public class SlipFragment extends Fragment implements InfoDialogListener {
             if (batchViewModel.getPreviousBatchSlip() != null) {
                 infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
                 batchViewModel.printPreviousBatchSlip(mainActivity);
-                batchViewModel.getInfoDialogLiveData().observe(mainActivity, infoDialogData -> infoDialog.dismiss());
+                batchViewModel.getIsPrintedLiveData().observe(mainActivity, infoDialogData -> infoDialog.dismiss());
             } else {
                 infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Warning, mainActivity.getString(R.string.batch_close_not_found), false);
                 new Handler(Looper.getMainLooper()).postDelayed(() -> infoDialog.dismiss(),2000);
@@ -86,7 +86,7 @@ public class SlipFragment extends Fragment implements InfoDialogListener {
             if (!transactionViewModel.isTransactionListEmpty()) {
                 infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
                 batchViewModel.prepareSlip(mainActivity, activationViewModel.getActivationRepository(), transactionList, false, false);
-                batchViewModel.getInfoDialogLiveData().observe(mainActivity, infoDialogData -> infoDialog.dismiss());
+                batchViewModel.getIsPrintedLiveData().observe(mainActivity, infoDialogData -> infoDialog.dismiss());
             }  else {
                 infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Warning, mainActivity.getString(R.string.trans_not_found), false);
                 new Handler(Looper.getMainLooper()).postDelayed(() -> infoDialog.dismiss(),2000);
@@ -131,7 +131,7 @@ public class SlipFragment extends Fragment implements InfoDialogListener {
         }
         infoDialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt), false);
         transactionViewModel.prepareSlip(activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), mainActivity, transaction, transactionCode, true);
-        transactionViewModel.getInfoDialogLiveData().observe(getViewLifecycleOwner(), infoDialogData -> infoDialog.dismiss());
+        transactionViewModel.getIsPrintedLiveData().observe(getViewLifecycleOwner(), isPrinted -> infoDialog.dismiss());
     }
 
     @Override

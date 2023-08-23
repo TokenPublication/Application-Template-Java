@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
+import com.example.application_template_jmvvm.ui.posTxn.demoMode.DemoFragment;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
 import com.example.application_template_jmvvm.ui.posTxn.slip.SlipFragment;
@@ -117,6 +118,11 @@ public class PosTxnFragment extends Fragment implements InfoDialogListener {
         menuItems.add(new MenuItem(getString(R.string.slip_menu), iListMenuItem -> {
             SlipFragment slipFragment = new SlipFragment(this.mainActivity, activationViewModel, transactionViewModel, batchViewModel);
             mainActivity.replaceFragment(R.id.container, slipFragment, true);
+        }));
+
+        menuItems.add(new MenuItem(getString(R.string.demo_mode), iListMenuItem -> {
+            DemoFragment demoFragment = new DemoFragment(mainActivity);
+            mainActivity.replaceFragment(R.id.container, demoFragment, true);
         }));
 
         listMenuFragment = ListMenuFragment.newInstance(menuItems, getString(R.string.pos_operations), true, R.drawable.token_logo_png);
