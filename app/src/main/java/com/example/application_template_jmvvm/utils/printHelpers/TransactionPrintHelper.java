@@ -115,13 +115,12 @@ public class TransactionPrintHelper extends BasePrintHelper {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
             dateTime = sdf.format(Calendar.getInstance().getTime());
         }
-
+        lineTime += dateTime;
         if (slipType == SlipType.CARDHOLDER_SLIP) {
             lineTime += receipt.getIsOffline() == 1 ? " C OFFLINE" : " C ONLINE";
         } else if (slipType == SlipType.MERCHANT_SLIP) {
             lineTime += receipt.getIsOffline() == 1 ? " M OFFLINE" : " M ONLINE";
         }
-        lineTime += dateTime;
 
         styledText.newLine();
         styledText.addTextToLine(lineTime, PrinterDefinitions.Alignment.Center);
