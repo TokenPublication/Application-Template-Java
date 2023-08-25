@@ -197,6 +197,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
 
         cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
             if (isConnected && !isCancelled[0]) {
+                Log.d("Card Service Bind:", "Success");
                 timer.cancel();
             }
         });

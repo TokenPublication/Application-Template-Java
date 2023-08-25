@@ -19,7 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class SalePrintHelper extends BasePrintHelper {
+public class TransactionPrintHelper extends BasePrintHelper {
     private final String resAmount = "TUTAR:";
     private final String resVoid = "İPTAL EDİLMİŞTİR";
     private final String resRefund = "MAL/HİZM İADE EDİLMİŞTİR";
@@ -115,18 +115,13 @@ public class SalePrintHelper extends BasePrintHelper {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
             dateTime = sdf.format(Calendar.getInstance().getTime());
         }
+        lineTime += dateTime;
+        if (slipType == SlipType.CARDHOLDER_SLIP) {
+            lineTime += receipt.getIsOffline() == 1 ? " C OFFLINE" : " C ONLINE";
+        } else if (slipType == SlipType.MERCHANT_SLIP) {
+            lineTime += receipt.getIsOffline() == 1 ? " M OFFLINE" : " M ONLINE";
+        }
 
-        if (transactionCode == TransactionCode.VOID) {
-            lineTime = dateTime + " M OFFLINE";
-        }
-        else if (transactionCode == TransactionCode.SALE || transactionCode == TransactionCode.INSTALLMENT_SALE) {
-            lineTime = dateTime + " C ONLINE";
-        }
-        else if (transactionCode == TransactionCode.MATCHED_REFUND) {
-            lineTime = dateTime + " M ONLINE";
-        } else {
-            lineTime = dateTime;
-        }
         styledText.newLine();
         styledText.addTextToLine(lineTime, PrinterDefinitions.Alignment.Center);
 

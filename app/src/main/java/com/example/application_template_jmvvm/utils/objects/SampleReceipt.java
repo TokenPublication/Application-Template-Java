@@ -19,6 +19,7 @@ public class SampleReceipt {
     private String authCode;
     private String refNo;
     private String serialNo;
+    private int isOffline;
 
     public SampleReceipt (Transaction transaction, ActivationRepository activationRepository, BatchRepository batchRepository,
                         OnlineTransactionResponse onlineTransactionResponse) {
@@ -39,6 +40,7 @@ public class SampleReceipt {
             setRefNo(transaction.getRefNo());
         }
         setSerialNo(String.valueOf(transaction.getUlGUP_SN()));
+        setIsOffline(transaction.getIsOffline());
     }
 
     public String getMerchantName() {
@@ -131,5 +133,13 @@ public class SampleReceipt {
 
     public void setSerialNo(String serialNo) {
         this.serialNo = serialNo;
+    }
+
+    public int getIsOffline() {
+        return isOffline;
+    }
+
+    public void setIsOffline(int isOffline) {
+        this.isOffline = isOffline;
     }
 }
