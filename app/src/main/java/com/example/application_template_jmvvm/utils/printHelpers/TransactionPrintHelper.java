@@ -79,7 +79,7 @@ public class TransactionPrintHelper extends BasePrintHelper {
                     transactionType = "E. İADE İPTALİ";
                     break;
                 case 5:
-                    transactionType = "N. İADE İPTALİ";
+                    transactionType = "P. İADE İPTALİ";
                     break;
                 case 6:
                     transactionType = "T. İADE İPTALİ";
@@ -102,18 +102,16 @@ public class TransactionPrintHelper extends BasePrintHelper {
             styledText.addTextToLine(transaction.getbInstCnt() + " TAKSİT", PrinterDefinitions.Alignment.Center);
         }
         if (transactionCode == TransactionCode.CASH_REFUND) {
-            styledText.addTextToLine("NAKİT İADE", PrinterDefinitions.Alignment.Center);
+            styledText.addTextToLine("PEŞİN İADE", PrinterDefinitions.Alignment.Center);
         }
 
         String dateTime = "";
         String lineTime = "";
         if ((slipType == SlipType.CARDHOLDER_SLIP && ((AppTemp) context.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.GIB.name()))
             || slipType == SlipType.MERCHANT_SLIP) {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yy HH:mm:ss", Locale.getDefault());
-            dateTime = sdf.format(Calendar.getInstance().getTime());
+            dateTime = DateUtil.getFormattedDate(transaction.getBaTranDate().substring(0, 8)) + " " + DateUtil.getFormattedTime(transaction.getBaTranDate().substring(8));
         } else {
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
-            dateTime = sdf.format(Calendar.getInstance().getTime());
+            dateTime = DateUtil.getFormattedTime(transaction.getBaTranDate().substring(8));
         }
         lineTime += dateTime;
         if (slipType == SlipType.CARDHOLDER_SLIP) {
