@@ -128,7 +128,7 @@ public class TransactionPrintHelper extends BasePrintHelper {
 
         if (receipt.getFullName() != null) {
             styledText.newLine();
-            styledText.addTextToLine(receipt.getFullName(), Alignment.Center);
+            styledText.addTextToLine(StringHelper.formatName(receipt.getFullName()), Alignment.Center);
         }
 
         if (transactionCode == TransactionCode.VOID) {

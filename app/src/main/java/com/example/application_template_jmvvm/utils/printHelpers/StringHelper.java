@@ -136,4 +136,19 @@ public class StringHelper {
         }
         return label;
     }
+
+    public static String formatName(String name) {
+        if (name == null || name.isEmpty()) {
+            return ""; // Handle empty or null input
+        }
+
+        String[] parts = name.split("/");
+        if (parts.length == 2) {
+            String firstName = parts[1].trim();
+            String lastName = parts[0].trim();
+            return firstName + " " + lastName;
+        } else {
+            return name; // Return the original name if it doesn't contain a slash
+        }
+    }
 }
