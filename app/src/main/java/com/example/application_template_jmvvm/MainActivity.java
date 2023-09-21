@@ -233,17 +233,18 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private void saleActionReceived() {
         SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
         SharedPreferences sharedPreferences = getSharedPreferences("myprefs", Context.MODE_PRIVATE);
+        boolean isGIB = ((AppTemp) this.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.GIB.name());
         boolean isEnabled = sharedPreferences.getBoolean("demo_mode", false);
         Bundle bundle = getIntent().getExtras();
         String cardData = bundle != null ? bundle.getString("CardData") : null;
         int amount = getIntent().getExtras().getInt("Amount");
 
         // when sale operation is called from pgw which has multi bank and app temp is the only issuer of this card
-        if (!Objects.equals(cardData, "CardData") && cardData != null && !cardData.equals(" ")) {
+        if (!isGIB && !Objects.equals(cardData, "CardData") && cardData != null && !cardData.equals(" ")) {
             ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 saleTxnFragment.doSale(card, this);
-            }, 2000);
+            }, 500);
         }
 
         if (getIntent().getExtras() != null) {
