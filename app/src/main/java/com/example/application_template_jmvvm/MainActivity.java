@@ -21,6 +21,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
@@ -37,8 +38,10 @@ import com.example.application_template_jmvvm.ui.sale.SaleFragment;
 import com.example.application_template_jmvvm.ui.trigger.TriggerFragment;
 import com.example.application_template_jmvvm.ui.trigger.TriggerViewModel;
 import com.example.application_template_jmvvm.utils.ExtraContentInfo;
+import com.google.gson.Gson;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
+import com.tokeninc.deviceinfo.DeviceInfo;
 import com.tokeninc.libtokenkms.TokenKMS;
 
 import org.json.JSONObject;
@@ -230,17 +233,18 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private void saleActionReceived() {
         SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
         SharedPreferences sharedPreferences = getSharedPreferences("myprefs", Context.MODE_PRIVATE);
+        boolean isGIB = ((AppTemp) this.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.GIB.name());
         boolean isEnabled = sharedPreferences.getBoolean("demo_mode", false);
         Bundle bundle = getIntent().getExtras();
         String cardData = bundle != null ? bundle.getString("CardData") : null;
         int amount = getIntent().getExtras().getInt("Amount");
 
-        if (cardData != null && !cardData.equals(" ")) {
-            if (isEnabled) {
-                saleTxnFragment.cardReader(this, amount, false);
-            } else {
-                replaceFragment(R.id.container, saleTxnFragment, false);
-            }
+        // when sale operation is called from pgw which has multi bank and app temp is the only issuer of this card
+        if (!isGIB && !Objects.equals(cardData, "CardData") && cardData != null && !cardData.equals(" ")) {
+            ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                saleTxnFragment.doSale(card, this);
+            }, 500);
         }
 
         if (getIntent().getExtras() != null) {

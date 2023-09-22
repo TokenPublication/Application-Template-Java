@@ -72,14 +72,21 @@ public class BatchClosePrintHelper extends BasePrintHelper {
             addTextToNewLine(styledText, transaction.getRefNo(), PrinterDefinitions.Alignment.Left);
 
             int amount;
+            boolean isRefund = false;
             if (transaction.getbTransCode() == TransactionCode.MATCHED_REFUND.getType() ||
-                    transaction.getbTransCode() == TransactionCode.INSTALLMENT_REFUND.getType()) {
+                    transaction.getbTransCode() == TransactionCode.INSTALLMENT_REFUND.getType() ||
+                    transaction.getbTransCode() == TransactionCode.CASH_REFUND.getType()) {
                 amount = transaction.getUlAmount2();
+                isRefund = true;
             } else {
                 amount = transaction.getUlAmount();
             }
             if (transaction.isVoid == 0) {
-                totalAmount += amount;
+                if (isRefund) {
+                    totalAmount -= amount;
+                } else {
+                    totalAmount += amount;
+                }
             }
             addText(styledText, StringHelper.getAmount(amount), PrinterDefinitions.Alignment.Right);
             styledText.newLine();
