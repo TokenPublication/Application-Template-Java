@@ -119,6 +119,9 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         if (BuildConfig.FLAVOR.equals("TR400")) {
             Log.v("TR400 APP", "Application Template for 400TR");
         }
+        if (BuildConfig.FLAVOR.equals("TR330")) {
+            Log.v("TR330 APP", "Application Template for 330TR");
+        }
     }
 
     /**
