@@ -141,6 +141,10 @@ public class CardRepository implements CardServiceListener {
             repositoryCallback.setResponseMessage(ResponseCode.ERROR);
             e.printStackTrace();
         }
+        if (!isApprove) {
+            cardServiceBinding.unBind();
+            repositoryCallback.afterCardServiceConnected(false);
+        }
     }
 
     /**
@@ -153,6 +157,7 @@ public class CardRepository implements CardServiceListener {
             obj.put("zeroAmount", 0);
             obj.put("showAmount", 1);
             obj.put("emvProcessType", EmvProcessType.CONTINUE_EMV.ordinal());
+            isApprove = false; // to unbind CardService
             getCard(amount, obj.toString());
         } catch (Exception e) {
             repositoryCallback.setResponseMessage(ResponseCode.ERROR);

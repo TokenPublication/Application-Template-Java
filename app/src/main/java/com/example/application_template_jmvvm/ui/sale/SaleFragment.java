@@ -305,6 +305,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     private Bundle getInfo() {
         Bundle bundle = new Bundle();
         uuid = mainActivity.getIntent().getExtras().getString("UUID");
+        Log.d("UUID of Sale, SaleFragment", uuid);
         ZNO = mainActivity.getIntent().getExtras().getString("ZNO");
         receiptNo = mainActivity.getIntent().getExtras().getString("ReceiptNo");
 
