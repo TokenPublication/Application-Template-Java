@@ -30,30 +30,28 @@ public class CheckSaleReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.hasExtra("UUID")) {
-            Log.d("UUID, Receiver", intent.getExtras().getString("UUID"));
+            Log.i("UUID, Receiver", intent.getExtras().getString("UUID"));
             String uuid = intent.getExtras().getString("UUID");
             AppTempDB db = AppTempDB.getDatabase(context);
-            Log.d("AppTempDB Control:", db.toString());
             ActivationRepository activationRepository = new ActivationRepository(db.activationDao());
             BatchRepository batchRepository = new BatchRepository(db.batchDao());
-            Log.d("Batch Repo", batchRepository.toString());
             TransactionPrintHelper transactionPrintHelper = new TransactionPrintHelper();
             List<Transaction> transactionList = db.transactionDao().getTransactionsByUUID(uuid);
             Transaction transaction;
             if (transactionList == null || transactionList.isEmpty()) {
-                Log.d("TransactionList:", "Empty");
+                Log.i("TransactionList:", "Empty");
                 transaction = null;
             } else {
-                Log.d("TransactionList:", transactionList.toString());
+                Log.i("TransactionList:", transactionList.toString());
                 transaction = transactionList.get(0);
             }
             Intent resultIntent = new Intent();
             Bundle bundle = new Bundle();
-            Log.d("Transaction:Statement", "Before");
+            Log.i("Transaction:Statement", "Before");
             if (transaction != null) {
-                Log.d("Transaction:CheckSale", "Not Null");
-                Log.d("Transaction:CheckSale", transaction.getUuid());
-                Log.d("Transaction:CheckSale", String.valueOf(transaction.getUlAmount()));
+                Log.i("Transaction:CheckSale", "Not Null");
+                Log.i("Transaction:CheckSale", transaction.getUuid());
+                Log.i("Transaction:CheckSale", String.valueOf(transaction.getUlAmount()));
                 bundle.putInt("ResponseCode", ResponseCode.SUCCESS.ordinal());
                 bundle.putInt("PaymentStatus", 0);
                 bundle.putInt("Amount", transaction.getUlAmount());
@@ -65,14 +63,14 @@ public class CheckSaleReceiver extends BroadcastReceiver {
                 bundle.putInt("SlipType", SlipType.BOTH_SLIPS.value);
                 bundle.putBoolean("IsSlip", true);
             } else {
-                Log.d("Transaction:CheckSale", "Null");
+                Log.i("Transaction:CheckSale", "Null");
                 bundle.putInt("ResponseCode", ResponseCode.ERROR.ordinal());
             }
-            Log.d("Transaction:Statement", "After");
+            Log.i("Transaction:Statement", "After");
             resultIntent.putExtras(bundle);
             resultIntent.setAction("check_sale_result");
             resultIntent.setPackage("com.tokeninc.sardis.paymentgateway");
-            Log.d("intent_control", resultIntent.toString());
+            Log.i("intent_control", resultIntent.toString());
             context.sendBroadcast(resultIntent);
         }
     }
