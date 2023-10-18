@@ -149,8 +149,9 @@ public class TransactionViewModel extends ViewModel {
 
     public void prepareDummyResponse(ActivationRepository activationRepository, BatchRepository batchRepository, MainActivity mainActivity,
                                      Integer price, ResponseCode code, Boolean hasSlip, SlipType slipType, String cardNo, String ownerName, int paymentType) {
-        transactionRepository.prepareDummyResponse(this, activationRepository, batchRepository, mainActivity,
+        Intent resultIntent = transactionRepository.prepareDummyResponse(activationRepository, batchRepository, mainActivity,
                                                     price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
+        setIntentLiveData(resultIntent);
     }
 
     public MutableLiveData<Intent> getIntentLiveData() {

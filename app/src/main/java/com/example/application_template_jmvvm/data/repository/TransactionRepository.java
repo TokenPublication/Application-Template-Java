@@ -228,7 +228,7 @@ public class TransactionRepository {
         styledText.print(PrinterService.getService(mainActivity.getApplicationContext()));
     }
 
-    public void prepareDummyResponse(TransactionViewModel transactionViewModel, ActivationRepository activationRepository, BatchRepository batchRepository,
+    public Intent prepareDummyResponse(ActivationRepository activationRepository, BatchRepository batchRepository,
                                      MainActivity mainActivity, Integer price, ResponseCode code, Boolean hasSlip,
                                      SlipType slipType, String cardNo, String ownerName, int paymentType) {
         Intent resultIntent = new Intent();
@@ -262,7 +262,7 @@ public class TransactionRepository {
             bundle.putString("merchantSlipData", transactionPrintHelper.getDummyFormattedText(receipt, TransactionCode.SALE, SlipType.MERCHANT_SLIP, mainActivity, "1", "1"));
         }
         resultIntent.putExtras(bundle);
-        transactionViewModel.setIntentLiveData(resultIntent);
+        return resultIntent;
     }
 
     /**

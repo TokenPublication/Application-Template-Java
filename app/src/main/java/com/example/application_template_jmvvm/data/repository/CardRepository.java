@@ -57,6 +57,7 @@ public class CardRepository implements CardServiceListener {
     }
 
     public void cardServiceBinder(MainActivity mainActivity) {
+        Log.i("cardLogs","enter cardServiceBinder");
         this.mainActivity = mainActivity;
         this.cardServiceBinding = new CardServiceBinding(mainActivity, cardServiceListener);
     }
@@ -193,6 +194,7 @@ public class CardRepository implements CardServiceListener {
      */
     @Override
     public void onCardServiceConnected() {
+        Log.i("cardLogs","enter onCardServiceConnected");
         setEMVConfiguration();
         repositoryCallback.afterCardServiceConnected(true);
     }
@@ -232,7 +234,7 @@ public class CardRepository implements CardServiceListener {
             repositoryCallback.setMessage("setEMVConfiguration res=" + setConfigResult);
             Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
         } catch (Exception e) {
-            mainActivity.responseMessage(ResponseCode.ERROR, "EMV Configuration Error");
+            mainActivity.responseMessage(ResponseCode.ERROR, "EMV Configuration Error", null);
             e.printStackTrace();
         }
     }
@@ -253,7 +255,7 @@ public class CardRepository implements CardServiceListener {
             repositoryCallback.setMessage("setEMVCLConfiguration res=" + setCLConfigResult);
             Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
         } catch (Exception e) {
-            mainActivity.responseMessage(ResponseCode.ERROR, "EMV CL Configuration Error");
+            mainActivity.responseMessage(ResponseCode.ERROR, "EMV CL Configuration Error", null);
             e.printStackTrace();
         }
     }

@@ -50,8 +50,6 @@ public class CheckSaleReceiver extends BroadcastReceiver {
             Log.i("Transaction:Statement", "Before");
             if (transaction != null) {
                 Log.i("Transaction:CheckSale", "Not Null");
-                Log.i("Transaction:CheckSale", transaction.getUuid());
-                Log.i("Transaction:CheckSale", String.valueOf(transaction.getUlAmount()));
                 bundle.putInt("ResponseCode", ResponseCode.SUCCESS.ordinal());
                 bundle.putInt("PaymentStatus", 0);
                 bundle.putInt("Amount", transaction.getUlAmount());
@@ -63,8 +61,7 @@ public class CheckSaleReceiver extends BroadcastReceiver {
                 bundle.putInt("SlipType", SlipType.BOTH_SLIPS.value);
                 bundle.putBoolean("IsSlip", true);
             } else {
-                Log.i("Transaction:CheckSale", "Null");
-                bundle.putInt("ResponseCode", ResponseCode.ERROR.ordinal());
+                Log.i("Check Sale Receiver","Transaction is null");
             }
             Log.i("Transaction:Statement", "After");
             resultIntent.putExtras(bundle);

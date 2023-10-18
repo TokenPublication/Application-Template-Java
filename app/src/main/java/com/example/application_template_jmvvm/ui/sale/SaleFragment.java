@@ -269,7 +269,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
                     mainActivity.finish();
                 }, 2000);
             } else {
-                mainActivity.responseMessage(code, "");
+                mainActivity.responseMessage(code, "", resultIntent);
             }
         });
     }
@@ -305,7 +305,9 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
     private Bundle getInfo() {
         Bundle bundle = new Bundle();
         uuid = mainActivity.getIntent().getExtras().getString("UUID");
-        Log.i("UUID of Sale, SaleFragment", uuid);
+        if (uuid != null) {
+            Log.i("UUID of Sale, SaleFragment", uuid);
+        }
         ZNO = mainActivity.getIntent().getExtras().getString("ZNO");
         receiptNo = mainActivity.getIntent().getExtras().getString("ReceiptNo");
 
@@ -342,7 +344,7 @@ public class SaleFragment extends Fragment implements InfoDialogListener {
         dialog.setDismissedListener(() -> {
             if (isCancelable) {
                 QRisSuccess = false;
-                mainActivity.responseMessage(ResponseCode.CANCELLED, "");
+                mainActivity.responseMessage(ResponseCode.CANCELLED, "", null);
             }
         });
     }
