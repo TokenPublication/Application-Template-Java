@@ -368,6 +368,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             }
             intent.putExtras(bundle);
             setResult(activityResult, intent);
+            finish();
         },2000);
     }
 
