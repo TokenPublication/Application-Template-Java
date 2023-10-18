@@ -107,7 +107,7 @@ public class VoidFragment extends Fragment implements InfoDialogListener {
                     doVoid(mainActivity, transaction, isGIB);
                 }
             } else {
-                mainActivity.responseMessage(ResponseCode.ERROR, getString(R.string.trans_not_found));
+                mainActivity.responseMessage(ResponseCode.ERROR, getString(R.string.trans_not_found), null);
             }
         });
     }

@@ -88,8 +88,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     }
 
     public void startActivity() {
-        buildConfigs();
-
         activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);
         batchViewModel = new ViewModelProvider(this).get(BatchViewModel.class);
         cardViewModel = new ViewModelProvider(this).get(CardViewModel.class);
@@ -97,6 +95,17 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         triggerViewModel = new ViewModelProvider(this).get(TriggerViewModel.class);
         serviceViewModel = new ViewModelProvider(this).get(ServiceViewModel.class);
 
+        buildConfigs();
+        connectServices();
+    }
+
+    /**
+     * This function calls serviceRoutine, which firstly connects DeviceInfo service, then KMS service
+     * After it connects these two services successfully, it calls connecting Card Service and without waiting connecting
+     * card service it updates the UI with respect to action mainActivity has. It tries to connect cardService on background
+     * If it couldn't connect KMS or deviceInfo services, it warns the user then finishes the mainActivity
+     */
+    private void connectServices() {
         infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
         serviceViewModel.ServiceRoutine(this);
         serviceViewModel.getInfoDialogLiveData().observe(this, infoDialogData -> infoDialog.update(infoDialogData.getType(), infoDialogData.getText()));
@@ -218,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     public void readCard(LifecycleOwner lifecycleOwner, int amount, TransactionCode transactionCode) {
         if (cardViewModel.getCardServiceBinding() != null) {
             cardViewModel.readCard(amount, transactionCode);
-            cardViewModel.getResponseMessageLiveData().observe(lifecycleOwner, responseCode -> responseMessage(responseCode, ""));
+            cardViewModel.getResponseMessageLiveData().observe(lifecycleOwner, responseCode -> responseMessage(responseCode, "", null));
         } else {
             initializeCardService(lifecycleOwner, false);
             readCard(lifecycleOwner, amount, transactionCode);
@@ -280,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
      */
     private void refundActionReceived() {
         if (getIntent().getExtras() == null || getIntent().getExtras().getString("RefundInfo") == null) {
-            responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_not_found));
+            responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_not_found), null);
         } else {
             try {
                 String refundData = new JSONObject(getIntent().getExtras().getString("RefundInfo")).toString();
@@ -301,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                     refundFragment.cardReader(this, refundBundle, true);
                 }
             } catch (Exception e) {
-                responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_not_found));
+                responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_not_found), null);
             }
         }
     }
@@ -312,9 +321,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
      * finish with intent contains response code. Also with message parameter, the
      * error messages can seen at screen.
      */
-    public void responseMessage(ResponseCode responseCode, String message) {
-        Bundle bundle = new Bundle();
-        Intent intent = new Intent();
+    public void responseMessage(ResponseCode responseCode, String message, Intent resultIntent) {
         switch (responseCode) {
             case ERROR:
                 if (!Objects.equals(message, "")) {
@@ -334,10 +341,33 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 break;
         }
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            Bundle bundle = new Bundle();
+            Intent intent = new Intent();
+            int activityResult = Activity.RESULT_CANCELED;
             bundle.putInt("ResponseCode", responseCode.ordinal());
+            if (resultIntent != null) {
+                Bundle resBundle = resultIntent.getExtras();
+                if (resBundle != null) {
+                    int amount = resBundle.getInt("Amount");
+                    int resCode = resBundle.getInt("ResponseCode");
+                    int slipType = resBundle.getInt("SlipType");
+                    int paymentType = resBundle.getInt("PaymentType");
+                    String slipData = resBundle.getString("customerSlipData");
+                    activityResult = Activity.RESULT_OK;
+
+                    bundle.putInt("Amount", amount);
+                    bundle.putInt("ResponseCode", resCode);
+                    bundle.putInt("SlipType", slipType);
+                    bundle.putInt("PaymentType", paymentType);
+                    bundle.putString("customerSlipData", slipData);
+
+                    Log.i("Dummy Response", "Amount: " + amount + ", ResponseCode: " + resCode +
+                            ", SlipType: " + slipType + ", PaymentType: " + paymentType);
+                    Log.i("Dummy Slip:", slipData);
+                }
+            }
             intent.putExtras(bundle);
-            setResult(Activity.RESULT_CANCELED, intent);
-            finish();
+            setResult(activityResult, intent);
         },2000);
     }
 
