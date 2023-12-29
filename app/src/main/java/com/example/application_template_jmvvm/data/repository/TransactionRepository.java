@@ -261,10 +261,6 @@ public class TransactionRepository {
         if (slipType == SlipType.MERCHANT_SLIP || slipType == SlipType.BOTH_SLIPS) {
             bundle.putString("merchantSlipData", transactionPrintHelper.getDummyFormattedText(receipt, TransactionCode.SALE, SlipType.MERCHANT_SLIP, mainActivity, "1", "1"));
         }
-        if (slipType == SlipType.NO_SLIP) {
-            bundle.putString("customerSlipData", "");
-            bundle.putString("merchantSlipData", "");
-        }
         resultIntent.putExtras(bundle);
         return resultIntent;
     }

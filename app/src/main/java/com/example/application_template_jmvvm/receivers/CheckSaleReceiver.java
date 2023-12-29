@@ -30,8 +30,8 @@ public class CheckSaleReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.hasExtra("UUID")) {
-            Log.i("UUID, Receiver", intent.getExtras().getString("UUID"));
             String uuid = intent.getExtras().getString("UUID");
+            Log.i("CheckSaleReceiver onReceive", "UUID: " + uuid);
             AppTempDB db = AppTempDB.getDatabase(context);
             ActivationRepository activationRepository = new ActivationRepository(db.activationDao());
             BatchRepository batchRepository = new BatchRepository(db.batchDao());

@@ -84,6 +84,8 @@
     <string name="invalid_merchant_no">İşyeri No Geçersiz!</string>
     <string name="terminal_no">Terminal No:</string>
     <string name="invalid_terminal_no">Terminal No Geçersiz!</string>
+    <string name="emv_configuration_error">EMV Kurulum Hatası</string>
+    <string name="emv_cl_configuration_error">EMV Temassız Kurulum Hatası</string>
 
     <string name="print_functions">Print Fonksiyonları</string>
     <string name="kms_service_error">KMS Servis Hatası</string>

@@ -340,34 +340,36 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 showInfoDialog(InfoDialog.InfoType.Declined, getString(R.string.declined), true);
                 break;
         }
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            Bundle bundle = new Bundle();
-            Intent intent = new Intent();
-            int activityResult = Activity.RESULT_CANCELED;
-            bundle.putInt("ResponseCode", responseCode.ordinal());
-            if (resultIntent != null) {
-                Bundle resBundle = resultIntent.getExtras();
-                if (resBundle != null) {
-                    int amount = resBundle.getInt("Amount");
-                    int resCode = resBundle.getInt("ResponseCode");
-                    int slipType = resBundle.getInt("SlipType");
-                    int paymentType = resBundle.getInt("PaymentType");
-                    String slipData = resBundle.getString("customerSlipData");
-                    activityResult = Activity.RESULT_OK;
 
-                    bundle.putInt("Amount", amount);
-                    bundle.putInt("ResponseCode", resCode);
-                    bundle.putInt("SlipType", slipType);
-                    bundle.putInt("PaymentType", paymentType);
-                    bundle.putString("customerSlipData", slipData);
+        Bundle bundle = new Bundle();
+        Intent intent = new Intent();
+        int activityResult = Activity.RESULT_CANCELED;
+        bundle.putInt("ResponseCode", responseCode.ordinal());
+        if (resultIntent != null) {
+            Bundle resBundle = resultIntent.getExtras();
+            if (resBundle != null) {
+                int amount = resBundle.getInt("Amount");
+                int resCode = resBundle.getInt("ResponseCode");
+                int slipType = resBundle.getInt("SlipType");
+                int paymentType = resBundle.getInt("PaymentType");
+                String slipData = resBundle.getString("customerSlipData");
+                activityResult = Activity.RESULT_OK;
 
-                    Log.i("Dummy Response", "Amount: " + amount + ", ResponseCode: " + resCode +
-                            ", SlipType: " + slipType + ", PaymentType: " + paymentType);
-                    Log.i("Dummy Slip:", slipData);
-                }
+                bundle.putInt("Amount", amount);
+                bundle.putInt("ResponseCode", resCode);
+                bundle.putInt("SlipType", slipType);
+                bundle.putInt("PaymentType", paymentType);
+                bundle.putString("customerSlipData", slipData);
+
+                Log.i("Dummy Response", "Amount: " + amount + ", ResponseCode: " + resCode +
+                        ", SlipType: " + slipType + ", PaymentType: " + paymentType);
+                Log.i("Dummy Slip:", slipData);
             }
-            intent.putExtras(bundle);
-            setResult(activityResult, intent);
+        }
+        intent.putExtras(bundle);
+        int finalActivityResult = activityResult;
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            setResult(finalActivityResult, intent);
             finish();
         },2000);
     }
