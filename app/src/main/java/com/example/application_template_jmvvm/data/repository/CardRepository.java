@@ -57,6 +57,7 @@ public class CardRepository implements CardServiceListener {
     }
 
     public void cardServiceBinder(MainActivity mainActivity) {
+        Log.i("cardServiceBinder","Starting Card Service Binding");
         this.mainActivity = mainActivity;
         this.cardServiceBinding = new CardServiceBinding(mainActivity, cardServiceListener);
     }
@@ -141,6 +142,10 @@ public class CardRepository implements CardServiceListener {
             repositoryCallback.setResponseMessage(ResponseCode.ERROR);
             e.printStackTrace();
         }
+        if (!isApprove) {
+            cardServiceBinding.unBind();
+            repositoryCallback.afterCardServiceConnected(false);
+        }
     }
 
     /**
@@ -153,6 +158,7 @@ public class CardRepository implements CardServiceListener {
             obj.put("zeroAmount", 0);
             obj.put("showAmount", 1);
             obj.put("emvProcessType", EmvProcessType.CONTINUE_EMV.ordinal());
+            isApprove = false; // to unbind CardService
             getCard(amount, obj.toString());
         } catch (Exception e) {
             repositoryCallback.setResponseMessage(ResponseCode.ERROR);
@@ -188,6 +194,7 @@ public class CardRepository implements CardServiceListener {
      */
     @Override
     public void onCardServiceConnected() {
+        Log.i("onCardServiceConnected","Card Service Binding Successful");
         setEMVConfiguration();
         repositoryCallback.afterCardServiceConnected(true);
     }
@@ -227,7 +234,7 @@ public class CardRepository implements CardServiceListener {
             repositoryCallback.setMessage("setEMVConfiguration res=" + setConfigResult);
             Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
         } catch (Exception e) {
-            mainActivity.responseMessage(ResponseCode.ERROR, "EMV Configuration Error");
+            mainActivity.responseMessage(ResponseCode.ERROR, mainActivity.getApplicationContext().getString(R.string.emv_configuration_error), null);
             e.printStackTrace();
         }
     }
@@ -248,7 +255,7 @@ public class CardRepository implements CardServiceListener {
             repositoryCallback.setMessage("setEMVCLConfiguration res=" + setCLConfigResult);
             Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
         } catch (Exception e) {
-            mainActivity.responseMessage(ResponseCode.ERROR, "EMV CL Configuration Error");
+            mainActivity.responseMessage(ResponseCode.ERROR, mainActivity.getApplicationContext().getString(R.string.emv_cl_configuration_error), null);
             e.printStackTrace();
         }
     }

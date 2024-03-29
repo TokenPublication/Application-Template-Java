@@ -12,12 +12,19 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
+import com.example.application_template_jmvvm.utils.objects.BinObject;
 import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
 import com.token.uicomponents.infodialog.InfoDialog;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
@@ -75,12 +82,27 @@ public class TriggerViewModel extends ViewModel {
 
                     bundle.putString("clConfigFile", clConfigFile);
 
-                    String bins = "[{\"cardRangeStart\":\"1111110000000\",\"cardRangeEnd\":\"1111119999999\",\"OwnerShip\":\"ISSUER\",\"CardType\":\"C\"}," +
-                            "{\"cardRangeStart\":\"2222220000000\",\"cardRangeEnd\":\"2222229999999\",\"OwnerShip\":\"NONE\",\"CardType\":\"C\"}," +
-                            "{\"cardRangeStart\":\"3333330000000\",\"cardRangeEnd\":\"3333339999999\",\"OwnerShip\":\"BRAND\",\"CardType\":\"C\"}]";
-                    bundle.putString("BINS", bins);
+                    try {
+                        List<BinObject> binObjects = BinObject.parseBins();
+                        JSONArray jsonArray = new JSONArray();
+                        for (BinObject binObject : binObjects) {
+                            JSONObject binJsonObject = new JSONObject();
+                            binJsonObject.put("cardRangeStart", binObject.getCardRangeStart());
+                            binJsonObject.put("cardRangeEnd", binObject.getCardRangeEnd());
+                            binJsonObject.put("OwnerShip", binObject.getOwnerShip());
+                            binJsonObject.put("CardType", binObject.getCardType());
+
+                            jsonArray.put(binJsonObject);
+                        }
+                        JSONObject finalJsonObject = new JSONObject();
+                        finalJsonObject.put("", jsonArray);
+                        bundle.putString("BINS", jsonArray.toString());
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+
                     bundle.putString("AllowedOperations", "{\"QrAllowed\":1,\"KeyInAllowed\":1}");
-                    bundle.putString("SupportedAIDs", "[A0000000031010, A0000000041010, A0000000032010]");
+                    bundle.putString("SupportedAIDs", "[A0000000031010, A0000000041010, A0000000032010, A0000000043060, A0000006723010, A0000006723020, A000000152301091, A000000152301092, A000000333010101, A000000333010102]");
                     //TODO Developer, Dummy response for test, check from Parameter DB.
 
                     resultIntent.putExtras(bundle);

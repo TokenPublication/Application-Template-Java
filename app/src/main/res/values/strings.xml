@@ -110,6 +110,8 @@
     <string name="invalid_port">Invalid Port!</string>
     <string name="save">Save</string>
     <string name="activation_completed">Activation Completed</string>
+    <string name="emv_configuration_error">EMV Configuration Error</string>
+    <string name="emv_cl_configuration_error">EMV CL Configuration Error</string>
 
     <string name="merchant_no">Merchant No</string>
     <string name="invalid_merchant_no">Invalid Merchant No!</string>
