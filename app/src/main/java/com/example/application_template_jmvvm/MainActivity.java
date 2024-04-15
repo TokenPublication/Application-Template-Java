@@ -37,6 +37,7 @@ import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.sale.SaleFragment;
 import com.example.application_template_jmvvm.ui.trigger.TriggerFragment;
 import com.example.application_template_jmvvm.ui.trigger.TriggerViewModel;
+import com.example.application_template_jmvvm.utils.DeviceModel;
 import com.example.application_template_jmvvm.utils.ExtraContentInfo;
 import com.google.gson.Gson;
 import com.token.uicomponents.infodialog.InfoDialog;
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private ServiceViewModel serviceViewModel;
     private InfoDialog infoDialog;
     private TokenKMS tokenKMS;
+    private DeviceModel deviceModel;
 
     /**
      * This function is overwritten to continue the activity where it was left when
@@ -124,12 +126,15 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private void buildConfigs() {
         if (BuildConfig.FLAVOR.equals("TR1000")) {
             Log.v("TR1000 APP", "Application Template for 1000TR");
+            setDeviceModel(DeviceModel.TR1000);
         }
         if (BuildConfig.FLAVOR.equals("TR400")) {
             Log.v("TR400 APP", "Application Template for 400TR");
+            setDeviceModel(DeviceModel.TR400);
         }
         if (BuildConfig.FLAVOR.equals("TR330")) {
             Log.v("TR330 APP", "Application Template for 330TR");
+            setDeviceModel(DeviceModel.TR330);
         }
     }
 
@@ -372,6 +377,14 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
             setResult(finalActivityResult, intent);
             finish();
         },2000);
+    }
+
+    public DeviceModel getDeviceModel() {
+        return deviceModel;
+    }
+
+    private void setDeviceModel(DeviceModel deviceModel) {
+        this.deviceModel = deviceModel;
     }
 
     /**
