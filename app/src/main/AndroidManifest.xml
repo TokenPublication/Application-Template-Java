@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.application_template_jmvvm">
 
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+
     <application
         android:name=".AppTemp"
         android:allowBackup="true"
@@ -17,7 +19,8 @@
         android:theme="@style/AppTheme.NoActionBar">
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -66,6 +69,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
+        <meta-data android:name="sale_activity_name"
+            android:value="MainActivity" />
         <meta-data
             android:name="app_version"
             android:value="1" />
@@ -76,5 +81,4 @@
             android:name="app_name"
             android:value="${APP_NAME}"/>
         </application>
-
 </manifest>

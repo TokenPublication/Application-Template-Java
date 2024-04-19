@@ -13,7 +13,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.R;
-import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.database.transaction.Transaction;
 import com.example.application_template_jmvvm.data.model.response.OnlineTransactionResponse;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.example.application_template_jmvvm.data.repository.BatchRepository;
@@ -23,6 +23,7 @@ import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.type.SlipType;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.utils.objects.InfoDialogData;
+import com.example.application_template_jmvvm.utils.objects.SampleReceipt;
 import com.token.uicomponents.infodialog.InfoDialog;
 
 import java.text.SimpleDateFormat;
@@ -44,6 +45,7 @@ public class TransactionViewModel extends ViewModel {
     private TransactionRepository transactionRepository;
     private MutableLiveData<Intent> intentLiveData  = new MutableLiveData<>();
     private MutableLiveData<InfoDialogData> infoDialogLiveData = new MutableLiveData<>();
+    private MutableLiveData<Boolean> isPrintedLiveData = new MutableLiveData<>();
 
     @Inject
     public TransactionViewModel(TransactionRepository transactionRepository) {
@@ -58,16 +60,14 @@ public class TransactionViewModel extends ViewModel {
      * It runs functions in parallel while ui updating dynamically in main thread
      * Additionally, in IO thread it parses the response and make it OnlineTransactionResponse
      * then call Finish Transaction operation with that parameter.
-     * @param bundle can contain refundInfo. It can be null.
-     * @param transactionEntity comes from Void flow and it can be null.
-     * @param uuid comes from Payment Gateway in Sale Transaction. It can be null
+     * @param bundle can contain refundInfo and data  from coming PGW like isOnlinePin. It can be null.
+     * @param transaction comes from Void flow and it can be null.
      * @param isGIB it is true in GIB operations and false for normal operations. For sale operation,
      * it is null because of sale operations always send intents.
      */
-    public void TransactionRoutine(ICCCard card, String uuid, MainActivity mainActivity, TransactionEntity transactionEntity,
+    public void TransactionRoutine(ICCCard card, MainActivity mainActivity, Transaction transaction,
                                    Bundle bundle, TransactionCode transactionCode, ActivationRepository activationRepository,
                                    BatchRepository batchRepository, Boolean isGIB) {
-        TransactionViewModel transactionViewModel = this;
         Handler mainHandler = new Handler(Looper.getMainLooper());
         setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.connecting)));
         Observable<Boolean> observable = Observable.just(true)
@@ -88,7 +88,6 @@ public class TransactionViewModel extends ViewModel {
                         throw new RuntimeException(e);
                     }
                     final String progressText = mainActivity.getString(R.string.connecting) + " " + (i * 10);
-
                     mainHandler.post(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, progressText)));
                 }
             }
@@ -101,9 +100,9 @@ public class TransactionViewModel extends ViewModel {
             @Override
             public void onComplete() {
                 Log.i("Complete","Complete");
-                OnlineTransactionResponse onlineTransactionResponse = transactionRepository.parseResponse(transactionViewModel, mainActivity);
+                OnlineTransactionResponse onlineTransactionResponse = transactionRepository.parseResponse();
                 batchRepository.updateSTN();
-                Intent resultIntent = finishTransaction(card, uuid, mainActivity, transactionEntity, bundle, transactionCode, onlineTransactionResponse, activationRepository, batchRepository, isGIB);
+                Intent resultIntent = finishTransaction(card, mainActivity, transaction, bundle, transactionCode, onlineTransactionResponse, activationRepository, batchRepository, isGIB);
                 mainHandler.post(() -> setIntentLiveData(resultIntent));
             }
         };
@@ -115,38 +114,44 @@ public class TransactionViewModel extends ViewModel {
      * else -> insert that entity to Transaction table and update Group Serial Number of batch table.
      * Update dialog with confirmation code if database operations result without an error.
      */
-    private Intent finishTransaction(ICCCard card, String uuid, MainActivity mainActivity, TransactionEntity transactionEntity,
+    private Intent finishTransaction(ICCCard card, MainActivity mainActivity, Transaction transaction,
                                      Bundle bundle, TransactionCode transactionCode, OnlineTransactionResponse onlineTransactionResponse,
                                      ActivationRepository activationRepository, BatchRepository batchRepository, Boolean isGIB) {
-        if (transactionCode != TransactionCode.VOID) {
-            transactionEntity = transactionRepository.entityCreator(card, uuid, bundle, onlineTransactionResponse, transactionCode);
-            transactionEntity.setUlSTN(batchRepository.getSTN());
-            transactionEntity.setBatchNo(batchRepository.getBatchNo());
-            transactionEntity.setUlGUP_SN(batchRepository.getGroupSN());
-            transactionRepository.insertTransaction(transactionEntity);
-            batchRepository.updateGUPSN();
-        }
-        else {
-            String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
-            transactionRepository.setVoid(transactionEntity.getUlGUP_SN(), date, transactionEntity.getSID());
-        }
-        if (isGIB != null) {
-            new Handler(Looper.getMainLooper()).postDelayed(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt))), 1000);
-            if (isGIB) {
-                return transactionRepository.prepareIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
+        if (onlineTransactionResponse.getmResponseCode() == ResponseCode.SUCCESS) {
+            setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Confirmed, mainActivity.getString(R.string.confirmation_code) + ": " + onlineTransactionResponse.getmAuthCode()));
+            if (transactionCode != TransactionCode.VOID) {
+                transaction = transactionRepository.entityCreator(card, bundle, onlineTransactionResponse, transactionCode);
+                transaction.setUlSTN(batchRepository.getSTN());
+                transaction.setBatchNo(batchRepository.getBatchNo());
+                transaction.setUlGUP_SN(batchRepository.getGroupSN());
+                transactionRepository.insertTransaction(transaction);
+                batchRepository.updateGUPSN();
             } else {
-                transactionRepository.prepareSlip(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode);
+                String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + " " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+                transactionRepository.setVoid(transaction.getUlGUP_SN(), date, transaction.getSID());
             }
-        } else {
-            return transactionRepository.prepareSaleIntent(activationRepository, batchRepository, mainActivity, transactionEntity, transactionCode, onlineTransactionResponse.getmResponseCode());
+            SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository, onlineTransactionResponse);
+            if (isGIB != null) {
+                new Handler(Looper.getMainLooper()).postDelayed(() -> setInfoDialogLiveData(new InfoDialogData(InfoDialog.InfoType.Progress, mainActivity.getString(R.string.printing_the_receipt))), 1000);
+                if (isGIB) {
+                    return transactionRepository.prepareIntent(receipt, mainActivity, transaction, transactionCode, onlineTransactionResponse.getmResponseCode());
+                } else {
+                    transactionRepository.prepareSlip(receipt, mainActivity, transaction, transactionCode, false);
+                }
+            } else {
+                String ZNO = bundle.getString("ZNO");
+                String receiptNo = bundle.getString("ReceiptNo");
+                return transactionRepository.prepareSaleIntent(receipt, mainActivity, transaction, transactionCode, onlineTransactionResponse.getmResponseCode(), ZNO, receiptNo);
+            }
         }
         return null;
     }
 
     public void prepareDummyResponse(ActivationRepository activationRepository, BatchRepository batchRepository, MainActivity mainActivity,
                                      Integer price, ResponseCode code, Boolean hasSlip, SlipType slipType, String cardNo, String ownerName, int paymentType) {
-        transactionRepository.prepareDummyResponse(this, activationRepository, batchRepository, mainActivity,
+        Intent resultIntent = transactionRepository.prepareDummyResponse(activationRepository, batchRepository, mainActivity,
                                                     price, code, hasSlip, slipType, cardNo, ownerName, paymentType);
+        setIntentLiveData(resultIntent);
     }
 
     public MutableLiveData<Intent> getIntentLiveData() {
@@ -165,16 +170,42 @@ public class TransactionViewModel extends ViewModel {
         infoDialogLiveData.postValue(infoDialogData);
     }
 
-    public List<TransactionEntity> getTransactionsByCardNo(String cardNo) {
+    public MutableLiveData<Boolean> getIsPrintedLiveData() {
+        return isPrintedLiveData;
+    }
+
+    public void setIsPrintedLiveData(boolean isPrinted) {
+        isPrintedLiveData.postValue(isPrinted);
+    }
+
+    public List<Transaction> getTransactionsByCardNo(String cardNo) {
         return transactionRepository.getTransactionsByCardNo(cardNo);
     }
 
-    public List<TransactionEntity> getTransactionsByRefNo(String refNo) {
+    public List<Transaction> getTransactionsByRefNo(String refNo) {
         return transactionRepository.getTransactionsByRefNo(refNo);
     }
 
-    public boolean isVoidListEmpty() {
-        return transactionRepository.isEmptyVoid();
+    public List<Transaction> getAllTransactions() {
+        return transactionRepository.getAllTransactions();
+    }
+
+    /**
+     * This method for print slip related to transaction and transactionCode.
+     * It runs in IO Thread for not locking the main thread.
+     */
+    public void prepareSlip(ActivationRepository activationRepository, BatchRepository batchRepository, MainActivity mainActivity,
+                            Transaction transaction, TransactionCode transactionCode, boolean isCopy) {
+        Observable<Integer> singleItemObservable = Observable.just(1);
+        SampleReceipt receipt = new SampleReceipt(transaction, activationRepository, batchRepository, null);
+        Disposable disposable = singleItemObservable
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                        item -> transactionRepository.prepareSlip(receipt, mainActivity, transaction, transactionCode, isCopy),
+                        throwable -> { },
+                        () -> setIsPrintedLiveData(true)
+                );
     }
 
     public boolean isTransactionListEmpty() {

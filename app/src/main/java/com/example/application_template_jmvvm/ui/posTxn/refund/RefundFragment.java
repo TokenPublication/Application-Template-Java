@@ -42,6 +42,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+/**
+ * This is the fragment for the Refund actions.
+ */
 public class RefundFragment extends Fragment implements InfoDialogListener {
     private ActivationViewModel activationViewModel;
     private CardViewModel cardViewModel;
@@ -81,6 +84,9 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         super.onViewCreated(view, savedInstanceState);
     }
 
+    /**
+     * It prepares list menu item and shows it to the screen. It has refund types.
+     */
     private void showMenu() {
         List<IListMenuItem> menuItems = new ArrayList<>();
         menuItems.add(new MenuItem(getString(R.string.matched_refund), iListMenuItem -> showMatchedReturnFragment(TransactionCode.MATCHED_REFUND)));
@@ -91,6 +97,9 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         mainActivity.replaceFragment(R.id.container, mListMenuFragment,false);
     }
 
+    /**
+     * This inputListFragment for show Matched Refund screen.
+     */
     private void showMatchedReturnFragment(TransactionCode transactionCode) {
         List<CustomInputFormat> inputList = new ArrayList<>();
         inputOrgAmount = new CustomInputFormat(getString(R.string.original_amount), Amount, null, getString(R.string.invalid_amount),
@@ -142,6 +151,9 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         mainActivity.replaceFragment(R.id.container, inputListFragment, true);
     }
 
+    /**
+     * This inputListFragment for show Return Refund screen.
+     */
     private void showReturnFragment() {
         List<CustomInputFormat> inputList = new ArrayList<>();
         inputList.add(new CustomInputFormat(getString(R.string.refund_amount), Amount, null, getString(R.string.invalid_amount), input -> {
@@ -164,6 +176,10 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         mainActivity.replaceFragment(R.id.container, inputListFragment, true);
     }
 
+    /**
+     * This listMenuFragment for show installments. After that, showed matched refund screen for
+     * getting other refund info.
+     */
     private void showInstallmentRefundFragment() {
         MenuItemClickListener<MenuItem> listener = menuItem -> {
             String itemName = menuItem.getName();
@@ -183,6 +199,12 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         mainActivity.replaceFragment(R.id.container, instFragment, true);
     }
 
+    /**
+     * This method is for perform readCard operation. It contains two flows in it.
+     * GIB Refund -> transactionCode == null, continue
+     * Normal Refund -> transactionCode has a value, continue
+     * Also it has fragment's lifeCycleOwner for observe cardData from readCard.
+     */
     public void cardReader(LifecycleOwner lifecycleOwner, Bundle refundInfo, Boolean isGIB) {
         if (transactionCode == null) {
             transactionCode = TransactionCode.MATCHED_REFUND;
@@ -192,8 +214,13 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         cardViewModel.getCardLiveData().observe(lifecycleOwner, card -> doRefund(card, transactionCode, refundInfo, lifecycleOwner, isGIB));
     }
 
+    /**
+     * This method for perform TransactionRoutine for insert our refund operation to Database. Also
+     * it updates UI related to ViewModel's UI States. Finally, it gets intent only on GIB Refund.
+     * In normal refunds, we do not need for send intent to result.
+     */
     public void doRefund(ICCCard card, TransactionCode transactionCode, Bundle refundInfo, LifecycleOwner lifecycleOwner, Boolean isGIB) {
-        transactionViewModel.TransactionRoutine(card, null, mainActivity, null, refundInfo, transactionCode,
+        transactionViewModel.TransactionRoutine(card, mainActivity, null, refundInfo, transactionCode,
                                                 activationViewModel.getActivationRepository(), batchViewModel.getBatchRepository(), isGIB);
         transactionViewModel.getInfoDialogLiveData().observe(lifecycleOwner, infoDialogData -> {
             if (Objects.equals(infoDialogData.getText(), mainActivity.getApplicationContext().getString(R.string.connecting))) {
@@ -210,6 +237,9 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
         });
     }
 
+    /**
+     * This method for prepare bundle with refundInfo that user enters.
+     */
     public Bundle bundleCreator(TransactionCode transactionCode, List<CustomInputFormat> inputList) {
         Bundle bundle = new Bundle();
         switch (transactionCode) {
@@ -222,6 +252,9 @@ public class RefundFragment extends Fragment implements InfoDialogListener {
                 break;
             case CASH_REFUND:
                 bundle.putInt(ExtraContentInfo.refAmount, Integer.parseInt(inputList.get(0).getText()));
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
+                String dateTime = sdf.format(Calendar.getInstance().getTime());
+                bundle.putString(ExtraContentInfo.tranDate, dateTime);
                 break;
             case INSTALLMENT_REFUND:
                 bundle.putInt(ExtraContentInfo.orgAmount, Integer.parseInt(inputList.get(0).getText()));

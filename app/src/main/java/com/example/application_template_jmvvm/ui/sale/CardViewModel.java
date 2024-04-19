@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.application_template_jmvvm.MainActivity;
-import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.repository.CardRepository;
@@ -28,8 +27,9 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
     private CardRepository cardRepository;
     private MutableLiveData<ICCCard> cardLiveData = new MutableLiveData<>();
     private MutableLiveData<Boolean> isCardServiceConnect = new MutableLiveData<>(false);
-    private MutableLiveData<CardServiceResult> cardServiceResultLiveData = new MutableLiveData<>();
     private MutableLiveData<ResponseCode> responseMessageLiveData = new MutableLiveData<>();
+
+    private MutableLiveData<String> messageLiveData = new MutableLiveData<>();
 
     @Inject
     public CardViewModel(CardRepository cardRepository) {
@@ -39,6 +39,10 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
 
     public void initializeCardServiceBinding(MainActivity mainActivity) {
         cardRepository.cardServiceBinder(mainActivity);
+    }
+
+    public void setEMVConfiguration() {
+        cardRepository.setEMVConfiguration();
     }
 
     public void readCard(int amount, TransactionCode transactionCode) {
@@ -55,21 +59,21 @@ public class CardViewModel extends ViewModel implements CardRepository.Repositor
     }
 
     @Override
-    public void setCallBackMessage(CardServiceResult cardServiceResult) {
-        cardServiceResultLiveData.postValue(cardServiceResult);
-    }
-
-    public MutableLiveData<CardServiceResult> getCardServiceResultLiveData() {
-        return cardServiceResultLiveData;
-    }
-
-    @Override
     public void setResponseMessage(ResponseCode responseCode) {
         responseMessageLiveData.postValue(responseCode);
     }
 
     public MutableLiveData<ResponseCode> getResponseMessageLiveData() {
         return responseMessageLiveData;
+    }
+
+    @Override
+    public void setMessage(String message) {
+        messageLiveData.postValue(message);
+    }
+
+    public MutableLiveData<String> getMessageLiveData() {
+        return messageLiveData;
     }
 
     @Override

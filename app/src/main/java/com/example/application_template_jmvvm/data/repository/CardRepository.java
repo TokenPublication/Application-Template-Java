@@ -1,13 +1,15 @@
 package com.example.application_template_jmvvm.data.repository;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
 import com.example.application_template_jmvvm.data.model.card.ICCCard;
-import com.example.application_template_jmvvm.data.model.card.MSRCard;
 import com.example.application_template_jmvvm.MainActivity;
 import com.example.application_template_jmvvm.data.model.type.EmvProcessType;
 import com.google.gson.Gson;
@@ -15,6 +17,10 @@ import com.tokeninc.cardservicebinding.CardServiceBinding;
 import com.tokeninc.cardservicebinding.CardServiceListener;
 
 import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import javax.inject.Inject;
 
@@ -28,10 +34,11 @@ public class CardRepository implements CardServiceListener {
     public interface RepositoryCallback {
         void afterCardDataReceived(ICCCard card);
         void afterCardServiceConnected(Boolean isConnected);
-        void setCallBackMessage(CardServiceResult cardServiceResult);
         void setResponseMessage(ResponseCode responseCode);
+        void setMessage(String message);
     }
 
+    private MainActivity mainActivity;
     private RepositoryCallback repositoryCallback;
     private CardServiceBinding cardServiceBinding;
     private CardServiceListener cardServiceListener;
@@ -50,6 +57,8 @@ public class CardRepository implements CardServiceListener {
     }
 
     public void cardServiceBinder(MainActivity mainActivity) {
+        Log.i("cardServiceBinder","Starting Card Service Binding");
+        this.mainActivity = mainActivity;
         this.cardServiceBinding = new CardServiceBinding(mainActivity, cardServiceListener);
     }
 
@@ -106,40 +115,36 @@ public class CardRepository implements CardServiceListener {
 
             if (resultCode == CardServiceResult.USER_CANCELLED.resultCode()) {
                 Log.d("CardDataReceived","Card Result Code: User Cancelled");
-                repositoryCallback.setCallBackMessage(CardServiceResult.USER_CANCELLED);
+                repositoryCallback.setResponseMessage(ResponseCode.CANCELLED);
             }
 
             if (resultCode == CardServiceResult.ERROR_TIMEOUT.resultCode()) {
                 Log.d("CardDataReceived","Card Result Code: TIMEOUT");
-                repositoryCallback.setCallBackMessage(CardServiceResult.ERROR_TIMEOUT);
+                repositoryCallback.setResponseMessage(ResponseCode.ERROR);
             }
 
             if (resultCode == CardServiceResult.ERROR.resultCode()) {
                 Log.d("CardDataReceived","Card Result Code: ERROR");
-                repositoryCallback.setCallBackMessage(CardServiceResult.ERROR);
+                repositoryCallback.setResponseMessage(ResponseCode.ERROR);
             }
 
             if (resultCode == CardServiceResult.SUCCESS.resultCode()) {
                 int type = json.getInt("mCardReadType");
                 ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
-                if (type == CardReadType.QrPay.value) {
-                    repositoryCallback.afterCardDataReceived(card);
-                }
-                if (type == CardReadType.CLCard.value) {
-                    repositoryCallback.afterCardDataReceived(card);
-                } else if (type == CardReadType.ICC.value) {
+                if (type == CardReadType.ICC.value) {
                     if (!isApprove && transactionCode == TransactionCode.SALE) {
                         isApprove = true;
                     }
-                    repositoryCallback.afterCardDataReceived(card);
-                } else if (type == CardReadType.ICC2MSR.value || type == CardReadType.MSR.value || type == CardReadType.KeyIn.value) {
-                    MSRCard msrCard = new Gson().fromJson(cardData, MSRCard.class);
-                    cardServiceBinding.getOnlinePIN(amount, msrCard.getCardNumber(), 0x0A01, 0, 4, 8, 30);
                 }
+                repositoryCallback.afterCardDataReceived(card);
             }
         } catch (Exception e) {
             repositoryCallback.setResponseMessage(ResponseCode.ERROR);
             e.printStackTrace();
+        }
+        if (!isApprove) {
+            cardServiceBinding.unBind();
+            repositoryCallback.afterCardServiceConnected(false);
         }
     }
 
@@ -153,6 +158,7 @@ public class CardRepository implements CardServiceListener {
             obj.put("zeroAmount", 0);
             obj.put("showAmount", 1);
             obj.put("emvProcessType", EmvProcessType.CONTINUE_EMV.ordinal());
+            isApprove = false; // to unbind CardService
             getCard(amount, obj.toString());
         } catch (Exception e) {
             repositoryCallback.setResponseMessage(ResponseCode.ERROR);
@@ -188,7 +194,70 @@ public class CardRepository implements CardServiceListener {
      */
     @Override
     public void onCardServiceConnected() {
+        Log.i("onCardServiceConnected","Card Service Binding Successful");
+        setEMVConfiguration();
         repositoryCallback.afterCardServiceConnected(true);
+    }
+
+    /**
+     * This function only works in installation, it calls setConfig and setCLConfig
+     * It also called from onCardServiceConnected method of Card Service Library, if Configs couldn't set in first_run
+     * (it is checked from sharedPreferences), again it setConfigurations, else do nothing.
+     */
+    public void setEMVConfiguration() {
+        SharedPreferences sharedPreference = mainActivity.getSharedPreferences("myprefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreference.edit();
+        boolean firstTimeBoolean = sharedPreference.getBoolean("FIRST_RUN", false);
+
+        if (!firstTimeBoolean) {
+            setConfig();
+            setCLConfig();
+            editor.putBoolean("FIRST_RUN", true);
+            Log.d("setEMVConfiguration", "ok");
+            editor.apply();
+        }
+    }
+
+    /**
+     * It sets custom_emv_config.xml with setEMVConfiguration method in card service
+     */
+    public void setConfig() {
+        try {
+            InputStream xmlStream = mainActivity.getApplicationContext().getAssets().open("custom_emv_config.xml");
+            BufferedReader r = new BufferedReader(new InputStreamReader(xmlStream));
+            StringBuilder total = new StringBuilder();
+            for (String line; (line = r.readLine()) != null; ) {
+                Log.d("emv_config", "conf line: " + line);
+                total.append(line).append('\n');
+            }
+            int setConfigResult = getCardServiceBinding().setEMVConfiguration(total.toString());
+            repositoryCallback.setMessage("setEMVConfiguration res=" + setConfigResult);
+            Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
+        } catch (Exception e) {
+            mainActivity.responseMessage(ResponseCode.ERROR, mainActivity.getApplicationContext().getString(R.string.emv_configuration_error), null);
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * It sets custom_emv_cl_config.xml with setEMVCLConfiguration method in card service
+     */
+    public void setCLConfig() {
+        try {
+            InputStream xmlCLStream = mainActivity.getApplicationContext().getAssets().open("custom_emv_cl_config.xml");
+            BufferedReader rCL = new BufferedReader(new InputStreamReader(xmlCLStream));
+            StringBuilder totalCL = new StringBuilder();
+            for (String line; (line = rCL.readLine()) != null; ) {
+                Log.d("emv_config", "conf line: " + line);
+                totalCL.append(line).append('\n');
+            }
+            int setCLConfigResult = getCardServiceBinding().setEMVCLConfiguration(totalCL.toString());
+            repositoryCallback.setMessage("setEMVCLConfiguration res=" + setCLConfigResult);
+            Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
+        } catch (Exception e) {
+            mainActivity.responseMessage(ResponseCode.ERROR, mainActivity.getApplicationContext().getString(R.string.emv_cl_configuration_error), null);
+            e.printStackTrace();
+        }
     }
 
     @Override

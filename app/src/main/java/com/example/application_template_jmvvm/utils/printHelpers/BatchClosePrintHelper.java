@@ -2,7 +2,8 @@ package com.example.application_template_jmvvm.utils.printHelpers;
 
 import android.content.Context;
 
-import com.example.application_template_jmvvm.data.database.transaction.TransactionEntity;
+import com.example.application_template_jmvvm.data.database.transaction.Transaction;
+import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.repository.ActivationRepository;
 import com.token.printerlib.PrinterDefinitions;
 import com.token.printerlib.StyledString;
@@ -11,7 +12,7 @@ import com.tokeninc.deviceinfo.DeviceInfo;
 import java.util.List;
 
 public class BatchClosePrintHelper extends BasePrintHelper {
-    public String batchText(Context context, String batch_no, ActivationRepository activationRepository, List<TransactionEntity> transactions, boolean isCopy) {
+    public String batchText(Context context, String batch_no, ActivationRepository activationRepository, List<Transaction> transactions, boolean isBatch, boolean isCopy) {
         StyledString styledText = new StyledString();
         PrintHelper printHelper = new PrintHelper();
         int totalAmount = 0;
@@ -38,8 +39,9 @@ public class BatchClosePrintHelper extends BasePrintHelper {
         addTextToNewLine(styledText, "===========================", PrinterDefinitions.Alignment.Center);
         addTextToNewLine(styledText, "PEŞİN İŞLEMLER", PrinterDefinitions.Alignment.Left);
 
-        for (TransactionEntity transaction : transactions) {
-            addTextToNewLine(styledText, transaction.getBaTranDate(), PrinterDefinitions.Alignment.Left);
+        for (Transaction transaction : transactions) {
+            String date = DateUtil.getFormattedDate(transaction.getBaTranDate().substring(0, 8)) + " " +  DateUtil.getFormattedTime(transaction.getBaTranDate().substring(8));
+            addTextToNewLine(styledText, date, PrinterDefinitions.Alignment.Left);
 
             String transactionType = "";
             switch (transaction.getbTransCode()) {
@@ -69,8 +71,23 @@ public class BatchClosePrintHelper extends BasePrintHelper {
             addText(styledText, transaction.getBaExpDate(), PrinterDefinitions.Alignment.Right);
             addTextToNewLine(styledText, transaction.getRefNo(), PrinterDefinitions.Alignment.Left);
 
-            int amount = transaction.getUlAmount();
-            totalAmount += amount;
+            int amount;
+            boolean isRefund = false;
+            if (transaction.getbTransCode() == TransactionCode.MATCHED_REFUND.getType() ||
+                    transaction.getbTransCode() == TransactionCode.INSTALLMENT_REFUND.getType() ||
+                    transaction.getbTransCode() == TransactionCode.CASH_REFUND.getType()) {
+                amount = transaction.getUlAmount2();
+                isRefund = true;
+            } else {
+                amount = transaction.getUlAmount();
+            }
+            if (transaction.isVoid == 0) {
+                if (isRefund) {
+                    totalAmount -= amount;
+                } else {
+                    totalAmount += amount;
+                }
+            }
             addText(styledText, StringHelper.getAmount(amount), PrinterDefinitions.Alignment.Right);
             styledText.newLine();
         }
@@ -85,12 +102,17 @@ public class BatchClosePrintHelper extends BasePrintHelper {
         styledText.printLogo(context);
         styledText.addSpace(50);
 
-        printHelper.PrintBatchClose(styledText, batch_no, String.valueOf(transactions.size()), totalAmount, MID, TID);
-
-        addTextToNewLine(styledText, "BU BELGEYİ SAKLAYINIZ", PrinterDefinitions.Alignment.Center, 8);
-        styledText.newLine();
-        styledText.printLogo(context);
-        styledText.addSpace(50);
+        if (isBatch) {
+            printHelper.PrintBatchClose(styledText, batch_no, String.valueOf(transactions.size()), totalAmount, MID, TID);
+            addTextToNewLine(styledText, "---------------------------", PrinterDefinitions.Alignment.Center);
+            addTextToNewLine(styledText, "YUKARIDAKİ TOPLAM ÜYE İŞYERİ", PrinterDefinitions.Alignment.Center, 10);
+            addTextToNewLine(styledText, "HESABINA ALACAK KAYDEDİLECEKTİR", PrinterDefinitions.Alignment.Center, 10);
+            addTextToNewLine(styledText, "---------------------------", PrinterDefinitions.Alignment.Center);
+            addTextToNewLine(styledText, "BU BELGEYİ SAKLAYINIZ", PrinterDefinitions.Alignment.Center, 8);
+            styledText.newLine();
+            styledText.printLogo(context);
+            styledText.addSpace(50);
+        }
 
         return styledText.toString();
     }

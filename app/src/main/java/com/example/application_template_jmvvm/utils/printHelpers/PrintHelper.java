@@ -66,8 +66,7 @@ public class PrintHelper extends BasePrintHelper {
         if (batch_no.equals("")) {
             addTextToNewLine(styledText, "Grup Yok", PrinterDefinitions.Alignment.Center);
         } else {
-            addTextToNewLine(styledText, "GRUP NO: ", PrinterDefinitions.Alignment.Center);
-            addText(styledText, batch_no, PrinterDefinitions.Alignment.Right);
+            addTextToNewLine(styledText, "GRUP " + batch_no, PrinterDefinitions.Alignment.Center);
         }
 
         addTextToNewLine(styledText, DateUtil.getDate("dd/MM/yy"), PrinterDefinitions.Alignment.Left);
@@ -84,8 +83,6 @@ public class PrintHelper extends BasePrintHelper {
         addText(styledText, StringHelper.getAmount(totalAmount), PrinterDefinitions.Alignment.Right);
         addTextToNewLine(styledText, " ", PrinterDefinitions.Alignment.Center);
         addTextToNewLine(styledText, "Grup Kapama Başarılı", PrinterDefinitions.Alignment.Center);
-        addTextToNewLine(styledText, " ", PrinterDefinitions.Alignment.Center);
-        styledText.newLine();
 
         return styledText.toString();
     }
@@ -96,6 +93,14 @@ public class PrintHelper extends BasePrintHelper {
         styledText.newLine();
         styledText.addSpace(100);
         styledText.print(PrinterService.getService(context));
+    }
+
+    static void addContactlessLogo(StyledString styledText, String cardType) {
+        addTextToNewLine(styledText, cardType + " CONTACTLESS", PrinterDefinitions.Alignment.Center);
+        if (cardType.equals("VISA")) {
+            styledText.newLine();
+            styledText.printBitmap("contactless32", 0);
+        }
     }
 
     public static void PrintVisa(Context context) {

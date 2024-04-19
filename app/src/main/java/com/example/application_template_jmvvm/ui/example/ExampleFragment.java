@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.application_template_jmvvm.ui.sale.CardViewModel;
+import com.example.application_template_jmvvm.utils.DeviceModel;
 import com.example.application_template_jmvvm.utils.printHelpers.PrintHelper;
 import com.example.application_template_jmvvm.R;
 import com.example.application_template_jmvvm.MainActivity;
@@ -23,6 +24,7 @@ import com.example.application_template_jmvvm.utils.printHelpers.StringHelper;
 import com.token.uicomponents.ListMenuFragment.IListMenuItem;
 import com.token.uicomponents.ListMenuFragment.ListMenuFragment;
 import com.token.uicomponents.ListMenuFragment.MenuItemClickListener;
+import com.token.uicomponents.components330.qr_screen_330.QrScreen330;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.numpad.NumPadDialog;
 import com.token.uicomponents.numpad.NumPadListener;
@@ -130,12 +132,18 @@ public class ExampleFragment extends Fragment {
         }));
 
         menuItems.add(new MenuItem(getString(R.string.show_qr), (menuItem) -> {
-            InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, getString(R.string.qr_loading), true);
-            cardViewModel.initializeCardServiceBinding(mainActivity);
-            cardViewModel.getIsCardServiceConnect().observe(listMenuFragment.getViewLifecycleOwner(), isConnected -> new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                cardViewModel.getCardServiceBinding().showQR(getString(R.string.please_read_qr), StringHelper.getAmount(qrAmount), qrString); // Shows QR on the back screen
-                dialog.setQr(qrString, getString(R.string.waiting_qr_read));
-            }, 2000));
+            if (mainActivity.getDeviceModel() == DeviceModel.TR330) {
+                QrScreen330 qrScreen330 = QrScreen330.Companion.newInstance(StringHelper.getAmount(qrAmount), "", getString(R.string.waiting_qr_read), qrString);
+                mainActivity.replaceFragment(R.id.container, qrScreen330, true);
+            }
+            if (mainActivity.getDeviceModel() != DeviceModel.TR330) {
+                InfoDialog dialog = mainActivity.showInfoDialog(InfoDialog.InfoType.Progress, getString(R.string.qr_loading), true);
+                cardViewModel.initializeCardServiceBinding(mainActivity);
+                cardViewModel.getIsCardServiceConnect().observe(listMenuFragment.getViewLifecycleOwner(), isConnected -> new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    cardViewModel.getCardServiceBinding().showQR(getString(R.string.please_read_qr), StringHelper.getAmount(qrAmount), qrString);// Shows QR on the back screen
+                    dialog.setQr(qrString, getString(R.string.waiting_qr_read));
+                }, 2000));
+            }
         }));
 
         List<IListMenuItem> subListPrint = new ArrayList<>();

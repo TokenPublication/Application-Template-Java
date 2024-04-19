@@ -1,10 +1,10 @@
 package com.example.application_template_jmvvm;
 
 import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
@@ -13,6 +13,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -20,10 +21,11 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.application_template_jmvvm.data.model.card.CardServiceResult;
+import com.example.application_template_jmvvm.data.model.card.ICCCard;
 import com.example.application_template_jmvvm.data.model.code.ResponseCode;
 import com.example.application_template_jmvvm.data.model.code.TransactionCode;
 import com.example.application_template_jmvvm.data.model.type.CardReadType;
+import com.example.application_template_jmvvm.ui.service.ServiceViewModel;
 import com.example.application_template_jmvvm.ui.posTxn.PosTxnFragment;
 import com.example.application_template_jmvvm.ui.posTxn.batch.BatchViewModel;
 import com.example.application_template_jmvvm.ui.activation.ActivationViewModel;
@@ -35,15 +37,16 @@ import com.example.application_template_jmvvm.ui.sale.TransactionViewModel;
 import com.example.application_template_jmvvm.ui.sale.SaleFragment;
 import com.example.application_template_jmvvm.ui.trigger.TriggerFragment;
 import com.example.application_template_jmvvm.ui.trigger.TriggerViewModel;
+import com.example.application_template_jmvvm.utils.DeviceModel;
 import com.example.application_template_jmvvm.utils.ExtraContentInfo;
+import com.google.gson.Gson;
 import com.token.uicomponents.infodialog.InfoDialog;
 import com.token.uicomponents.infodialog.InfoDialogListener;
+import com.tokeninc.deviceinfo.DeviceInfo;
+import com.tokeninc.libtokenkms.TokenKMS;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Objects;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -55,13 +58,25 @@ import dagger.hilt.android.AndroidEntryPoint;
  */
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity implements InfoDialogListener {
-    private FragmentManager fragmentManager;
     public ActivationViewModel activationViewModel;
     private CardViewModel cardViewModel;
     public BatchViewModel batchViewModel;
     private TransactionViewModel transactionViewModel;
     private TriggerViewModel triggerViewModel;
+    private ServiceViewModel serviceViewModel;
     private InfoDialog infoDialog;
+    private TokenKMS tokenKMS;
+    private DeviceModel deviceModel;
+
+    /**
+     * This function is overwritten to continue the activity where it was left when
+     * the configuration is changed (i.e screen rotation)
+     */
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        startActivity();
+    }
 
     /**
      * This is the onCreate method for create the viewModels and build config.
@@ -71,18 +86,36 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        startActivity();
+    }
 
-        buildConfigs();
-        fragmentManager = getSupportFragmentManager();
-
+    public void startActivity() {
         activationViewModel = new ViewModelProvider(this).get(ActivationViewModel.class);
         batchViewModel = new ViewModelProvider(this).get(BatchViewModel.class);
         cardViewModel = new ViewModelProvider(this).get(CardViewModel.class);
         transactionViewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
         triggerViewModel = new ViewModelProvider(this).get(TriggerViewModel.class);
+        serviceViewModel = new ViewModelProvider(this).get(ServiceViewModel.class);
 
-        initializeCardService(this);
-        actionControl(getIntent().getAction());
+        buildConfigs();
+        connectServices();
+    }
+
+    /**
+     * This function calls serviceRoutine, which firstly connects DeviceInfo service, then KMS service
+     * After it connects these two services successfully, it calls connecting Card Service and without waiting connecting
+     * card service it updates the UI with respect to action mainActivity has. It tries to connect cardService on background
+     * If it couldn't connect KMS or deviceInfo services, it warns the user then finishes the mainActivity
+     */
+    private void connectServices() {
+        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
+        serviceViewModel.ServiceRoutine(this);
+        serviceViewModel.getInfoDialogLiveData().observe(this, infoDialogData -> infoDialog.update(infoDialogData.getType(), infoDialogData.getText()));
+        serviceViewModel.getIsConnectedLiveData().observe(this, isConnected -> {
+            infoDialog.dismiss();
+            actionControl(getIntent().getAction());
+            initializeCardService(this, false);
+        });
     }
 
     /**
@@ -93,9 +126,15 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     private void buildConfigs() {
         if (BuildConfig.FLAVOR.equals("TR1000")) {
             Log.v("TR1000 APP", "Application Template for 1000TR");
+            setDeviceModel(DeviceModel.TR1000);
         }
         if (BuildConfig.FLAVOR.equals("TR400")) {
             Log.v("TR400 APP", "Application Template for 400TR");
+            setDeviceModel(DeviceModel.TR400);
+        }
+        if (BuildConfig.FLAVOR.equals("TR330")) {
+            Log.v("TR330 APP", "Application Template for 330TR");
+            setDeviceModel(DeviceModel.TR330);
         }
     }
 
@@ -126,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
         }
 
         else if (Objects.equals(action, getString(R.string.Settings_Action))) {
-            SettingsFragment settingsFragment = new SettingsFragment(this, activationViewModel);
+            SettingsFragment settingsFragment = new SettingsFragment(this, activationViewModel, cardViewModel);
             replaceFragment(R.id.container, settingsFragment, false);
         }
 
@@ -150,9 +189,8 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
      * at card service bind.
      * @param lifecycleOwner for observe the cardServiceConnect liveData from CardViewModel.
      */
-    public void initializeCardService(LifecycleOwner lifecycleOwner) {
+    public void initializeCardService(LifecycleOwner lifecycleOwner, boolean fromActivation) {
         final boolean[] isCancelled = {false};
-        infoDialog = showInfoDialog(InfoDialog.InfoType.Connecting, getString(R.string.connecting), false);
         CountDownTimer timer = new CountDownTimer(30000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) { }
@@ -164,36 +202,39 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     if (infoDialog != null) {
                         infoDialog.dismiss();
-                        finish();
                     }
                 }, 2000);
             }
         };
         timer.start();
         cardViewModel.initializeCardServiceBinding(this);
+        cardViewModel.getMessageLiveData().observe(this, message -> {
+            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+            if (!fromActivation) {
+                Toast.makeText(getApplicationContext(), getString(R.string.setup_bank), Toast.LENGTH_LONG).show();
+            }
+        });
 
         cardViewModel.getIsCardServiceConnect().observe(lifecycleOwner, isConnected -> {
             if (isConnected && !isCancelled[0]) {
+                Log.d("Card Service Bind:", "Success");
                 timer.cancel();
-                infoDialog.dismiss();
-                setEMVConfiguration(true);
             }
         });
     }
 
     /**
      * This method for read card. But it has the null check for card service binding.
-     * If it is null, we initialize card service and call this method again.
+     * If it is null, we showed card service error to user.
      * Also, we observe the card service result and response message live data for handle error,
      * cancel cases etc.
      */
     public void readCard(LifecycleOwner lifecycleOwner, int amount, TransactionCode transactionCode) {
         if (cardViewModel.getCardServiceBinding() != null) {
             cardViewModel.readCard(amount, transactionCode);
-            cardViewModel.getCardServiceResultLiveData().observe(lifecycleOwner, this::callbackMessage);
-            cardViewModel.getResponseMessageLiveData().observe(lifecycleOwner, responseCode -> responseMessage(responseCode, getString(R.string.card_service_error)));
+            cardViewModel.getResponseMessageLiveData().observe(lifecycleOwner, responseCode -> responseMessage(responseCode, "", null));
         } else {
-            initializeCardService(lifecycleOwner);
+            initializeCardService(lifecycleOwner, false);
             readCard(lifecycleOwner, amount, transactionCode);
         }
     }
@@ -208,12 +249,19 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
      */
     private void saleActionReceived() {
         SaleFragment saleTxnFragment = new SaleFragment(this, activationViewModel, cardViewModel, transactionViewModel, batchViewModel);
+        SharedPreferences sharedPreferences = getSharedPreferences("myprefs", Context.MODE_PRIVATE);
+        boolean isGIB = ((AppTemp) this.getApplicationContext()).getCurrentDeviceMode().equals(DeviceInfo.PosModeEnum.GIB.name());
+        boolean isEnabled = sharedPreferences.getBoolean("demo_mode", false);
         Bundle bundle = getIntent().getExtras();
         String cardData = bundle != null ? bundle.getString("CardData") : null;
         int amount = getIntent().getExtras().getInt("Amount");
 
-        if (cardData != null && !cardData.equals(" ")) {
-            replaceFragment(R.id.container, saleTxnFragment, false);
+        // when sale operation is called from pgw which has multi bank and app temp is the only issuer of this card
+        if (!isGIB && !Objects.equals(cardData, "CardData") && cardData != null && !cardData.equals(" ")) {
+            ICCCard card = new Gson().fromJson(cardData, ICCCard.class);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                saleTxnFragment.doSale(card, this);
+            }, 500);
         }
 
         if (getIntent().getExtras() != null) {
@@ -222,10 +270,18 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 cardViewModel.setGIB(true);
                 saleTxnFragment.cardReader(this, amount, true);
             } else {
-                replaceFragment(R.id.container, saleTxnFragment, false);
+                if (isEnabled) {
+                    saleTxnFragment.cardReader(this, amount, false);
+                } else {
+                    replaceFragment(R.id.container, saleTxnFragment, false);
+                }
             }
         } else {
-            replaceFragment(R.id.container, saleTxnFragment, false);
+            if (isEnabled) {
+                saleTxnFragment.cardReader(this, amount, false);
+            } else {
+                replaceFragment(R.id.container, saleTxnFragment, false);
+            }
         }
     }
 
@@ -238,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
      */
     private void refundActionReceived() {
         if (getIntent().getExtras() == null || getIntent().getExtras().getString("RefundInfo") == null) {
-            responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_not_found));
+            responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_not_found), null);
         } else {
             try {
                 String refundData = new JSONObject(getIntent().getExtras().getString("RefundInfo")).toString();
@@ -259,36 +315,9 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                     refundFragment.cardReader(this, refundBundle, true);
                 }
             } catch (Exception e) {
-                responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_not_found));
+                responseMessage(ResponseCode.ERROR, getString(R.string.refund_info_not_found), null);
             }
         }
-    }
-
-    /**
-     * It takes @param cardServiceResult and control it with switch case.
-     * Related to it's value, the info dialog shows in screen and activity will
-     * finish with intent contains response code.
-     */
-    public void callbackMessage(CardServiceResult cardServiceResult) {
-        Bundle bundle = new Bundle();
-        Intent intent = new Intent();
-        switch (cardServiceResult) {
-            case USER_CANCELLED:
-                showInfoDialog(InfoDialog.InfoType.Warning, getString(R.string.cancelled), true);
-                break;
-            case ERROR_TIMEOUT:
-                showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.error_timeout), true);
-                break;
-            case ERROR:
-                showInfoDialog(InfoDialog.InfoType.Error, getString(R.string.error), true);
-                break;
-        }
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            bundle.putInt("ResponseCode", ResponseCode.CANCELLED.ordinal());
-            intent.putExtras(bundle);
-            setResult(Activity.RESULT_CANCELED, intent);
-            finish();
-        },2000);
     }
 
     /**
@@ -297,9 +326,7 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
      * finish with intent contains response code. Also with message parameter, the
      * error messages can seen at screen.
      */
-    public void responseMessage(ResponseCode responseCode, String message) {
-        Bundle bundle = new Bundle();
-        Intent intent = new Intent();
+    public void responseMessage(ResponseCode responseCode, String message, Intent resultIntent) {
         switch (responseCode) {
             case ERROR:
                 if (!Objects.equals(message, "")) {
@@ -312,17 +339,59 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
                 showInfoDialog(InfoDialog.InfoType.Warning, getString(R.string.cancelled), true);
                 break;
             case OFFLINE_DECLINE:
+                showInfoDialog(InfoDialog.InfoType.Warning, getString(R.string.offline_decline), true);
             case UNABLE_DECLINE:
             case ONLINE_DECLINE:
                 showInfoDialog(InfoDialog.InfoType.Declined, getString(R.string.declined), true);
                 break;
         }
+
+        Bundle bundle = new Bundle();
+        Intent intent = new Intent();
+        int activityResult = Activity.RESULT_CANCELED;
+        bundle.putInt("ResponseCode", responseCode.ordinal());
+        if (resultIntent != null) {
+            Bundle resBundle = resultIntent.getExtras();
+            if (resBundle != null) {
+                int amount = resBundle.getInt("Amount");
+                int resCode = resBundle.getInt("ResponseCode");
+                int slipType = resBundle.getInt("SlipType");
+                int paymentType = resBundle.getInt("PaymentType");
+                String slipData = resBundle.getString("customerSlipData");
+                activityResult = Activity.RESULT_OK;
+
+                bundle.putInt("Amount", amount);
+                bundle.putInt("ResponseCode", resCode);
+                bundle.putInt("SlipType", slipType);
+                bundle.putInt("PaymentType", paymentType);
+                bundle.putString("customerSlipData", slipData);
+
+                Log.i("Dummy Response", "Amount: " + amount + ", ResponseCode: " + resCode +
+                        ", SlipType: " + slipType + ", PaymentType: " + paymentType);
+                Log.i("Dummy Slip:", slipData);
+            }
+        }
+        intent.putExtras(bundle);
+        int finalActivityResult = activityResult;
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            bundle.putInt("ResponseCode", responseCode.ordinal());
-            intent.putExtras(bundle);
-            setResult(Activity.RESULT_CANCELED, intent);
+            setResult(finalActivityResult, intent);
             finish();
         },2000);
+    }
+
+    public DeviceModel getDeviceModel() {
+        return deviceModel;
+    }
+
+    private void setDeviceModel(DeviceModel deviceModel) {
+        this.deviceModel = deviceModel;
+    }
+
+    /**
+     * Method for get TokenKMS object out of this file.
+     */
+    public TokenKMS getTokenKMS() {
+        return tokenKMS;
     }
 
     /**
@@ -361,69 +430,6 @@ public class MainActivity extends AppCompatActivity implements InfoDialogListene
     @Override
     protected void onDestroy() {
         super.onDestroy();
-    }
-
-    /**
-     * This function only works in installation, it calls setConfig and setCLConfig
-     * It also called from onCardServiceConnected method of Card Service Library, if Configs couldn't set in first_run
-     * (it is checked from sharedPreferences), again it setConfigurations, else do nothing.
-     */
-    public void setEMVConfiguration(boolean fromCardService) {
-        SharedPreferences sharedPreference = getSharedPreferences("myprefs", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreference.edit();
-        boolean firstTimeBoolean = sharedPreference.getBoolean("FIRST_RUN", false);
-
-        if (!firstTimeBoolean) {
-            if (fromCardService) {
-                Toast.makeText(getApplicationContext(), getString(R.string.setup_bank), Toast.LENGTH_LONG).show();
-            }
-
-            setConfig();
-            setCLConfig();
-            editor.putBoolean("FIRST_RUN", true);
-            Log.d("setEMVConfiguration", "ok");
-            editor.apply();
-        }
-    }
-
-    /**
-     * It sets custom_emv_config.xml with setEMVConfiguration method in card service
-     */
-    public void setConfig() {
-        try {
-            InputStream xmlStream = getApplicationContext().getAssets().open("custom_emv_config.xml");
-            BufferedReader r = new BufferedReader(new InputStreamReader(xmlStream));
-            StringBuilder total = new StringBuilder();
-            for (String line; (line = r.readLine()) != null; ) {
-                Log.d("emv_config", "conf line: " + line);
-                total.append(line).append('\n');
-            }
-            int setConfigResult = cardViewModel.getCardServiceBinding().setEMVConfiguration(total.toString());
-            Toast.makeText(getApplicationContext(), "setEMVConfiguration res=" + setConfigResult, Toast.LENGTH_SHORT).show();
-            Log.d("emv_config", "setEMVConfiguration: " + setConfigResult);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * It sets custom_emv_cl_config.xml with setEMVCLConfiguration method in card service
-     */
-    public void setCLConfig() {
-        try {
-            InputStream xmlCLStream = getApplicationContext().getAssets().open("custom_emv_cl_config.xml");
-            BufferedReader rCL = new BufferedReader(new InputStreamReader(xmlCLStream));
-            StringBuilder totalCL = new StringBuilder();
-            for (String line; (line = rCL.readLine()) != null; ) {
-                Log.d("emv_config", "conf line: " + line);
-                totalCL.append(line).append('\n');
-            }
-            int setCLConfigResult = cardViewModel.getCardServiceBinding().setEMVCLConfiguration(totalCL.toString());
-            Toast.makeText(getApplicationContext(), "setEMVCLConfiguration res=" + setCLConfigResult, Toast.LENGTH_SHORT).show();
-            Log.d("emv_config", "setEMVCLConfiguration: " + setCLConfigResult);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

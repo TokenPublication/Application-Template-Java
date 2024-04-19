@@ -16,7 +16,8 @@
     <string name="cash_refund">Peşin İade</string>
     <string name="installment_refund">Taksitli İade</string>
     <string name="loyalty_refund">Puan İade</string>
-    <string name="previous_batch_slip">Slip Tekrarı</string>
+    <string name="previous_batch_slip">Gün Sonu</string>
+    <string name="slip_menu">Slip Tekrarı</string>
 
     <string name="original_amount">Orijinal Tutar</string>
     <string name="refund_amount">İade Tutarı</string>
@@ -37,10 +38,13 @@
     <string name="no_trans_found">İşlem Bulunamadı</string>
     <string name="trans_not_found">İşlem Bulunamadı</string>
     <string name="card_service_error">Kart Servis Hatası</string>
+    <string name="device_info_service_Error">Cihaz Bilgisi Servis Hatası</string>
 
     <string name="examples">Örnekler</string>
     <string name="batch_close">Grup Kapama</string>
     <string name="batch_close_will_be_done">Grup Kapama Yapılacak</string>
+    <string name="batch_close_not_found">Gün Sonu Bulunamadı</string>
+    <string name="transaction_list">İşlem Listesi</string>
 
     <string name="success">Başarılı</string>
     <string name="cancelled">İptal Edildi</string>
@@ -48,6 +52,7 @@
     <string name="error_timeout">Zaman Aşımı</string>
     <string name="declined">Reddedildi</string>
     <string name="refund_info_not_found">İade Bilgisi Hatası</string>
+    <string name="offline_decline">Kart Numaraları Eşleşmedi</string>
 
     <string name="card_number">Kart Numarası</string>
     <string name="invalid_card_number">Kart Numarası Hatalı</string>
@@ -67,6 +72,9 @@
 
     <string name="setup">Kurulum</string>
     <string name="host_settings">Host Ayarları</string>
+    <string name="demo_mode">Demo Modu</string>
+    <string name="demo_mode_enabled">Demo Modu Açık</string>
+    <string name="demo_mode_disabled">Demo Modu Kapalı</string>
     <string name="settings">Ayarlar</string>
     <string name="invalid_ip">Geçersiz IP!</string>
     <string name="invalid_port">Geçersiz Port!</string>
@@ -76,8 +84,11 @@
     <string name="invalid_merchant_no">İşyeri No Geçersiz!</string>
     <string name="terminal_no">Terminal No:</string>
     <string name="invalid_terminal_no">Terminal No Geçersiz!</string>
+    <string name="emv_configuration_error">EMV Kurulum Hatası</string>
+    <string name="emv_cl_configuration_error">EMV Temassız Kurulum Hatası</string>
 
     <string name="print_functions">Print Fonksiyonları</string>
+    <string name="kms_service_error">KMS Servis Hatası</string>
     <string name="setup_bank">Config Dosyaları Güncellendi, Lütfen Banka Kurulumu Yapınız</string>
     <string name="starting_activation">Aktivasyon Başlatılıyor…</string>
     <string name="activation_completed">Aktivasyon Tamamlandı</string>

@@ -11,7 +11,7 @@ import com.example.application_template_jmvvm.data.database.DatabaseInfo;
 public interface ActivationDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    void insertActivation(ActivationEntity activationEntity);
+    void insertActivation(Activation activation);
 
     @Query("UPDATE " + DatabaseInfo.ACT_TABLE + " SET " + ActivationCols.col_IP + " = :ip, " + ActivationCols.col_Port + " = :port " + "WHERE " + ActivationCols.col_IP + " = :old_ip")
     void updateConnection(String ip, String port, String old_ip);
@@ -30,10 +30,4 @@ public interface ActivationDao {
 
     @Query("SELECT " + ActivationCols.col_Port + " FROM " + DatabaseInfo.ACT_TABLE + " LIMIT 1")
     String getHostPort();
-
-    @Query("SELECT COUNT(*) FROM " + DatabaseInfo.ACT_TABLE)
-    int isTableEmpty();
-
-    @Query("DELETE FROM " + DatabaseInfo.ACT_TABLE)
-    void deleteAll();
 }

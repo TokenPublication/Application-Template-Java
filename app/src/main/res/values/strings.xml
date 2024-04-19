@@ -22,6 +22,7 @@
     <string name="installment_refund">Installment Refund</string>
     <string name="loyalty_refund">Loyalty Refund</string>
     <string name="previous_batch_slip">Previous Batch Slip</string>
+    <string name="slip_menu">Slip Menu</string>
 
     <string name="original_amount">Original Amount</string>
     <string name="refund_amount">Refund Amount</string>
@@ -44,10 +45,13 @@
     <string name="no_trans_found">No Transactions Found</string>
     <string name="trans_not_found">Transaction Not Found</string>
     <string name="card_service_error">Card Service Error</string>
+    <string name="device_info_service_Error">Device Info Service Error</string>
 
     <string name="examples">Examples</string>
     <string name="batch_close">Batch Close</string>
     <string name="batch_close_will_be_done">Batch Close Will Be Implemented</string>
+    <string name="batch_close_not_found">Batch Close Not Found</string>
+    <string name="transaction_list">Transaction List</string>
 
     <string name="info_dialog" translatable="false">Info Dialog</string>
     <string name="confirmation_dialog" translatable="false">Confirmation Dialog</string>
@@ -72,6 +76,7 @@
     <string name="declined_example" translatable="false">Declined</string>
     <string name="confirmation_example" translatable="false">Confirmation</string>
     <string name="refund_info_not_found">Refund Info Not Found</string>
+    <string name="offline_decline">Card Numbers are Mismatching</string>
 
     <string name="card_number">Card Number</string>
     <string name="invalid_card_number">Invalid Card Number</string>
@@ -97,11 +102,16 @@
 
     <string name="setup">Setup</string>
     <string name="host_settings">Host Settings</string>
+    <string name="demo_mode">Demo Mode</string>
+    <string name="demo_mode_enabled">Demo Mode Enabled</string>
+    <string name="demo_mode_disabled">Demo Mode Disabled</string>
     <string name="settings">Settings</string>
     <string name="invalid_ip">Invalid IP!</string>
     <string name="invalid_port">Invalid Port!</string>
     <string name="save">Save</string>
     <string name="activation_completed">Activation Completed</string>
+    <string name="emv_configuration_error">EMV Configuration Error</string>
+    <string name="emv_cl_configuration_error">EMV CL Configuration Error</string>
 
     <string name="merchant_no">Merchant No</string>
     <string name="invalid_merchant_no">Invalid Merchant No!</string>
@@ -109,6 +119,7 @@
     <string name="invalid_terminal_no">Invalid Terminal No!</string>
 
     <string name="print_functions">Print Functions</string>
+    <string name="kms_service_error">KMS Service Error</string>
     <string name="setup_bank">Config Files Updated, Please Do Bank Setup</string>
     <string name="starting_activation">Starting Activation…</string>
     <string name="parameter_loading">Parameter Loading…</string>
